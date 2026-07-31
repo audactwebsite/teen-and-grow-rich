@@ -135,6 +135,40 @@ const jsonLdText = jsonLd({ ...author, url: "/proof", nationality: "NL", knowsAb
     </ol>
   </section>
 
+  {/* Where the timeline comes from.
+
+      /hill sets this site's own rule in its own words: every number links to a primary
+      source, or it gets cut. This page is full of results and carries no links, which made
+      it the one place the site broke a rule it enforces on a dead author — two separate
+      reviewers noticed, and they were right.
+
+      The fix is not to bolt the audit table back on; that table was what made this page
+      unreadable to the person it is for. It is to say in four lines which of these you can
+      go and check, and which you are taking on our word. Delete this note the day the
+      links land (docs/for-ryan.md, item 4). */}
+  <section class="wrap section" aria-labelledby="sources">
+    <h2 id="sources">Where all that comes from</h2>
+    <div class="prose">
+      <p>
+        The racing results are published. They were reported at the time by Dutch motorsport
+        press and they sit in the classification sheets for those rounds — so you can go and
+        find them, and if you cannot find one, that is worth knowing too.
+      </p>
+      <p>
+        <b>They are not linked here yet, and that is a gap.</b> This site's own rule, on
+        <a href="/hill">the Napoleon Hill page</a>, is that every number links to a primary
+        source or gets cut. Holding a dead author to a rule we have not met on our own page
+        would be the cheap version of that argument, so: the links are coming, and until
+        they do, treat this page as reported rather than verified.
+      </p>
+      <p>
+        The Formula 4 part is different. That came from Ryan's family rather than from a
+        results sheet, because it is not a race and there is nothing to publish — which is
+        exactly why it says he trains in the car instead of racing it.
+      </p>
+    </div>
+  </section>
+
   <section class="wrap section" aria-labelledby="f4">
     <h2 id="f4">About that Formula 4 car</h2>
     <div class="prose">
@@ -260,6 +294,10 @@ const jsonLdText = jsonLd({ ...author, url: "/proof", nationality: "NL", knowsAb
 
   .prose p + p {
     margin-block-start: 0.9em;
+  }
+
+  .prose b {
+    color: var(--text-strong);
   }
 
   .lede {

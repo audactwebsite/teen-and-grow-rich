@@ -21,6 +21,7 @@ import Box from "../components/Box.astro";
 import Flag from "../components/Flag.astro";
 import { allOffers, allRealityChecks } from "../lib/content";
 import { metaFor } from "./reality-check/_checks";
+import { offerMeta } from "../lib/offer-meta";
 
 const offers = await allOffers();
 
@@ -70,6 +71,7 @@ const PRINTED_PAGE = 57;
             <th scope="col">Offer</th>
             <th scope="col">Deliverable</th>
             <th scope="col">First proof</th>
+            <th scope="col">Not for</th>
             <th scope="col">Canvas</th>
           </tr>
         </thead>
@@ -101,6 +103,11 @@ const PRINTED_PAGE = 57;
                   <span class="cell__flag">
                     <Flag level="green" size="sm" label="Green · build this one on your own" />
                   </span>
+                </td>
+
+                <td data-cell="notfor">
+                  <span class="cell__label">Not for</span>
+                  <span class="cell__value cell__value--muted">{offerMeta(o.id).notFor}</span>
                 </td>
 
                 <td data-cell="canvas">
@@ -280,6 +287,15 @@ const PRINTED_PAGE = 57;
   .cell__value--strong {
     font-weight: 700;
     color: var(--text-strong);
+  }
+
+  /* The "not for" line sits one step back from the offer it disqualifies: it is the
+     caveat, not the headline, and it should read as an aside rather than compete with
+     the deliverable beside it. */
+  .cell__value--muted {
+    font-size: var(--text-meta);
+    line-height: 1.5;
+    color: var(--text-muted);
   }
 
   .cell__flag {

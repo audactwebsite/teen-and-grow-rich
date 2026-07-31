@@ -39,6 +39,35 @@ const EXAMPLE_MATCHES = [
   "Asks for ID, a bank card, or a photo of a document",
   "Asks you to sign terms, or to promote a financial product",
 ];
+
+/**
+ * The five questions, by hand. Each one is a pressure tactic the printed Chapter 7 Reality
+ * Check names, phrased as something a reader can answer about the message in front of them.
+ * Nothing here is site opinion about scams in general — that would be inventing book
+ * content, which this project does not do.
+ */
+const BY_HAND = [
+  {
+    q: "Is it in a hurry?",
+    a: "“Today only.” “Last spot.” “Reply in the next hour or it goes to someone else.” Real work does not expire tonight. Urgency exists to stop you asking anyone.",
+  },
+  {
+    q: "Do you have to pay, or buy something, before anything arrives?",
+    a: "Equipment, a starter pack, a fee, a course, a deposit, a “verification” payment. Money going out before anything comes in is the oldest shape there is.",
+  },
+  {
+    q: "Does it want a document, a card, or a photo of you?",
+    a: "ID, a passport page, a bank card, a selfie holding something. No legitimate first job needs any of that from a thirteen-year-old over a chat.",
+  },
+  {
+    q: "Does it want you to sign something, or to promote money to other people?",
+    a: "Contracts, terms, an affiliate link, “just share this investment with your friends”. Both are red on the traffic-light rule: an adult is required, not optional.",
+  },
+  {
+    q: "Does it end with meeting up, or moving to another app?",
+    a: "“Let’s continue on Telegram.” “Come to this address.” Moving the conversation somewhere with fewer witnesses is a step, and it is always the same step.",
+  },
+];
 ---
 
 <Page
@@ -138,6 +167,49 @@ const EXAMPLE_MATCHES = [
       Every red and yellow answer ends the same way, on purpose. The tool is not the
       decision — it is the thing you take to the person who makes it.
     </p>
+  </section>
+
+  {/* The check, by hand.
+
+      The tool is off. Until the serverless function exists, a reader who arrived here
+      because something actually happened to them tonight gets an accurate description of a
+      thing that does not run. The book's Chapter 7 Reality Check does not need a model to
+      work — it is five questions, and a person can answer them faster than an API can.
+
+      Every line is one of the pressure tactics the printed Reality Check names, so this
+      cannot drift away from what the book actually warns about. Nothing here is site
+      opinion about scams in general. */}
+  <section class="wrap section" aria-labelledby="byhand">
+    <h2 id="byhand">Do it yourself, right now, in five questions</h2>
+    <div class="prose">
+      <p class="byhand__lede">
+        You do not have to wait for the tool. Read the message you were sent and answer
+        these five. They are the same things the tool will look for, because they are the
+        ones Chapter 7 names.
+      </p>
+    </div>
+
+    <ol class="byhand">
+      {
+        BY_HAND.map((q, i) => (
+          <li class="byhand__item">
+            <p class="byhand__n" aria-hidden="true">{i + 1}</p>
+            <div>
+              <h3 class="byhand__q">{q.q}</h3>
+              <p class="byhand__a">{q.a}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+
+    <div class="prose">
+      <p class="byhand__end">
+        <b>Any single yes is enough to stop.</b> Not to panic — to stop, and to show the
+        message to one adult before you answer it. You do not have to decide whether it is
+        a scam. You have to not be the only person who has seen it.
+      </p>
+    </div>
   </section>
 
   <section class="wrap section" aria-labelledby="check">
@@ -543,5 +615,55 @@ const EXAMPLE_MATCHES = [
 
   a:hover {
     text-decoration-color: var(--accent-spine);
+  }
+
+  .byhand__lede {
+    margin-block-start: 0.75rem;
+  }
+
+  .byhand {
+    max-inline-size: var(--container-measure);
+    margin-block-start: 1.25rem;
+    padding: 0;
+    list-style: none;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .byhand__item {
+    display: grid;
+    grid-template-columns: 2.25rem minmax(0, 1fr);
+    gap: 0.75rem;
+    align-items: start;
+    padding-block: 0.9rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .byhand__n {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    line-height: 1.1;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .byhand__q {
+    font-size: var(--text-heading);
+    line-height: 1.25;
+    color: var(--text-strong);
+  }
+
+  .byhand__a {
+    margin-block-start: 0.25rem;
+    font-size: var(--text-meta);
+    line-height: 1.55;
+    color: var(--text-muted);
+  }
+
+  .byhand__end {
+    margin-block-start: 1.25rem;
+  }
+
+  .byhand__end b {
+    color: var(--text-strong);
   }
 </style>
