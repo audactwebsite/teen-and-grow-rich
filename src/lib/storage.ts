@@ -213,13 +213,64 @@ export function exportJson(): string {
   return JSON.stringify({ v: 1, exportedAt: new Date().toISOString(), log: readLog() }, null, 2);
 }
 
+/**
+ * Bring a log in from another device.
+ *
+ * The file comes from outside, so nothing in it is trusted. The first version checked that
+ * `k` and `id` were strings and nothing else, which left three ways for one bad file to
+ * destroy a reader's own record:
+ *
+ *  - No cap on how many entries arrive. The log holds MAX_EVENTS and trims from the OLDEST
+ *    end, so a file with 10,000 rows silently evicts every build tick and every written
+ *    answer the reader has. That is the same failure as the slider bug: the damage is not
+ *    the bad data, it is what the bad data pushes out.
+ *  - No cap on the length of `id` or a string `v`. Megabytes of one field fill the quota
+ *    and every later write fails.
+ *  - `t` was never checked, and the log is sorted and dated by it. One NaN and entries
+ *    render at the epoch or not at all.
+ *
+ * No attacker is needed for any of this. A truncated download does it.
+ */
+const MAX_IMPORT_EVENTS = MAX_EVENTS;
+const MAX_ID_LENGTH = 200;
+const MAX_VALUE_LENGTH = 5000;
+const EVENT_KINDS = new Set<EventKind>(["build", "play", "day", "field", "score"]);
+
+function isSaneEvent(e: unknown): e is LogEvent {
+  if (!e || typeof e !== "object") return false;
+  const { t, k, id, v } = e as Partial<LogEvent>;
+  if (typeof t !== "number" || !Number.isFinite(t) || t < 0) return false;
+  if (typeof k !== "string" || !EVENT_KINDS.has(k as EventKind)) return false;
+  if (typeof id !== "string" || id.length === 0 || id.length > MAX_ID_LENGTH) return false;
+  if (typeof v === "string") return v.length <= MAX_VALUE_LENGTH;
+  return typeof v === "number" && Number.isFinite(v);
+}
+
 export function importJson(raw: string): { ok: true; added: number } | { ok: false; error: string } {
   try {
-    const parsed = JSON.parse(raw) as { v?: number; log?: LogEvent[] };
-    if (!parsed || !Array.isArray(parsed.log)) return { ok: false, error: "Not a Teen & Grow Rich export file." };
-    pending.push(...parsed.log.filter((e) => e && typeof e.k === "string" && typeof e.id === "string"));
+    const parsed = JSON.parse(raw) as { v?: number; log?: unknown };
+    if (!parsed || !Array.isArray(parsed.log)) {
+      return { ok: false, error: "Not a Teen & Grow Rich export file." };
+    }
+
+    const usable = parsed.log.filter(isSaneEvent);
+    if (usable.length === 0) {
+      return { ok: false, error: "That file had nothing in it this site could read." };
+    }
+    if (usable.length > MAX_IMPORT_EVENTS) {
+      /* Refuse rather than truncate. Silently keeping the first 4,000 of 40,000 is a
+         decision about which of the reader's records survive, and it is not ours. */
+      return {
+        ok: false,
+        error: `That file has ${usable.length} entries, more than this site keeps (${MAX_IMPORT_EVENTS}). Nothing was changed.`,
+      };
+    }
+
+    pending.push(...usable);
     scheduleFlush();
-    return { ok: true, added: parsed.log.length };
+    /* usable.length, not parsed.log.length. Reporting the count before filtering told the
+       reader 150 entries had arrived when 3 had. */
+    return { ok: true, added: usable.length };
   } catch {
     return { ok: false, error: "That file could not be read." };
   }

@@ -16,6 +16,7 @@
 import { Image } from "astro:assets";
 import Page from "../layouts/Page.astro";
 import Flag from "../components/Flag.astro";
+import SafetyNotice from "../components/SafetyNotice.astro";
 import harbour from "../assets/photos/monaco-harbour-01.jpg";
 import cover from "../assets/photos/book-cover.jpg";
 import {
@@ -144,7 +145,7 @@ const description =
         </div>
 
         <p class="pn__hint" id="pn-hint">
-          Pages 1–{LAST_PRINTED_PAGE}. Type {LAST_PAGE} for the chapter that is not in the book.
+          Pages 1 to {LAST_PRINTED_PAGE}. Type {LAST_PAGE} for the chapter that is not in the book.
         </p>
 
         {/* Ships empty. The lede and the hint already say what to do, and a third
@@ -153,6 +154,68 @@ const description =
             reserved height keeps the Go button from moving under a reaching thumb. */}
         <p class="pn__out" id="pn-out" aria-live="polite" data-page-out></p>
       </form>
+    </div>
+  </section>
+
+  {/* ----------------------------------------------------------- 1b. No book? Start here.
+
+      Four reviews said the homepage opens as if everyone already owns the book. Reading
+      it back, the problem was sharper than that: there were four doors on this page and
+      every one of them — Race Control, schools, the Hill audit, the author — pointed at an
+      adult. The teenager, who is the reader, got a number field and nothing else.
+
+      So this is the missing door, and it is deliberately the shortest section on the page.
+      Three things to do, one line each, no explanation of the philosophy first. A reader
+      this age does not need to be sold the method before being allowed to try it, and
+      non-negotiable 7 says nothing here is locked anyway. */}
+  <section class="start" aria-labelledby="start-title">
+    <div class="wrap">
+      <p class="eyebrow">No book in your hand?</p>
+      <h2 id="start-title" class="h2">Start anyway</h2>
+      <p class="start__lede">
+        You do not need the book to use any of this. Nothing is locked, there is no account
+        and there is nowhere to type your email. Pick whichever one is true for you tonight.
+      </p>
+
+      <ul class="start__list">
+        <li class="start__card">
+          <a class="start__link" href="/build/01">
+            <span class="start__kicker">20 minutes</span>
+            <b class="start__title">Make the first thing</b>
+            <span class="start__body">
+              Start a folder called <i>REAL RICH RECEIPTS</i> and put one real thing in it —
+              a screenshot, a draft, a message someone sent back. That folder is the whole
+              idea: proof you can point at, instead of a feeling that you were productive.
+            </span>
+          </a>
+        </li>
+
+        <li class="start__card">
+          <a class="start__link" href="/reality-check">
+            <span class="start__kicker">Something feels off</span>
+            <b class="start__title">Check it before you reply</b>
+            <span class="start__body">
+              Someone offered you money for a "simple task", a brand deal, a job that starts
+              with buying your own gear. There are nineteen checks here for exactly that,
+              and none of them need you to sign up for anything.
+            </span>
+          </a>
+        </li>
+
+        <li class="start__card">
+          <a class="start__link" href="/c/01">
+            <span class="start__kicker">Just looking</span>
+            <b class="start__title">Read one chapter</b>
+            <span class="start__body">
+              One idea, one thing that happened, and one thing to go and do afterwards.
+              That is the shape of all fifteen. Start at the first one and see if you like
+              how it thinks.
+            </span>
+          </a>
+        </li>
+      </ul>
+
+      <SafetyNotice tone="beta" class="start__notice" />
     </div>
   </section>
 
@@ -278,7 +341,7 @@ const description =
         <li>
           <a class="door" href="/proof">
             <b>About Ryan</b>
-            <span>The karting record, the date it was checked, and the claim we are not making.</span>
+            <span>Thirteen. Karting across Europe since he was eight, and an F4 car built to fit him at eleven.</span>
           </a>
         </li>
       </ul>
@@ -870,6 +933,93 @@ const description =
   }
 
   /* --- 4. The adult doors ---------------------------------------------------------- */
+
+  /* ---- 1b. The reader's own door -------------------------------------------------
+     Cards rather than the hairline rows used for the adult doors below, and that is the
+     point: the adult doors are a reference list you scan, these are three things to go
+     and do. Same vocabulary — teal spine, orange dot — at a different weight. */
+
+  .start {
+    margin-block-start: 2.5rem;
+  }
+
+  .start__lede {
+    max-inline-size: var(--container-measure);
+    margin-block-start: 0.6rem;
+    color: var(--text-default);
+  }
+
+  .start__list {
+    display: grid;
+    gap: 1rem;
+    margin-block-start: 1.5rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 52rem) {
+    .start__list {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  .start__card {
+    display: flex;
+  }
+
+  .start__link {
+    display: grid;
+    align-content: start;
+    gap: 0.3rem;
+    inline-size: 100%;
+    padding: 1rem 1rem 1.1rem;
+    background: var(--surface-card);
+    /* A 1px hairline is a divider colour and fails 1.4.11 as a control boundary. The
+       spine colour at 3px on the leading edge is the same device the chapter opener
+       uses, and it survives a greyscale photocopy. */
+    border-inline-start: 3px solid var(--accent-spine);
+    text-decoration: none;
+    color: var(--text-default);
+    transition: transform 180ms ease-out, background-color 180ms ease-out;
+  }
+
+  .start__link:hover {
+    background: var(--surface-raised);
+    transform: translateY(-2px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .start__link {
+      transition: none;
+    }
+
+    .start__link:hover {
+      transform: none;
+    }
+  }
+
+  .start__kicker {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .start__title {
+    font-size: var(--text-heading);
+    line-height: 1.25;
+    color: var(--text-strong);
+  }
+
+  .start__body {
+    font-size: var(--text-meta);
+    line-height: 1.55;
+  }
+
+  .start__notice {
+    margin-block-start: 1.5rem;
+  }
 
   .doors {
     margin-block-start: 3rem;

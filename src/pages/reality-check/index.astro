@@ -17,6 +17,7 @@
  */
 import Page from "../../layouts/Page.astro";
 import ChapterFurniture from "../../components/ChapterFurniture.astro";
+import SafetyNotice from "../../components/SafetyNotice.astro";
 import Box from "../../components/Box.astro";
 import Flag from "../../components/Flag.astro";
 import PageRef from "../../components/PageRef.astro";
@@ -66,6 +67,10 @@ const total = checks.length;
     title="Reality Checks"
     subtitle={`All ${total} of them, in full, exactly as they are printed in the book.`}
   />
+
+    <div class="wrap">
+      <SafetyNotice tone="crisis" />
+    </div>
 
   <div class="prose">
     <p>

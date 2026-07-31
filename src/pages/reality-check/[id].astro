@@ -14,6 +14,7 @@
  */
 import Page from "../../layouts/Page.astro";
 import ChapterFurniture from "../../components/ChapterFurniture.astro";
+import SafetyNotice from "../../components/SafetyNotice.astro";
 import Box from "../../components/Box.astro";
 import Flag from "../../components/Flag.astro";
 import PageRef from "../../components/PageRef.astro";
@@ -106,6 +107,10 @@ const jsonLdText = JSON.stringify(jsonLd).replace(/</g, "\\u003c");
       eyebrow={`Reality Check · ${theme.title}`}
       title={meta.question}
     />
+
+    <div class="wrap">
+      <SafetyNotice tone="crisis" />
+    </div>
   </div>
 
   <div class="prose">

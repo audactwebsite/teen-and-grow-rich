@@ -18,7 +18,9 @@
  */
 import Page from "../../layouts/Page.astro";
 import ChapterFurniture from "../../components/ChapterFurniture.astro";
+import SafetyNotice from "../../components/SafetyNotice.astro";
 import Box from "../../components/Box.astro";
+import { SITE_HOST } from "../../lib/site";
 
 /** Claim → how a reviewer proves it, without taking our word for anything. */
 const CLAIMS = [
@@ -67,13 +69,41 @@ const CLAIMS = [
  * apology so it can be read as the outstanding work it is — and so the reviewer can see
  * exactly what will be there, and hold us to the list.
  */
+/**
+ * What is now answered about the host, and what is still open.
+ *
+ * This section used to say "the hosting provider is not chosen yet" and list six unknowns.
+ * The provider is now chosen, so four of the six can be answered — and two of those are
+ * answerable by the reviewer themselves from a response header, which is the standard this
+ * page sets for everything else on it.
+ *
+ * The remaining two are deliberately still open. Log field contents and a retention period
+ * in days are facts about someone else's system; asserting a number here that turns out to
+ * be wrong would be worse than naming the gap. Non-negotiable 10 applies to this page
+ * first, not last.
+ */
+const HOST_ANSWERED = [
+  {
+    q: "Who serves this site, and from where?",
+    a: "Vercel Inc. The edge node that answered is named in the X-Vercel-Id response header on every request. At the time of writing it is fra1 — Frankfurt, inside the EEA. You can check it yourself: open the network tab, reload, and read the response headers on the document request.",
+  },
+  {
+    q: "What does this site send them about a reader?",
+    a: "Nothing this site chooses to. There is no analytics call, no beacon, no third-party request and no cookie set by us. What reaches the host is what reaching any web server requires: the request itself.",
+  },
+  {
+    q: "Is Vercel our processor rather than an independent controller?",
+    a: "Yes. Their data-processing terms are public and linked below, and they are the document that makes that so.",
+  },
+  {
+    q: "Can data leave the EEA?",
+    a: "Vercel Inc. is incorporated in the United States, so the possibility exists even when a request is served from Frankfurt. The transfer terms are in the same document. We are not going to summarise someone else's legal mechanism in one line here; read it, or ask us and we will point at the clause.",
+  },
+];
+
 const HOST_PENDING = [
-  "The hosting provider's name, and the country the site is served from.",
-  "The provider's own data-processing terms, linked — the document that makes it our processor rather than an independent controller.",
-  "Whether any personal data leaves the EEA, and on what transfer basis if it does.",
   "What the access logs actually contain, field by field, rather than the phrase “standard server logs”.",
-  "How long those logs are kept before deletion, as a number of days.",
-  "Whether logging is switched off entirely, or IP addresses are truncated or hashed before they are written.",
+  "How long those logs are kept before deletion, as a number of days, and whether IP addresses are truncated or hashed before they are written.",
 ];
 
 /** What is written to the device, why, and what removes it. */
@@ -93,7 +123,7 @@ const STORED = [
 
 <Page
   title="Privacy, for schools"
-  description="How teenandgrowrich.com handles data, for a school IT reviewer: no accounts, no cookies, no analytics, no third-party requests — and every claim checkable from the page source."
+  description={`How ${SITE_HOST} handles data, for a school IT reviewer: no accounts, no cookies, no analytics, no third-party requests — and every claim checkable from the page source.`}
 >
   <ChapterFurniture
     eyebrow="For school IT and data protection"
@@ -101,9 +131,13 @@ const STORED = [
     subtitle="Every claim below can be checked from the page source. That is the point of writing it this way."
   />
 
+    <div class="wrap">
+      <SafetyNotice tone="beta" />
+    </div>
+
   <div class="prose">
     <p>
-      teenandgrowrich.com is a static companion site for a printed book aimed at readers
+      {SITE_HOST} is a static companion site for a printed book aimed at readers
       aged 13 and up. It supplies the book's worksheets, checklists and safety material as
       web tools. It is not a learning platform, it holds no pupil records, and it has no
       administrator view of anything.
@@ -181,22 +215,38 @@ const STORED = [
       >. "Nothing is processed" would be false for any site on the internet.
     </p>
 
+    <dl class="qa">
+      {
+        HOST_ANSWERED.map((item) => (
+          <div class="qa__row">
+            <dt class="qa__q">{item.q}</dt>
+            <dd class="qa__a">{item.a}</dd>
+          </div>
+        ))
+      }
+    </dl>
+
+    <p class="qa__doc">
+      Vercel's data-processing terms:{" "}
+      <a href="https://vercel.com/legal/dpa" rel="external noreferrer">vercel.com/legal/dpa</a>. That
+      is an outbound link: nothing is requested from it until you choose to follow it, so
+      the "open the network tab and check" claim on this page still holds.
+    </p>
+
     <div class="pending">
       <Box kind="build">
-        <p class="pending__label">To be completed before launch — six items, named</p>
+        <p class="pending__label">Still open — two items, named</p>
         <p>
-          The hosting provider is not chosen yet, so this section cannot be written
-          honestly today. Rather than leave you to guess what is missing, here is the exact
-          list that will fill it. If you are reviewing the site and any of these is still
-          unanswered, the page is not finished and you should treat it as such on this one
-          point.
+          These are facts about someone else's system, and a number invented here would be
+          worse than a gap. If you are reviewing this site and either is still unanswered,
+          treat the page as unfinished on this one point and ask us.
         </p>
         <ul class="pending__list">
           {HOST_PENDING.map((item) => <li>{item}</li>)}
         </ul>
         <p class="pending__note">
-          Nothing above changes what this site itself collects, which is nothing. It is the
-          provider's processing that is undocumented here, not ours.
+          Neither changes what this site itself collects, which is nothing. It is the
+          provider's processing that is not yet documented here, not ours.
         </p>
       </Box>
     </div>
@@ -282,6 +332,43 @@ const STORED = [
 </Page>
 
 <style>
+  /* The answered hosting facts. A definition list rather than a table: it is four
+     question/answer pairs, and a two-column table of prose collapses to exactly this on a
+     phone anyway. */
+  .qa {
+    max-inline-size: var(--container-measure);
+    margin-block-start: 1.25rem;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .qa__row {
+    padding-block: 0.9rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .qa__q {
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  .qa__a {
+    margin: 0.3rem 0 0;
+    color: var(--text-default);
+  }
+
+  .qa__doc {
+    max-inline-size: var(--container-measure);
+    margin-block-start: 1rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .qa__doc a {
+    color: inherit;
+    text-decoration-color: currentColor;
+    text-underline-offset: 3px;
+  }
+
   .prose {
     max-inline-size: var(--container-measure);
     margin-inline: auto;

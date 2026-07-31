@@ -18,6 +18,7 @@
  */
 import Page from "../../layouts/Page.astro";
 import ChapterFurniture from "../../components/ChapterFurniture.astro";
+import SafetyNotice from "../../components/SafetyNotice.astro";
 import Box from "../../components/Box.astro";
 import Flag from "../../components/Flag.astro";
 import PageRef from "../../components/PageRef.astro";
@@ -50,6 +51,8 @@ const EXAMPLE_MATCHES = [
     title="Scam Check"
     subtitle="Paste the offer. Get it run through the book's Reality Check protocol, with the page it comes from."
   />
+
+  <SafetyNotice tone="crisis" />
 
   <div class="wrap">
     <p class="status" role="note">
@@ -177,12 +180,13 @@ const EXAMPLE_MATCHES = [
       <div class="pending" aria-labelledby="helpline-h">
         <p class="pending__label" id="helpline-h">Helpline finder — not in place yet</p>
         <p class="pending__note">
-          This site does not yet list a helpline you can call or message. One verified
-          finder — international, plus one for the Netherlands — is being checked with
-          someone who does safeguarding professionally, and it will be added here before
-          this site goes live. Making one up in the meantime would be the worse mistake, so
-          the routes below are the ones this page can stand behind today. Nothing here is a
-          crisis service, including the mailbox in the footer: nobody reads that urgently.
+          This site does not list a helpline you can call or message, and it is public
+          today, so that is a gap and not a plan. One verified finder — international, plus
+          one for the Netherlands — is being checked with someone who does safeguarding
+          professionally. Putting up a number we had not checked would be the worse
+          mistake, so until then the routes below are the ones this page can stand behind.
+          Nothing here is a crisis service, including the mailbox in the footer: nobody
+          reads that urgently.
         </p>
       </div>
 

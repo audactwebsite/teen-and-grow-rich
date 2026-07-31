@@ -272,6 +272,11 @@ const GROUPS = [
 </Page>
 
 <script>
+  /* Imported here rather than in the frontmatter: this is a bundled client script,
+     and a frontmatter import is not in its scope — the value would be undefined in
+     the browser, on the line that writes the site's own address onto the copy a
+     reader keeps. */
+  import { SITE_HOST } from "../lib/site";
   import { state, exportJson, importJson, clearAll, canKeep } from "../lib/storage";
 
   const root = document.querySelector<HTMLElement>(".js");
@@ -463,7 +468,7 @@ const GROUPS = [
       lines.push(
         "",
         "Kept in one browser only, which will eventually clear it.",
-        "This copy is the one that lasts. teenandgrowrich.com/receipts",
+        `This copy is the one that lasts. ${SITE_HOST}/receipts`,
       );
       return lines.join("\n");
     };

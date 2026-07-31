@@ -16,6 +16,7 @@
  */
 import Page from "../../layouts/Page.astro";
 import ChapterFurniture from "../../components/ChapterFurniture.astro";
+import SafetyNotice from "../../components/SafetyNotice.astro";
 import Box from "../../components/Box.astro";
 import Flag from "../../components/Flag.astro";
 import PageRef from "../../components/PageRef.astro";
@@ -56,6 +57,8 @@ const EXAMPLE_STEPS = [
     title="Shrink My First Step"
     subtitle="Type the goal that is too big. Get three first steps that fit in twenty minutes, and the proof each one leaves."
   />
+
+  <SafetyNotice tone="crisis" />
 
   <div class="wrap">
     <p class="status" role="note">

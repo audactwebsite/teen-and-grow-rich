@@ -10,6 +10,7 @@
  */
 import Page from "../layouts/Page.astro";
 import ChapterFurniture from "../components/ChapterFurniture.astro";
+import { SITE_HOST } from "../lib/site";
 
 interface Entry {
   date: string;
@@ -19,12 +20,22 @@ interface Entry {
 
 const ENTRIES: Entry[] = [
   {
+    date: "2026-07-31",
+    title: "Live, and the author page rewritten",
+    items: [
+      "The site went live. Every printed page number, /p/1 to /p/65, was checked against the live server: all 65 resolve.",
+      "The author page at /proof was rewritten. It had been a claims table with a column of editorial notes beside it — useful to whoever was building the site, no use at all to a thirteen-year-old who had just put the book down. It is now a timeline: eight to thirteen, in order.",
+      "The Formula 4 fact is now on that page, because the exact facts arrived. At eleven he drove an F4 car built to his measurements, and he trains in it rather than racing it. That is smaller than the rumour and more interesting than it.",
+      "Still no count of wins or podiums anywhere, because a number without a source gets cut rather than rounded. The page says the results are published and tells you to go and look, which is what Chapter 7 tells you to do with anybody's claims.",
+    ],
+  },
+  {
     date: "2026-07-30",
     title: "First public build",
     items: [
       "All 231 items from the printed book extracted and typed, so every word of book copy on this site is the book's own wording rather than a paraphrase.",
       "The Napoleon Hill audit published at /hill: what the record actually shows about Hill, with dates and two sources, and the two self-help statistics this site refuses to quote.",
-      "Ryan's karting record published at /proof. The Formula 4 claim is not on it, because it is not confirmed.",
+      "The author page published at /proof: the karting record, and what he is building now.",
       "The book page published at /get: 64 pages, the word count, an honest reading time, what the book has that this site does not, and who it is not for.",
       "Scam Check and Shrink My First Step published as shells. Neither is live; both say so on the page and show exactly what they will ask for and give back.",
       "Privacy, terms and editions published. Privacy lists what is kept in your browser key by key.",
@@ -40,7 +51,7 @@ const MISSING = [
   "The hosting provider's name, log contents and retention period on /privacy.",
   "The serverless function behind the two AI tools. Until it exists, both tools are shells.",
   "Chapter 16, which Ryan is writing about what he learned after the book went to print.",
-  "Per-result source links on /proof, so each karting result points at the timing sheet it comes from.",
+  "Links to the published karting results on /proof, so you can check each one without having to go searching for it.",
 ];
 
 const fmt = (iso: string) =>
@@ -49,7 +60,7 @@ const fmt = (iso: string) =>
 
 <Page
   title="Updates"
-  description="A dated changelog for teenandgrowrich.com — what changed, when, and what is still missing."
+  description={`A dated changelog for ${SITE_HOST} — what changed, when, and what is still missing.`}
 >
   <ChapterFurniture
     eyebrow="Updates"

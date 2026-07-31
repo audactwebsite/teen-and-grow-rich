@@ -1,0 +1,138 @@
+---
+/**
+ * The two sentences this site owes anyone who arrives on it today.
+ *
+ * Four independent reviews landed on the same contradiction: /updates dates 30 July 2026
+ * as "First public build", the site is publicly reachable, crawlable and open to AI
+ * crawlers by name — while the two AI tool pages still say a helpline finder will be
+ * "added here before this site goes live". So a reader in trouble can arrive at a page
+ * about blackmail today, with no route onward, on a site whose entire identity is safety.
+ *
+ * Six of the nineteen Reality Checks touch self-harm, blackmail, grooming, unwanted
+ * sexual messages, or a teenager trying to fix a family's money. Those are not edge
+ * cases for a 13+ audience; they are the reason the Reality Checks exist.
+ *
+ * Until a verified helpline route exists (docs/for-ryan.md, item 7) the honest thing is
+ * not to quietly leave the gap. It is to say plainly that this is not a crisis service
+ * and to point at the one route that does work — an adult in the room. That costs the
+ * site something on the pages it most wants to look finished, which is the same trade
+ * /hill and /proof already make.
+ *
+ * This is NOT one of the three semantic boxes and must never be styled as one. Those
+ * three are the book's, they carry book content, and there is no fourth. This is site
+ * chrome about the site's own status.
+ *
+ * `tone="crisis"` is for pages where a reader may already be in trouble. `tone="beta"`
+ * is the plain status note for everywhere else.
+ */
+interface Props {
+  tone?: "beta" | "crisis";
+  class?: string;
+}
+
+const { tone = "beta", class: className } = Astro.props;
+---
+
+<aside class:list={["notice", `notice--${tone}`, className]} aria-label="About this site">
+  <p class="notice__label">
+    {tone === "crisis" ? "If this is urgent, this is not the place" : "Public beta"}
+  </p>
+
+  {
+    tone === "crisis" ? (
+      <div class="notice__body">
+        <p>
+          Nobody is on the other end of this site right now. If it is happening today,
+          reading a page will not fix it.
+        </p>
+        <p>
+          <b>
+            If someone is threatening you, pressuring you for money or pictures, or if you
+            are thinking about hurting yourself — tell one adult today.
+          </b>{" "}
+          Not in a chat. In the room. A parent, a teacher, a coach, a librarian, a youth
+          worker, a brother or sister over 18. You do not have to explain it well. You just
+          have to say it out loud to someone.
+        </p>
+        <p>If you are in danger right now, call your local emergency number.</p>
+      </div>
+    ) : (
+      <div class="notice__body">
+        <p>
+          This site works, and it is not finished. What is still missing is{" "}
+          <a href="/updates">written down on the updates page</a> instead of hidden.
+        </p>
+        <p>Nobody reads the mailbox quickly. This is not the place to get help fast.</p>
+      </div>
+    )
+  }
+</aside>
+
+<style>
+  .notice {
+    max-inline-size: var(--container-measure);
+    margin-block: 1.5rem;
+    padding: 0.9rem 1rem;
+    /* A left rule rather than a filled panel. A fourth filled box would read as a fourth
+       semantic box, and there are exactly three. */
+    border-inline-start: 4px solid var(--rule-hairline);
+    background: var(--surface-card);
+  }
+
+  .notice--crisis {
+    /* The flag red, borrowed as an edge only. It never carries text here: --flag-red on
+       type fails contrast in light mode, and the label below is set in --text-strong. */
+    border-inline-start-color: var(--flag-red);
+  }
+
+  .notice--beta {
+    border-inline-start-color: var(--accent-spine);
+  }
+
+  .notice__label {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-strong);
+  }
+
+  .notice__body {
+    margin-block-start: 0.35rem;
+    /* Body size, not meta. This is the one piece of site chrome a reader in trouble has
+       to be able to read at a glance, and meta size is the size of a footnote. */
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    color: var(--text-default);
+  }
+
+  .notice--beta .notice__body {
+    font-size: var(--text-meta);
+    line-height: 1.55;
+  }
+
+  .notice__body p + p {
+    margin-block-start: 0.6em;
+  }
+
+  .notice__body b {
+    color: var(--text-strong);
+  }
+
+  .notice a {
+    color: inherit;
+    text-decoration-color: currentColor;
+    text-underline-offset: 3px;
+  }
+
+  /* On paper the edge colour is gone, so the border thickens instead — the same
+     independent-signal rule the three boxes use. */
+  @media print {
+    .notice {
+      background: none;
+      border-inline-start-width: 3px;
+      border-inline-start-color: #000;
+      break-inside: avoid;
+    }
+  }
+</style>

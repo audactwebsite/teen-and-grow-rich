@@ -13,6 +13,7 @@
 import Page from "../layouts/Page.astro";
 import ChapterFurniture from "../components/ChapterFurniture.astro";
 import { LAST_PAGE, LAST_PRINTED_PAGE } from "../lib/page-routing";
+import { SITE_HOST } from "../lib/site";
 
 const DOORS = [
   ["/builds", "All the builds", "Every 24-Hour Build, filterable."],
@@ -26,7 +27,7 @@ const DOORS = [
     destination is an error page that can be returned as a search result. */}
 <Page
   title="Page not found"
-  description="That address does not exist on teenandgrowrich.com. Type the book page number you are on instead."
+  description={`That address does not exist on ${SITE_HOST}. Type the book page number you are on instead.`}
   noindex
 >
   <ChapterFurniture
@@ -57,7 +58,7 @@ const DOORS = [
       </div>
 
       <p class="pn__hint" id="pn-hint">
-        Pages 1–{LAST_PRINTED_PAGE}. Type {LAST_PAGE} for the chapter that is not in the
+        Pages 1 to {LAST_PRINTED_PAGE}. Type {LAST_PAGE} for the chapter that is not in the
         book.
       </p>
     </form>

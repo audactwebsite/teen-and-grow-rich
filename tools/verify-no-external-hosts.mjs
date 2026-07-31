@@ -50,6 +50,12 @@ const ALLOWED_TEXT = [
      accusation would be the worse failure. */
   "https://en.wikipedia.org/wiki/Napoleon_Hill",
   "https://gizmodo.com/the-untold-story-of-napoleon-hill-the-greatest-self-he-1789385645",
+
+  /* The host's data-processing terms, cited on /schools/privacy. Same shape as the two
+     above: an outbound <a rel="external noreferrer"> that fetches nothing until a reader
+     follows it. A privacy page that names its processor without linking the document that
+     makes it one is asking to be taken on trust, which is the opposite of that page's job. */
+  "https://vercel.com/legal/dpa",
 ];
 
 /** Attributes that actually cause a network request. */

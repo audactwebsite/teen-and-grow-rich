@@ -157,6 +157,11 @@ const dayOffset = (groupIndex: number, itemIndex: number) => groupIndex * 7 + it
 </Page>
 
 <script>
+  /* Imported here rather than in the frontmatter: this is a bundled client script,
+     and a frontmatter import is not in its scope — the value would be undefined in
+     the browser, on the line that writes the site's own address onto the copy a
+     reader keeps. */
+  import { SITE_HOST } from "../../lib/site";
   import { record, state, canKeep, valueOf } from "../../lib/storage";
 
   const root = document.querySelector<HTMLElement>(".groups");
@@ -292,7 +297,7 @@ const dayOffset = (groupIndex: number, itemIndex: number) => groupIndex * 7 + it
             // Deterministic, derived only from the task and the chosen start date. No
             // random device id is minted, because that is exactly the thing this site
             // promises never to create.
-            `UID:${esc(id.replace(/[^a-z0-9:-]/gi, ""))}-${stamp(start)}@teenandgrowrich.com`,
+            `UID:${esc(id.replace(/[^a-z0-9:-]/gi, ""))}-${stamp(start)}@${SITE_HOST}`,
             `DTSTAMP:${dtstamp}`,
             `DTSTART;VALUE=DATE:${stamp(day)}`,
             `DTEND;VALUE=DATE:${stamp(addDays(day, 1))}`,

@@ -331,6 +331,11 @@ const prefill =
 </Page>
 
 <script>
+  /* Imported here rather than in the frontmatter: this is a bundled client script,
+     and a frontmatter import is not in its scope — the value would be undefined in
+     the browser, on the line that writes the site's own address onto the copy a
+     reader keeps. */
+  import { SITE_HOST } from "../../lib/site";
   import { record, state, canKeep } from "../../lib/storage";
 
   const sheet = document.querySelector<HTMLElement>("[data-worksheet]");
@@ -551,7 +556,7 @@ const prefill =
         }
       }
       if (lowest?.textContent) lines.push("", lowest.textContent);
-      lines.push("", "Copied from teenandgrowrich.com. This text is the copy that lasts.");
+      lines.push("", `Copied from ${SITE_HOST}. This text is the copy that lasts.`);
       return lines.join("\n");
     };
 

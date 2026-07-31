@@ -47,3 +47,4 @@ __pycache__/
 # .claude/skills/ are committed on purpose — they are how this repo is worked on).
 .claude/scheduled_tasks.lock
 .og-tmp.html
+.review/

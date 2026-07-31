@@ -30,9 +30,21 @@ const STRUCTURE = [
 ];
 ---
 
+{/* noindex until there is a chapter here.
+
+    The page is honest — it says "not written yet" and lists what will be on it — but
+    honest and thin are not the same thing to a search engine, and this site asks Google
+    to rank nineteen Reality Checks that a teenager in trouble might search for. Spending
+    crawl budget and site quality on a placeholder works against that.
+
+    noindex, not removal: `follow` is still on, /p/65 still resolves, the link from the
+    homepage still works, and a reader who types 65 still gets here. It is invisible to
+    the index and fully visible to a person. Remove this the day Ryan's text lands, and
+    add the entry back to sitemap.xml.ts. */}
 <Page
   title="Chapter 16"
   description="Chapter 16 of Teen & Grow Rich: what Ryan learned after the book went to print. He is writing it now."
+  noindex
 >
   {/* No printedPage: this chapter is not in the printed book, and claiming a page number
       for it would be the one kind of lie this project cannot afford. */}

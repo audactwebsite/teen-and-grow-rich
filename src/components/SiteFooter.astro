@@ -10,6 +10,8 @@
  * way for a 13-year-old to send us personal data, which is the thing this site exists
  * not to do.
  */
+import { SITE_HOST } from "../lib/site";
+
 const YEAR = new Date().getFullYear();
 
 const LINKS = [
@@ -22,7 +24,7 @@ const LINKS = [
   /* /proof is where every claim about Ryan is sourced and /get is the honest account of
      what the book contains; both were reachable only from the homepage, which is the one
      page a reader arriving mid-site never sees. */
-  { href: "/proof", label: "Ryan's record" },
+  { href: "/proof", label: "Who wrote this" },
   { href: "/get", label: "Get the book" },
   /* /editions is how anyone checks which printed run their page numbers belong to, and
      therefore which listings are genuine. It was linked only from /terms and /updates —
@@ -35,8 +37,18 @@ const LINKS = [
   { href: "/updates", label: "Updates" },
 ];
 
-/* PLACEHOLDER — the real adult-monitored address is still open in docs/decisions.md. */
-const CONTACT = "hello@teenandgrowrich.com";
+/**
+ * PLACEHOLDER — the mailbox still has to be created and given to an adult to read.
+ *
+ * It is built from the site's own host rather than typed out, because it had been written
+ * at teenandgrowrich.com: a domain nobody here owns, which made it an address that could
+ * never receive anything no matter who was willing to read it. At the connected domain it
+ * is at least an address that can be created today.
+ *
+ * This is item 6 in docs/for-ryan.md and it is the most urgent one on that list. Every page
+ * of this site offers it to a thirteen-year-old as the way to reach a grown-up.
+ */
+const CONTACT = `hello@${SITE_HOST}`;
 ---
 
 <footer class="site-footer">
@@ -58,7 +70,7 @@ const CONTACT = "hello@teenandgrowrich.com";
 
     <p class="site-footer__contact-note">
       One adult-monitored mailbox. Nobody reads it urgently, and it is not a crisis
-      service.
+      service. We never reply to someone under 18 without a parent or guardian copied in.
     </p>
 
     <p class="site-footer__disclaimer">

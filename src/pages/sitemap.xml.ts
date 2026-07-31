@@ -46,7 +46,9 @@ export const GET: APIRoute = async ({ site }) => {
     ...checks.map((c) => [`/reality-check/${c.id}`, "0.9"] as [string, string]),
     ["/builds", "0.8"],
     ...chapters.map((c) => [`/c/${pad(c.data.n)}`, "0.8"] as [string, string]),
-    ["/c/16", "0.7"],
+    /* /c/16 is deliberately absent while it says "not written yet". It carries
+       noindex until Ryan's text lands; submitting a placeholder would ask search
+       engines to weigh a page this site does not want weighed. Put it back then. */
     ...builds.map((b) => [`/build/${pad(b.data.n)}`, "0.7"] as [string, string]),
     ...worksheets.map((w) => [`/worksheet/${w.id}`, "0.7"] as [string, string]),
     ...sequences.map((s) => [`/path/${s.id}`, "0.7"] as [string, string]),
