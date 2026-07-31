@@ -22,9 +22,15 @@ interface Props {
   ogType?: "website" | "article";
   /** Suppresses the canonical and emits robots noindex. For the 404 only. */
   noindex?: boolean;
+  /** Pre-serialised JSON-LD, from src/lib/schema.ts. */
+  jsonLdText?: string;
+  ogImageUrl?: string;
+  ogImageAlt?: string;
+  ogImageWidth?: number;
+  ogImageHeight?: number;
 }
 
-const { title, description, printedPage, ogType, noindex } = Astro.props;
+const { title, description, printedPage, ogType, noindex, jsonLdText, ogImageUrl, ogImageAlt, ogImageWidth, ogImageHeight } = Astro.props;
 ---
 
 <Base
@@ -33,6 +39,11 @@ const { title, description, printedPage, ogType, noindex } = Astro.props;
   printedPage={printedPage}
   ogType={ogType}
   noindex={noindex}
+  jsonLdText={jsonLdText}
+  ogImageUrl={ogImageUrl}
+  ogImageAlt={ogImageAlt}
+  ogImageWidth={ogImageWidth}
+  ogImageHeight={ogImageHeight}
 >
   <a class="skip-link" href="#main">Skip to content</a>
 

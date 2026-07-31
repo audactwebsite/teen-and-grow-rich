@@ -20,6 +20,7 @@ import { Image } from "astro:assets";
  */
 import cover from "../assets/photos/book-cover.jpg";
 import { totals } from "../lib/content";
+import { book, jsonLd } from "../lib/schema";
 
 const t = await totals();
 
@@ -80,11 +81,16 @@ const NOT_FOR = [
   "Anyone who wants length. It is 64 pages. That is a decision, not a shortfall, but if a long book is what you are after, this is not it.",
   "Anyone under 13. It is written for 13 and up, and several chapters ask you to bring in a parent or guardian before you act.",
 ];
+
+/* The book as an entity. No isbn and no offers: neither is confirmed, and a structured
+   claim is still a claim (docs/for-ryan.md, items 5 and 8). */
+const jsonLdText = jsonLd({ ...book, url: "/get" }, Astro.site);
 ---
 
 <Page
   title="Get the book"
   description="Teen & Grow Rich is 64 printed pages, about 10,600 words. What is in it, what is on this site for free instead, and who the book is not for."
+  jsonLdText={jsonLdText}
 >
   <ChapterFurniture
     eyebrow="The book"

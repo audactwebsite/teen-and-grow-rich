@@ -1,0 +1,259 @@
+---
+/**
+ * The accessibility statement.
+ *
+ * Two reasons it exists. The European Accessibility Act has applied since 28 June 2025, and
+ * this site actively asks schools to use it — so a reviewer is entitled to a statement
+ * rather than a promise. And the site already invites an IT reviewer to open developer
+ * tools and check the privacy claims themselves; making the same offer about accessibility
+ * and then not publishing what was tested would be the inconsistent version.
+ *
+ * The hard part of this page is not the list of things that work. It is the list of things
+ * that have NOT been tested, which is longer, and which most statements of this kind quietly
+ * omit. A statement claiming a conformance level nobody measured is worth less than nothing:
+ * it tells a disabled reader they were considered when they were not.
+ *
+ * Update the dates when a real audit runs. Do not update the claims without running one.
+ */
+import Page from "../layouts/Page.astro";
+import ChapterFurniture from "../components/ChapterFurniture.astro";
+import Box from "../components/Box.astro";
+import { SITE_HOST } from "../lib/site";
+
+/** Bumped only when something on this page is actually re-checked. */
+const CHECKED_ON = "2026-08-01";
+const checkedLabel = new Date(CHECKED_ON).toLocaleDateString("en-GB", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
+
+/** Built into the site on purpose, and verified by measurement or by a build step. */
+const BUILT_IN = [
+  {
+    what: "Colour is never the only signal",
+    how: "The green/yellow/red flag carries three independent signals at once: the colour, the word spelled out, and a drawn flag shape. Photocopy a worksheet in black and white and all three flags still read differently. The three semantic boxes do the same with fill, border weight and border style.",
+  },
+  {
+    what: "Every interactive part works, or fails honestly, without JavaScript",
+    how: "The page-number field is a real form that submits to /p/ and works with scripting switched off. Worksheets can be printed blank and filled in by hand. Timers say plainly that any clock does the same job.",
+  },
+  {
+    what: "No horizontal scrolling at 320px",
+    how: "Checked on every page template at a 320px viewport, which is the narrowest screen in common use. Tables collapse into stacked cards rather than scrolling sideways.",
+  },
+  {
+    what: "Text contrast",
+    how: "Body and label colours were measured against their backgrounds in both themes rather than eyeballed. The flag label measures 4.74:1 at its darkest and 4.67:1 at its lightest; in print, 14.1:1 to 15.9:1.",
+  },
+  {
+    what: "Motion is limited, and prefers-reduced-motion is honoured",
+    how: "Fades and short translations only, 150–250ms. No parallax, no scroll-jacking, no confetti, no counting-up numbers. Where a hover moves something, the movement is removed entirely for anyone who has asked their system to reduce motion.",
+  },
+  {
+    what: "Printing is a supported way to use this site",
+    how: "Print stylesheets are written for every worksheet, plan and receipt, not left to the browser. Several features exist specifically to be printed and taken to an adult.",
+  },
+  {
+    what: "No third-party code",
+    how: "Nothing on this site is loaded from anywhere else, which means no embedded widget, advert or consent dialog can break keyboard focus or introduce a control we did not write. A build step fails the release if an external host appears anywhere in the output.",
+  },
+];
+
+/**
+ * The honest half. Every line here is a real gap in what has been VERIFIED, not a
+ * statement that the feature is broken.
+ */
+const NOT_YET_TESTED = [
+  "A full automated audit (axe-core or equivalent) across every page template, with the report published here and dated.",
+  "Screen reader testing with a person who uses one daily. Nothing on this site has been through NVDA, JAWS or VoiceOver with a real user rather than a developer.",
+  "A complete keyboard-only pass of every interactive page — worksheets, timers, checklists, the receipts dashboard and the page-number field — recorded step by step.",
+  "Reflow and readability at 200% and 400% browser zoom on every template.",
+  "Testing with Windows High Contrast mode and forced-colours mode.",
+  "Voice control (Dragon, Voice Access) on the buttons and form fields.",
+];
+---
+
+<Page
+  title="Accessibility"
+  description={`How accessible ${SITE_HOST} is, what has actually been tested, what has not been tested yet, and how to tell us when something does not work.`}
+>
+  <ChapterFurniture
+    eyebrow="Accessibility"
+    title="Accessibility"
+    subtitle="What has been checked, what has not, and how to tell us when something is wrong."
+  />
+
+  <div class="wrap">
+    <div class="prose">
+      <p class="lede">
+        The target for this site is WCAG 2.2 Level AA. That is the target, not a claim that
+        it has been independently certified — nobody has audited this site but the people who
+        built it, and this page says so rather than implying otherwise.
+      </p>
+      <p>
+        Last checked <time datetime={CHECKED_ON}>{checkedLabel}</time>.
+      </p>
+    </div>
+  </div>
+
+  <section class="wrap section" aria-labelledby="built-in">
+    <h2 id="built-in">What is built in, and how it was checked</h2>
+    <dl class="rows">
+      {
+        BUILT_IN.map((r) => (
+          <div class="row">
+            <dt class="row__what">{r.what}</dt>
+            <dd class="row__how">{r.how}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </section>
+
+  <section class="wrap section" aria-labelledby="not-tested">
+    <h2 id="not-tested">What has not been tested yet</h2>
+    <div class="prose">
+      <p>
+        This is the part most statements like this leave out. None of the below means a
+        feature is broken — it means nobody has proved it works, and saying otherwise would
+        tell you that you were thought about when you were not.
+      </p>
+    </div>
+    <div class="pending">
+      <Box kind="build">
+        <p class="pending__label">Not verified — six items, named</p>
+        <ul class="pending__list">
+          {NOT_YET_TESTED.map((item) => <li>{item}</li>)}
+        </ul>
+        <p class="pending__note">
+          Each one becomes a dated entry on <a href="/updates">the updates page</a> when it is
+          done, with the result — including if the result is bad.
+        </p>
+      </Box>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="report">
+    <h2 id="report">If something does not work</h2>
+    <div class="prose">
+      <p>
+        Tell us. The mailbox in the footer of every page reaches an adult, and an
+        accessibility problem is one of the few things worth writing about — we cannot fix
+        what we do not know is broken, and this site has no analytics to notice it for us.
+      </p>
+      <p>
+        Say which page, what you were trying to do, and what you use to browse. Nobody reads
+        the mailbox urgently, so if you are stuck on something you need today, an adult in
+        the room is faster than we are.
+      </p>
+      <p class="aside">
+        If you are a teacher or an IT reviewer and you need a specific conformance statement
+        for a procurement process, ask, and you will get an honest answer about what has and
+        has not been measured — the same list as above, with nothing added for the occasion.
+      </p>
+    </div>
+  </section>
+</Page>
+
+<style>
+  .wrap {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .prose {
+    max-inline-size: var(--container-measure);
+  }
+
+  .prose p + p {
+    margin-block-start: 0.9em;
+  }
+
+  .lede {
+    margin-block-start: 1.75rem;
+    font-size: var(--text-subtitle);
+    line-height: var(--text-subtitle--line-height);
+    color: var(--text-strong);
+  }
+
+  .section {
+    margin-block-start: 3rem;
+  }
+
+  .section > h2 {
+    font-size: var(--text-h2);
+    line-height: var(--text-h2--line-height);
+    color: var(--text-section);
+    max-inline-size: var(--container-measure);
+  }
+
+  .section > .prose {
+    margin-block-start: 0.75rem;
+  }
+
+  .rows {
+    max-inline-size: var(--container-measure);
+    margin-block-start: 1.25rem;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .row {
+    padding-block: 0.9rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .row__what {
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  .row__how {
+    margin: 0.3rem 0 0;
+    font-size: var(--text-meta);
+    line-height: 1.55;
+    color: var(--text-muted);
+  }
+
+  .pending {
+    max-inline-size: var(--container-measure);
+    margin-block-start: 1.25rem;
+  }
+
+  .pending__label {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-strong);
+  }
+
+  .pending__list {
+    margin-block-start: 0.6rem;
+    padding-inline-start: 1.1rem;
+  }
+
+  .pending__list li + li {
+    margin-block-start: 0.4rem;
+  }
+
+  .pending__note {
+    margin-block-start: 0.9rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .aside {
+    margin-block-start: 1.25rem;
+    padding-block-start: 1rem;
+    border-block-start: 3px solid var(--accent-dot);
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  a {
+    text-decoration-color: currentColor;
+    text-underline-offset: 3px;
+  }
+</style>

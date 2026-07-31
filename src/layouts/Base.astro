@@ -13,9 +13,16 @@ interface Props {
   ogType?: "website" | "article";
   /** Keep an error page out of the index, and stop it advertising a canonical. */
   noindex?: boolean;
+  /** Pre-serialised JSON-LD, from src/lib/schema.ts. */
+  jsonLdText?: string;
+  /** Absolute URL of a page-specific share image, and its alt text. */
+  ogImageUrl?: string;
+  ogImageAlt?: string;
+  ogImageWidth?: number;
+  ogImageHeight?: number;
 }
 
-const { title, description, printedPage, ogType = "website", noindex = false } = Astro.props;
+const { title, description, printedPage, ogType = "website", noindex = false, jsonLdText, ogImageUrl, ogImageAlt, ogImageWidth, ogImageHeight } = Astro.props;
 const fullTitle = title === "Teen & Grow Rich" ? title : `${title} — Teen & Grow Rich`;
 
 /* Strip any index.html and normalise to a single canonical form, so the same page is
@@ -27,7 +34,14 @@ const canonical = new URL(canonicalPath, Astro.site);
    or a teacher pastes /schools/privacy into a staff chat. Without these every one of
    those unfurls as a bare URL. Self-hosted, because a share card fetched from someone
    else's CDN would falsify the "no third-party requests" claim on /schools/privacy. */
-const ogImage = new URL("/og-default.jpg", Astro.site);
+/* A page may supply its own. The fifteen chapters do: sharing a chapter into a class
+   group with the same generic card fifteen times tells the recipient nothing about which
+   chapter it is, and the illustrations were drawn for exactly this. */
+const ogImage = ogImageUrl ?? new URL("/og-default.jpg", Astro.site).href;
+const ogW = ogImageWidth ?? 1200;
+const ogH = ogImageHeight ?? 630;
+const ogAlt =
+  ogImageAlt ?? "The cover of Teen & Grow Rich by Ryan Rijvers, on a dark blue field.";
 ---
 
 <!doctype html>
@@ -42,6 +56,19 @@ const ogImage = new URL("/og-default.jpg", Astro.site);
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     {!noindex && <link rel="canonical" href={canonical} />}
+
+    {jsonLdText && <script type="application/ld+json" set:html={jsonLdText} is:inline />}
+
+    {/* Declared on every page so a reader's browser or reader extension can offer the feed
+        from wherever they happen to be, rather than only from /updates. It is the only way
+        to follow this site: there is no newsletter, because a newsletter would need an
+        email address from a thirteen-year-old. */}
+    <link
+      rel="alternate"
+      type="application/rss+xml"
+      title="Teen &amp; Grow Rich — updates"
+      href="/updates.xml"
+    />
     {noindex && <meta name="robots" content="noindex, follow" />}
 
     <meta property="og:type" content={ogType} />
@@ -51,12 +78,12 @@ const ogImage = new URL("/og-default.jpg", Astro.site);
     <meta property="og:url" content={canonical} />
     <meta property="og:locale" content="en" />
     <meta property="og:image" content={ogImage} />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
-    <meta
-      property="og:image:alt"
-      content="The cover of Teen & Grow Rich by Ryan Rijvers, on a dark blue field."
-    />
+    {/* The real dimensions of the image actually emitted, not the ones we asked for.
+        A chapter card is rendered from 900px source art and Astro does not upscale, so a
+        hardcoded 1200x630 was a lie every platform lays its card out from. */}
+    <meta property="og:image:width" content={String(ogW)} />
+    <meta property="og:image:height" content={String(ogH)} />
+    <meta property="og:image:alt" content={ogAlt} />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={fullTitle} />
     <meta name="twitter:description" content={description} />

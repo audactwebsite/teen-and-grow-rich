@@ -31,6 +31,7 @@ import ChapterFurniture from "../components/ChapterFurniture.astro";
 import harbour from "../assets/photos/monaco-harbour-03.jpg";
 import portraitBw from "../assets/photos/ryan-portrait-bw.jpg";
 import portraitIllustrated from "../assets/photos/ryan-portrait-illustrated.jpg";
+import { author, book, jsonLd } from "../lib/schema";
 
 /**
  * The timeline. Ages are the spine of it, because the single most useful fact for a reader
@@ -69,11 +70,16 @@ const TIMELINE = [
     body: "Sixty-four pages, fifteen chapters, nineteen builds. And when he is not doing that, he is building software with AI — Claude Code, mostly. He loves it.",
   },
 ];
+
+/* He is a minor: name, role and the one page this site controls. No birth date, no
+   address, no school, no sameAs chain of social profiles. */
+const jsonLdText = jsonLd({ ...author, url: "/proof", nationality: "NL", knowsAbout: ["Karting", "Writing"], workExample: book }, Astro.site);
 ---
 
 <Page
   title="Who wrote this"
   description="Ryan Rijvers, author of Teen & Grow Rich, is thirteen. Karting across Europe since he was eight, a Formula 4 car built to fit him at eleven, and a book written at thirteen."
+  jsonLdText={jsonLdText}
 >
   <ChapterFurniture
     eyebrow="The author"
