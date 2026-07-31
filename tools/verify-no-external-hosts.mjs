@@ -17,9 +17,24 @@ import { join, extname } from "node:path";
 const DIST = "dist";
 const SCANNED = new Set([".html", ".css", ".js", ".mjs", ".json", ".xml", ".webmanifest", ".svg"]);
 
+/**
+ * Our own origin, read from astro.config.mjs rather than repeated here.
+ *
+ * It was hardcoded, and the day the site moved to a different domain this verifier began
+ * reporting every canonical URL and every sitemap entry as an external host — a check that
+ * fails for the one reason it should never fire is a check people learn to switch off.
+ * There is exactly one place the origin is written; this reads that place.
+ */
+const SITE = await (async () => {
+  const src = await readFile("astro.config.mjs", "utf8");
+  const m = src.match(/^\s*site:\s*["'](https?:\/\/[^"']+)["']/m);
+  if (!m) throw new Error("verify-no-external-hosts: no `site` found in astro.config.mjs");
+  return m[1].replace(/\/$/, "");
+})();
+
 /** Hosts that may legitimately appear as text rather than as a fetched subresource. */
 const ALLOWED_TEXT = [
-  "https://teenandgrowrich.com",
+  SITE,
   "http://www.w3.org/2000/svg",
   "http://www.w3.org/1999/xhtml",
   "https://schema.org",

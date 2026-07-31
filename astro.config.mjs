@@ -19,7 +19,15 @@ import { INLINE_SCRIPT_HASHES } from "./src/lib/inline-scripts.mjs";
  *  D1   Static output. No adapter, no server, host-agnostic.
  */
 export default defineConfig({
-  site: "https://teenandgrowrich.com",
+  /* The live origin. Every canonical URL, the sitemap and every share card are built
+     from this string, so it must match the domain that is actually connected — a
+     canonical pointing at a host that does not resolve is worse than none.
+
+     The two printed QR codes encode the bare root https://teenandgrowrich.com (decoded
+     from assets/from-book/qr-companion.png, not assumed). That domain is not connected;
+     teen-andgrowrich.com is. If the hyphen-free domain is ever acquired, change this
+     line back and redeploy — it is the single place the origin is written. */
+  site: "https://teen-andgrowrich.com",
   output: "static",
 
   /* "ignore" so both /c/01 and /c/01/ resolve. Printed QR targets must never 404, and a

@@ -40,6 +40,8 @@ dist/
 Thumbs.db
 *.log
 npm-debug.log*
+__pycache__/
+*.pyc
 
 # Local agent scratch, not project config (.claude/settings.json and
 # .claude/skills/ are committed on purpose — they are how this repo is worked on).
