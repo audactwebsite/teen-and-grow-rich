@@ -1,0 +1,408 @@
+---
+/**
+ * The book page (docs/decisions.md D3, D4, D31).
+ *
+ * D31 is the whole brief: an impressive site selling a 64-page book invites the review
+ * that kills a debut — "this could have been a blog post". So this page states the
+ * physical truth first, in the book's own anti-hype register, including the parts that
+ * argue against buying. No income figures, no urgency, no countdown, no testimonials.
+ *
+ * Counts come from the content collections rather than from prose, so they cannot drift
+ * away from what the site actually contains.
+ */
+import Page from "../layouts/Page.astro";
+import ChapterFurniture from "../components/ChapterFurniture.astro";
+import { Image } from "astro:assets";
+/**
+ * The composed cover, with its type layer — design-system.md §7 nominates this file for
+ * /get. assets/from-book/front-cover.jpeg is the PDF image extraction, which is the
+ * background photograph only: the title is vector text and never came out with it.
+ */
+import cover from "../assets/photos/book-cover.jpg";
+import { totals } from "../lib/content";
+
+const t = await totals();
+
+/**
+ * Measured from 04_Teen_and_Grow_Rich_Full_Book_Digital_Mobile.pdf: body text blocks
+ * only, with the running header, the strapline and the folio excluded — the same bands
+ * tools/extract_book_content.py drops. Rounded down to the nearest hundred so the figure
+ * is never flattering.
+ *
+ * Re-measured independently by re-running that script's own `blocks()` over all 66 pages
+ * of the digital PDF: 10,687 words. 10,600 is that, rounded down. The method is stated on
+ * the page, because non-negotiable 10 applies to a number about our own product too — and
+ * the only primary source for this one is the print file, which anyone can count.
+ */
+const WORDS = 10_600;
+/**
+ * The reading rate is an assumption, not a measurement, so it is shown on the page next
+ * to the number it produces rather than hidden in this file. 200 words a minute is a
+ * conservative silent-reading pace; a 13-year-old reading it properly will take longer,
+ * which is the direction an honest estimate should err in.
+ */
+const WORDS_PER_MINUTE = 200;
+const MINUTES = Math.round(WORDS / WORDS_PER_MINUTE);
+
+const FACTS = [
+  { key: "Pages", value: "64 printed pages." },
+  { key: "Size", value: "140 × 216 mm." },
+  { key: "Words", value: `About ${WORDS.toLocaleString("en-GB")}, body text only.` },
+  {
+    key: "Reading time",
+    value: `About ${MINUTES} minutes straight through, at ${WORDS_PER_MINUTE} words a minute — and longer if you are actually reading it. Straight through is not how it is meant to be used: every chapter ends in something to go and do.`,
+  },
+  { key: "Written for", value: "Readers aged 13 and up. English only." },
+  { key: "Edition", value: "The Condensed Gen Z Edition. First print run, 2026." },
+  { key: "Publisher", value: "Bright Kids." },
+  { key: "Author", value: "Ryan Rijvers, who was thirteen when he wrote it." },
+];
+
+/** D4: the split that makes both the book and the site better at their own job. */
+const BOOK_ONLY = [
+  {
+    title: "The 15 stories",
+    text: "One per chapter. Fictional composites, labelled as such on printed page 2, and the reason the ideas land instead of sitting there as advice.",
+  },
+  {
+    title: "The Hill Remix essays",
+    text: "What each of Napoleon Hill's principles actually said, and what happens to it when you move it into a teenager's life.",
+  },
+  {
+    title: "What It Means Now",
+    text: "The closing passage of every chapter — the part that connects the idea to the week you are actually having.",
+  },
+];
+
+const NOT_FOR = [
+  "Anyone who wants a number. There are no income figures in the book and none on this site.",
+  "Anyone who wants it done for them. Every chapter ends in a build you have to actually do.",
+  "Anyone who wants length. It is 64 pages. That is a decision, not a shortfall, but if a long book is what you are after, this is not it.",
+  "Anyone under 13. It is written for 13 and up, and several chapters ask you to bring in a parent or guardian before you act.",
+];
+---
+
+<Page
+  title="Get the book"
+  description="Teen & Grow Rich is 64 printed pages, about 10,600 words. What is in it, what is on this site for free instead, and who the book is not for."
+>
+  <ChapterFurniture
+    eyebrow="The book"
+    title="Get the book"
+    subtitle="64 pages. Here is exactly what that gets you, and who it is not for."
+  />
+
+  <div class="wrap">
+    <div class="intro">
+      <div class="prose">
+        <p class="lede">
+          Everything on this site is free and unlocked, first visit, no account. The book
+          is the only scarce thing here, so it is worth being precise about what it is: a
+          short, illustrated, deliberately finishable playbook, with fifteen stories the
+          site does not carry.
+        </p>
+      </div>
+
+      <figure class="cover">
+        <Image
+          src={cover}
+          alt="The front cover of Teen & Grow Rich: the title in heavy condensed capitals across a blue-hour harbour photograph, above the line 'Think bigger. Build real skills. Start now.' and 'By Ryan Rijvers'."
+          widths={[280, 560]}
+          sizes="(min-width: 48rem) 280px, 60vw"
+          loading="eager"
+        />
+      </figure>
+    </div>
+  </div>
+
+  <section class="wrap section" aria-labelledby="facts">
+    <h2 id="facts">The physical truth</h2>
+    <div class="rows">
+      {
+        FACTS.map((f) => (
+          <div class="row">
+            <p class="row__key">{f.key}</p>
+            <p class="row__value">{f.value}</p>
+          </div>
+        ))
+      }
+    </div>
+    <p class="prose note">
+      The word count was measured from the print file itself — every text block on all 66
+      pages of the digital edition, with the running header, the strapline and the page
+      numbers dropped — and then rounded down to the nearest hundred. The raw count was
+      10,687. The reading time is that number divided by {WORDS_PER_MINUTE}, which is an
+      assumption about you rather than a fact about the book. You are welcome to check
+      both.
+    </p>
+  </section>
+
+  <section class="wrap section" aria-labelledby="book-only">
+    <h2 id="book-only">What the book has that this site does not</h2>
+    <div class="rows">
+      {
+        BOOK_ONLY.map((b) => (
+          <div class="row">
+            <p class="row__key">{b.title}</p>
+            <p class="row__value">{b.text}</p>
+          </div>
+        ))
+      }
+    </div>
+    <p class="prose note">
+      Each of those is teased on its chapter page here, with the printed page number, so
+      you can see what you would be reading before you decide anything.
+    </p>
+  </section>
+
+  <section class="wrap section" aria-labelledby="free">
+    <h2 id="free">What is on this site instead, free</h2>
+    <div class="prose">
+      <p>
+        The tools are all here. Not a sample of them, not a locked preview, and not behind
+        an email address:
+      </p>
+      <ul class="tally">
+        <li><b>{t.builds}</b> 24-hour builds, each with a timer and a printable receipt</li>
+        <li><b>{t.realityChecks}</b> Reality Checks, in full, every one of them</li>
+        <li><b>{t.playSteps}</b> Play steps across the {t.chapters} chapters</li>
+        <li><b>{t.worksheetFields}</b> worksheet fields across the four worksheets</li>
+        <li><b>{t.sequenceActions}</b> dated actions in the 90-day path and the 30-day Tiny Launch</li>
+        <li><b>{t.offers}</b> safe first offers</li>
+      </ul>
+      <p>
+        <a href="/builds">Start with the builds</a> if you have twenty minutes, or{" "}
+        <a href="/reality-check">read the Reality Checks</a> if you are an adult deciding
+        whether this is safe for someone in your house. Both are the real thing, not a
+        sample.
+      </p>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="not-for">
+    <h2 id="not-for">Who it is not for</h2>
+    <div class="prose">
+      <ul class="plain">{NOT_FOR.map((n) => <li>{n}</li>)}</ul>
+      <p>
+        If you read that list and still want the book, you are the reader it was written
+        for.
+      </p>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="starter">
+    <h2 id="starter">The free starter chapter</h2>
+    <div class="prose">
+      <p>
+        A whole chapter, complete, with its build and its Reality Check. No email address,
+        no sign-up, no “enter your details to download”. There is nowhere on this site to
+        enter your details, which is the point.
+      </p>
+      <div data-placeholder class="placeholder">
+        <p class="placeholder__label">File not in place yet</p>
+        <p class="placeholder__note">
+          The starter chapter will publish as a page you can read here and as a PDF you can
+          print — a PDF alone is invisible on a projector and often blocked by a school
+          filter. Neither file is in the repository yet, so nothing is linked rather than
+          linking you to a 404.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="buy">
+    <h2 id="buy">Where to buy it</h2>
+    <div class="prose">
+      <div data-placeholder class="placeholder">
+        <p class="placeholder__label">Retailer link pending</p>
+        <p class="placeholder__note">
+          The book is sold through an outside retailer, and the link is not confirmed yet.
+          It will appear here, plainly, with no countdown attached to it.
+        </p>
+      </div>
+      <p>
+        When it does: the retailer handles the payment, the delivery and the returns. This
+        site never sees your name, your address or your card, because it has no way to
+        receive them.
+      </p>
+      <p class="aside">
+        Nothing about buying the book unlocks anything on this site, and nothing on this
+        site expires. See <a href="/terms">the terms</a> and{" "}
+        <a href="/privacy">the privacy page</a>.
+      </p>
+    </div>
+  </section>
+</Page>
+
+<style>
+  .wrap {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .prose {
+    max-inline-size: var(--container-measure);
+  }
+
+  .prose p + p,
+  .prose ul {
+    margin-block-start: 0.9em;
+  }
+
+  /* The turn after a list ("…and still want the book") has to sit visibly outside the
+     list it answers, or it reads as one more entry in it. */
+  .prose ul + p {
+    margin-block-start: 1.25rem;
+  }
+
+  .lede {
+    font-size: var(--text-subtitle);
+    line-height: var(--text-subtitle--line-height);
+    color: var(--text-strong);
+  }
+
+  .intro {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 1.75rem;
+    margin-block-start: 1.75rem;
+  }
+
+  .cover {
+    margin: 0;
+    max-inline-size: 17.5rem;
+  }
+
+  .cover :global(img) {
+    inline-size: 100%;
+    block-size: auto;
+    /* A solid base behind the image so a slow load never leaves a hole. */
+    background: var(--surface-card);
+  }
+
+  @media (min-width: 48rem) {
+    .intro {
+      flex-direction: row;
+      /* The lede is five lines against a ~440px cover. Hung from the top it left a large
+         void under it in the middle of the first screen. */
+      align-items: center;
+      justify-content: space-between;
+      gap: 3rem;
+    }
+    .cover {
+      flex: none;
+    }
+  }
+
+  .section {
+    margin-block-start: 3rem;
+  }
+
+  .section > h2 {
+    font-size: var(--text-h2);
+    line-height: var(--text-h2--line-height);
+    color: var(--text-section);
+    max-inline-size: var(--container-measure);
+  }
+
+  .section > .prose {
+    margin-block-start: 0.75rem;
+  }
+
+  .rows {
+    margin-block-start: 1.5rem;
+    /* The key column plus the gap plus the measure, so the hairlines end where the words
+       do rather than running on to the 72rem wrap. Matches grid-template-columns below. */
+    max-inline-size: calc(11rem + 2rem + var(--container-measure));
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .row {
+    display: grid;
+    gap: 0.2rem 2rem;
+    padding-block: 0.9rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .row__key {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+
+  .row__value {
+    max-inline-size: var(--container-measure);
+  }
+
+  @media (min-width: 40rem) {
+    .row {
+      grid-template-columns: 11rem minmax(0, 1fr);
+      align-items: baseline;
+    }
+  }
+
+  .note {
+    margin-block-start: 1rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .tally,
+  .plain {
+    list-style: none;
+    padding: 0;
+  }
+
+  .tally li,
+  .plain li {
+    padding-block: 0.5rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .tally b {
+    /* Real counts, folded from the content collections. No levels, no scores. */
+    font-variant-numeric: tabular-nums slashed-zero;
+    color: var(--text-strong);
+  }
+
+  [data-placeholder] {
+    margin-block-start: 1rem;
+    padding: 1rem;
+    background: var(--surface-card);
+    border: 1px dashed var(--rule-hairline);
+  }
+
+  .placeholder__label {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-strong);
+  }
+
+  .placeholder__note {
+    margin-block-start: 0.35rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .aside {
+    margin-block-start: 1.25rem;
+    padding-block-start: 1rem;
+    /* Not orange: design-system §1 gives orange the dot, the 24-Hour Build border and the
+       primary CTA. A long standalone orange rule is a fourth use and it half-echoes the
+       chapter furniture's short rule. */
+    border-block-start: 1px solid var(--rule-hairline);
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  a {
+    text-decoration-color: currentColor;
+    text-underline-offset: 3px;
+  }
+</style>

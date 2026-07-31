@@ -1,0 +1,670 @@
+---
+/**
+ * The 15 chapter tool pages, /c/01 … /c/15.
+ *
+ * A reader arrives here from a printed page with the book open, so the order is the
+ * book's order and the furniture is the book's furniture. What changes is the last
+ * three sections: The Play becomes something you tick, the build gets a timer, and the
+ * Debrief becomes something you can type into and take away.
+ *
+ * The Story, The Hill Remix and What It Means Now are NOT published here (D4). One
+ * paragraph and a page reference. That split is the only thing making the book worth
+ * owning, and it is also why nothing on this page needs to be locked (D19).
+ */
+import type { ImageMetadata } from "astro";
+import { Picture } from "astro:assets";
+
+import Page from "../../layouts/Page.astro";
+import ChapterFurniture from "../../components/ChapterFurniture.astro";
+import Box from "../../components/Box.astro";
+import Flag from "../../components/Flag.astro";
+import Checklist from "../../components/Checklist.astro";
+import Timer from "../../components/Timer.astro";
+import PageRef from "../../components/PageRef.astro";
+
+import { allChapters, buildForChapter, chapterNeighbours } from "../../lib/content";
+import { buildMeta, FLAG_RULE_PAGE } from "../../lib/build-meta";
+import { metaFor } from "../reality-check/_checks";
+
+export async function getStaticPaths() {
+  const chapters = await allChapters();
+  return chapters.map((chapter) => ({
+    params: { n: String(chapter.data.n).padStart(2, "0") },
+    props: { chapter },
+  }));
+}
+
+const { chapter } = Astro.props;
+const c = chapter.data;
+const pad = (n: number) => String(n).padStart(2, "0");
+
+const build = await buildForChapter(c.n);
+const { prev, next } = await chapterNeighbours(c.n);
+
+/* buildMeta throws on an unknown id, which is what we want at build time: a chapter
+   whose build has no flag must fail the build, never render as green. */
+const meta = build ? buildMeta(build.id) : undefined;
+
+/* The Reality Check carries its OWN flag, never the build's. The two disagree on nine of
+   the fifteen chapters and always in the unsafe direction: /c/14's build is green, while
+   the check printed beside it is about threats, sexual messages and blackmail and is red
+   on /reality-check/mindful-tech. build-meta.ts states the rule — a reader must never
+   meet a weaker flag on a chapter page than on the page it links to — and it applies to
+   the check as much as to the build. Every chapter slug is a Reality Check id, so a miss
+   is a content error and must fail the build rather than render an unflagged check. */
+const checkMeta = metaFor(c.slug);
+if (!checkMeta) {
+  throw new Error(
+    `No Reality Check meta for chapter "${c.slug}". Every chapter's Reality Check must ` +
+      "carry its own flag; see src/pages/reality-check/_checks.ts.",
+  );
+}
+
+/* The illustrations live outside src/, alongside the other extracted artwork, so they
+   are pulled in as a build-time glob rather than 15 imports. Eager, because the page
+   needs the metadata during render, not at runtime. */
+const illustrations = import.meta.glob<{ default: ImageMetadata }>(
+  "../../../assets/from-book/chapters/*.jpeg",
+  { eager: true },
+);
+const illustrationKey = `../../../assets/from-book/chapters/${pad(c.n)}-${c.slug}.jpeg`;
+const illustration = illustrations[illustrationKey]?.default;
+if (!illustration) {
+  throw new Error(
+    `Missing chapter illustration for /c/${pad(c.n)} at ${illustrationKey}. ` +
+      "The 15 illustrations are extracted artwork; a chapter page must not ship without one.",
+  );
+}
+
+/**
+ * Real alt text, written from the artwork itself. Each one describes the scene AND the
+ * point it is making, because these images carry the emotional argument of the chapter —
+ * "chapter illustration" would tell a screen-reader user nothing the heading did not
+ * already say (design-system §7).
+ *
+ * They describe a teenager, never Ryan: the illustrations are scenes, not portraits of
+ * the author, and naming a minor in image text is not something to do casually.
+ */
+const ALT: Record<string, string> = {
+  "dream-big":
+    "A teenager sits on a harbour wall at dusk with his back to us, a spiral sketchbook of hand-drawn boat designs open on his knee and a tablet of reference photos in his hand. The thing he is drawing is moored in the water right in front of him.",
+  "believe-it":
+    "A teenager looks at his own reflection in a bedroom mirror ringed with yellow sticky notes, one hand flat on his chest and the other holding up a phone to record. He is practicing on himself before anyone else hears it.",
+  "manifest-it":
+    "A teenager works at a desk with his eyes shut and a pencil at his temple, headphones on and a sketchbook open in front of him, while imagined scenes hang around him as translucent screens. The rehearsal is happening over the top of the actual work, not instead of it.",
+  "level-up":
+    "A teenager writes notes by hand beside a laptop running photo-editing software, a camera and lens on the desk, color swatches and diagrams spread around him and the harbour glowing through the window. One skill, practiced at one desk.",
+  "create-magic":
+    "A teenager draws in a sketchbook at a desk crowded with pencils, tablets and pinned photographs, while a burst of colored paint erupts across the wall behind him. The ordinary desk is where the color is coming from.",
+  "game-plan":
+    "A teenager writes in a notebook at a desk covered with sticky notes and hand-drawn flowcharts, laptop open, harbour lights behind the window. The plan exists on paper, in pieces, before it exists anywhere else.",
+  "boss-decisions":
+    "A teenager leans in toward a laptop at a harbourside table at dusk, phone in one hand, pointing at a screen where a listing sits between a red cross and a green tick. He is deciding, not scrolling.",
+  "unstoppable":
+    "A teenager keeps writing at a cluttered desk late in the evening, screwed-up paper all around him and a laptop showing a chart that falls and keeps falling. The numbers went down; the work did not stop.",
+  "squad-goals":
+    "Five teenagers lean in around a single laptop at a harbourside table at dusk, sketches and tablets spread across it, every one of them looking at the same screen. Nobody is presenting to anybody; they are all building.",
+  "fearless":
+    "A teenager stands at a lectern microphone under a spotlight, seen from behind, facing a full and half-dark auditorium. The fear is the whole room; the step is the microphone in front of him.",
+  "money-mindset":
+    "A teenager works through figures with a pen, a calculator and a notebook, a glass jar of coins beside him and a hand-drawn pie chart on the open page. Money handled as arithmetic he can do himself.",
+  "vibe-check":
+    "A teenager sits at a desk microphone with a tablet and handwritten notes in front of him, string lights behind, looking just off camera. Ready to say one thing clearly to whoever is actually listening.",
+  "intuition-flow":
+    "A teenager sketches a wiring diagram beside a basil seedling wired to a moisture sensor, a laptop open and trays of components across the desk. The hunch has been turned into a small, cheap test.",
+  "mindful-tech":
+    "A teenager reaches across his desk to put his phone face down beside an open notebook and a laptop, lamp on, window dark. The choice is small and it is being made on purpose.",
+  "real-rich":
+    "An older teenager points something out on a laptop screen to a younger boy who is grinning, pen held over an open notebook, in daylight at a kitchen table. Rich measured by who is sitting next to you.",
+};
+
+const alt = ALT[c.slug];
+if (!alt) throw new Error(`No alt text for chapter illustration "${c.slug}".`);
+---
+
+<Page
+  title={`Chapter ${c.n} · ${c.title}`}
+  description={`${c.subtitle} Chapter ${c.n} of Teen & Grow Rich: The Play, the 24-hour build with a timer, and the Reality Check in full. Book page ${c.printedPage}.`}
+  printedPage={c.printedPage}
+  ogType="article"
+>
+  <ChapterFurniture eyebrow={c.eyebrow} title={c.title} subtitle={c.subtitle} />
+
+  {/* Full-width hairline data row — the page rhythm alternates these with the 65ch
+      prose column. Everything here is a fact a reader holding the book can check. */}
+  <div class="datarow">
+    <div class="datarow__inner">
+      <PageRef page={c.printedPage} kind={`Chapter ${pad(c.n)}`} />
+      <p class="datarow__cell">
+        <span class="datarow__key">Hill remix</span>
+        <span class="datarow__value">{c.hillPrinciple}</span>
+      </p>
+      <p class="datarow__cell">
+        <span class="datarow__key">The Play</span>
+        <span class="datarow__value datarow__value--num">{c.play.length} steps</span>
+      </p>
+      {
+        meta && (
+          <p class="datarow__cell">
+            <span class="datarow__key">Build</span>
+            <Flag level={meta.flag} size="sm" />
+          </p>
+        )
+      }
+    </div>
+  </div>
+
+  <figure class="plate">
+    <Picture
+      src={illustration}
+      alt={alt}
+      formats={["avif", "webp"]}
+      fallbackFormat="jpeg"
+      widths={[390, 600, 900]}
+      sizes="(min-width: 48rem) 40rem, 100vw"
+      loading="eager"
+      decoding="async"
+      class="plate__img"
+    />
+  </figure>
+
+  <div class="column">
+    <Box kind="hill">
+      <p><strong>{c.hillIdea.term}</strong></p>
+      <p>{c.hillIdea.text}</p>
+    </Box>
+
+    <section class="section" aria-labelledby="story">
+      <h2 id="story" class="h2">The Story</h2>
+      <p>{c.story[0]}</p>
+      <p class="section__note">
+        Read the full story on book page {c.printedPage}. The Story, The Hill Remix and
+        What It Means Now stay in the book. Everything on this page is a tool, and none
+        of it is locked.
+      </p>
+    </section>
+
+    <section class="section" aria-labelledby="play">
+      <h2 id="play" class="h2">The Play</h2>
+      <Checklist id={c.slug} steps={c.play} />
+    </section>
+
+    <section class="section" aria-labelledby="build">
+      <h2 id="build" class="h2">Your 24-Hour Build</h2>
+
+      <Box kind="build">
+        {meta && <p class="box__flag"><Flag level={meta.flag} /></p>}
+        <p>{c.build}</p>
+
+        <Timer
+          minutes={meta?.minutes ?? 20}
+          buildId={build?.id ?? c.slug}
+          class="build__timer"
+        />
+      </Box>
+
+      <p class="section__note">
+        {
+          meta?.minutesFromBook
+            ? `The book sets this build at ${meta.minutes} minutes (page ${build?.data.printedPage ?? c.printedPage}).`
+            : "The book sets no length for this build, so the timer uses a 20-minute first step."
+        }
+        {" "}The flag applies the family approval system printed on book page {FLAG_RULE_PAGE};
+        it is not a mark the book prints beside each build. <a href="/parents">Race Control</a>
+        {" "}explains it.
+      </p>
+
+      {
+        meta?.green && (
+          /* Spec §8: no reader's path may terminate because there is nobody to ask. The
+             adult-free version used to live only on the build page, one link away, which
+             is a dead end for the reader who has nobody and does not click. It is printed
+             here in full. Not a fourth box — body content under a hairline, carrying a
+             green flag. */
+          <div class="alt">
+            <h3 class="h3">If there is nobody to ask right now</h3>
+            <p class="alt__flag">
+              <Flag level="green" label="Green · this version needs no adult" size="sm" />
+            </p>
+            <p>{meta.green}</p>
+            <p class="section__note">
+              This is not a way around the gate. It is a smaller build that does not need
+              one, so that having nobody to ask today does not end the ninety days. The
+              full version is still there when the person is.
+            </p>
+          </div>
+        )
+      }
+
+      {
+        build && (
+          <p class="section__note">
+            <a href={`/build/${pad(build.data.n)}`}>
+              Open build {pad(build.data.n)} on its own page
+            </a>
+          </p>
+        )
+      }
+    </section>
+
+    {/* Never collapsed, never behind a tab, never truncated. It is the safety layer. */}
+    <section class="section" aria-labelledby="check">
+      <h2 id="check" class="h2">Reality Check</h2>
+      <Box kind="check">
+        <p class="box__flag"><Flag level={checkMeta.flag} /></p>
+        <p>{c.realityCheck}</p>
+      </Box>
+    </section>
+
+    <section class="section" aria-labelledby="debrief">
+      <h2 id="debrief" class="h2">Debrief</h2>
+      <p class="section__note">
+        Three questions from book page {c.printedPage + 2}. Answers are kept in this
+        browser and never sent anywhere — copy them into your Real Rich Receipts folder
+        to keep them for good.
+      </p>
+
+      <ol class="debrief">
+        {
+          c.debrief.map((question, i) => (
+            <li class="debrief__item">
+              <label class="debrief__label" for={`debrief-${i + 1}`}>
+                <span class="debrief__n">{i + 1}</span>
+                {question}
+              </label>
+              <textarea
+                id={`debrief-${i + 1}`}
+                class="debrief__field"
+                rows="3"
+                spellcheck="true"
+                autocomplete="off"
+                data-field={`${c.slug}:debrief-${i + 1}`}></textarea>
+            </li>
+          ))
+        }
+      </ol>
+
+      <button type="button" class="debrief__copy" data-debrief-copy>
+        Copy all three answers
+      </button>
+      <p class="debrief__status" role="status" data-debrief-status></p>
+    </section>
+  </div>
+
+  <nav class="chapter-nav" aria-label="Chapters">
+    <div class="chapter-nav__inner">
+      {
+        prev ? (
+          <a class="chapter-nav__link" href={`/c/${pad(prev.data.n)}`} rel="prev" data-tap>
+            <span class="chapter-nav__dir">Previous</span>
+            <span class="chapter-nav__title">
+              {pad(prev.data.n)} · {prev.data.title}
+            </span>
+          </a>
+        ) : (
+          <a class="chapter-nav__link" href="/#chapters" data-tap>
+            <span class="chapter-nav__dir">Back</span>
+            <span class="chapter-nav__title">All 15 chapters</span>
+          </a>
+        )
+      }
+
+      {
+        next ? (
+          <a
+            class="chapter-nav__link chapter-nav__link--next"
+            href={`/c/${pad(next.data.n)}`}
+            rel="next"
+            data-tap
+          >
+            <span class="chapter-nav__dir">Next</span>
+            <span class="chapter-nav__title">
+              {pad(next.data.n)} · {next.data.title}
+            </span>
+          </a>
+        ) : (
+          /* The chapter that is not in the book. Plainly linked and crawlable — typing
+             65 is the delightful route, never the only one (D19). */
+          <a class="chapter-nav__link chapter-nav__link--next" href="/c/16" data-tap>
+            <span class="chapter-nav__dir">Next</span>
+            <span class="chapter-nav__title">16 · The chapter that is not in the book</span>
+          </a>
+        )
+      }
+    </div>
+  </nav>
+</Page>
+
+<script>
+  import { record, valueOf } from "../../lib/storage";
+
+  /* Debrief answers. Written on blur, and on a 1s idle pause while typing — one event
+     per keystroke would fill the append-only log and put synchronous localStorage on
+     the typing path. */
+  const fields = [...document.querySelectorAll<HTMLTextAreaElement>("[data-field]")];
+
+  for (const field of fields) {
+    const id = field.dataset.field ?? "";
+    const kept = valueOf("field", id);
+    if (typeof kept === "string") field.value = kept;
+
+    let idle: number | undefined;
+    const write = () => record("field", id, field.value);
+
+    field.addEventListener("input", () => {
+      window.clearTimeout(idle);
+      idle = window.setTimeout(write, 1000);
+    });
+    field.addEventListener("change", () => {
+      window.clearTimeout(idle);
+      write();
+    });
+  }
+
+  /* Copy-as-text is the durable route off this device (D24): one tap, lands in whatever
+     app the reader already uses. localStorage is the cache, never the record. */
+  const copyBtn = document.querySelector<HTMLButtonElement>("[data-debrief-copy]");
+  const status = document.querySelector<HTMLElement>("[data-debrief-status]");
+
+  if (copyBtn && status && fields.length) {
+    copyBtn.addEventListener("click", async () => {
+      const heading = document.querySelector("h1")?.textContent?.trim() ?? "";
+      const text = [
+        `${heading} — Debrief`,
+        "",
+        ...fields.map((field) => {
+          const label = document.querySelector(`label[for="${field.id}"]`);
+          const question = label?.textContent?.replace(/^\s*\d+\s*/, "").trim() ?? "";
+          return `${question}\n${field.value.trim() || "(not answered yet)"}\n`;
+        }),
+      ].join("\n");
+
+      try {
+        await navigator.clipboard.writeText(text);
+        status.textContent = "Copied. Paste it into your receipts folder.";
+      } catch {
+        status.textContent = "This browser would not let the page copy. Select your answers and copy them by hand.";
+      }
+    });
+  }
+</script>
+
+<style>
+  /* --- Full-width hairline data row ------------------------------------------ */
+
+  .datarow {
+    border-block: 1px solid var(--rule-hairline);
+    background: var(--surface-card);
+  }
+
+  .datarow__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem 1.5rem;
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding: 0.75rem clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .datarow__cell {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 0.5em;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .datarow__key {
+    font-weight: 700;
+  }
+
+  .datarow__key::after {
+    content: " ·";
+  }
+
+  .datarow__value {
+    color: var(--text-strong);
+    font-weight: 700;
+  }
+
+  .datarow__value--num {
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+
+  /* --- The illustration ------------------------------------------------------
+     Framed panel at or near native size, never a stretched full-bleed hero: the
+     artwork is 900 × 675 and upscaling it would be visibly soft (design-system §7). */
+
+  .plate {
+    /* Same container and padding as .column below, so the artwork is in register with
+       the eyebrow, the H1, the rules and the boxes rather than centred on the viewport. */
+    max-inline-size: 72rem;
+    margin: 0 auto;
+    padding: clamp(1.25rem, 5vw, 3rem) clamp(1.25rem, 5vw, 3rem) 0;
+    background: var(--surface-page);
+  }
+
+  .plate__img {
+    display: block;
+    inline-size: 100%;
+    max-inline-size: 40rem;
+    block-size: auto;
+    /* No flash of page background while the image decodes. */
+    background: var(--surface-card);
+  }
+
+  /* --- Prose column ---------------------------------------------------------- */
+
+  .column {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding: 2rem clamp(1.25rem, 5vw, 3rem) 0;
+  }
+
+  .column > :global(.box) {
+    max-inline-size: var(--container-measure);
+  }
+
+  .section {
+    margin-block-start: 2.75rem;
+    max-inline-size: var(--container-measure);
+  }
+
+  .h2 {
+    font-size: var(--text-h2);
+    line-height: var(--text-h2--line-height);
+    color: var(--text-section);
+    margin-block-end: 0.9rem;
+  }
+
+  /* Its own measure at its own size. `65ch` on .section resolves against 17px body, so a
+     14px note inheriting that width runs ~90 characters — a third over the book's ~68.
+     Re-declaring it here resolves 65ch against the note's own font-size. */
+  .section__note {
+    margin-block-start: 0.9rem;
+    max-inline-size: var(--container-measure);
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .section__note a {
+    font-weight: 700;
+    color: var(--text-strong);
+    text-underline-offset: 3px;
+  }
+
+  .box__flag {
+    margin-block-end: 0.6rem;
+  }
+
+  /* --- The adult-free green variant ------------------------------------------ */
+
+  .alt {
+    margin-block-start: 1.75rem;
+    padding-block-start: 1.5rem;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .h3 {
+    font-size: var(--text-body);
+    color: var(--text-strong);
+    margin-block-end: 0.7rem;
+  }
+
+  .alt__flag {
+    margin-block-end: 0.7rem;
+  }
+
+  .build__timer {
+    margin-block-start: 1.25rem;
+  }
+
+  /* --- Debrief --------------------------------------------------------------- */
+
+  .debrief {
+    list-style: none;
+    margin: 1.25rem 0 0;
+    padding: 0;
+  }
+
+  .debrief__item + .debrief__item {
+    margin-block-start: 1.5rem;
+  }
+
+  .debrief__label {
+    display: block;
+    font-weight: 700;
+    color: var(--text-strong);
+    margin-block-end: 0.5rem;
+  }
+
+  .debrief__n {
+    display: inline-block;
+    min-inline-size: 1.4em;
+    color: var(--text-section);
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+
+  .debrief__field {
+    display: block;
+    inline-size: 100%;
+    min-block-size: 5.5rem;
+    padding: 0.65rem 0.75rem;
+    font: inherit;
+    font-size: var(--text-body);
+    color: var(--text-default);
+    background: var(--surface-card);
+    /* A control's own boundary needs 3:1 (SC 1.4.11); --rule-hairline is a divider
+       colour and is nowhere near it in either theme. */
+    border: 1px solid var(--control-edge);
+    /* Growing rather than scrolling keeps a long answer readable on a phone. */
+    field-sizing: content;
+    resize: vertical;
+  }
+
+  .debrief__field:focus {
+    border-color: var(--focus-ring);
+  }
+
+  .debrief__copy {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    min-block-size: 44px;
+    margin-block-start: 1.5rem;
+    padding: 0.5rem 1.1rem;
+    font: inherit;
+    font-size: var(--text-label);
+    font-weight: 700;
+    color: var(--text-default);
+    background: transparent;
+    /* --control-edge, not --rule-hairline: the hairline token is for rules between
+       blocks and lands near 1.3:1 on a control, failing WCAG 2.2 1.4.11. */
+    border: 2px solid var(--control-edge);
+    cursor: pointer;
+  }
+
+  .debrief__copy:hover {
+    border-color: var(--accent-spine);
+  }
+
+  /* A copy button with no clipboard is a dead button. */
+  :global(:root[data-js]) .debrief__copy {
+    display: inline-flex;
+  }
+
+  .debrief__status {
+    margin-block-start: 0.6rem;
+    min-block-size: 1.45em;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  /* --- Prev / next ----------------------------------------------------------- */
+
+  .chapter-nav {
+    margin-block-start: 3.5rem;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .chapter-nav__inner {
+    display: grid;
+    gap: 1px;
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    background: var(--rule-hairline);
+  }
+
+  .chapter-nav__link {
+    display: block;
+    padding: 1.1rem clamp(1.25rem, 5vw, 3rem);
+    background: var(--surface-page);
+    text-decoration: none;
+  }
+
+  .chapter-nav__link:hover {
+    background: var(--surface-card);
+  }
+
+  .chapter-nav__dir {
+    display: block;
+    font-size: var(--text-eyebrow);
+    font-weight: 700;
+    letter-spacing: var(--text-eyebrow--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-eyebrow-colour);
+  }
+
+  .chapter-nav__title {
+    display: block;
+    margin-block-start: 0.25rem;
+    font-weight: 700;
+    color: var(--text-strong);
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+
+  @media (min-width: 768px) {
+    .chapter-nav__inner {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .chapter-nav__link--next {
+      text-align: end;
+    }
+  }
+
+  @media print {
+    /* The timer and the copy button do nothing on paper; the questions and the answers
+       are the reason this page gets printed at all. */
+    .debrief__field {
+      border: 1px solid var(--text-default);
+      min-block-size: 4.5rem;
+    }
+    .debrief__copy,
+    .chapter-nav {
+      display: none;
+    }
+  }
+</style>

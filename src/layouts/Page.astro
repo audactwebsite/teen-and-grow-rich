@@ -1,0 +1,72 @@
+---
+/**
+ * The standard page shell. Base.astro owns <head>; this owns everything a reader sees
+ * on every page.
+ *
+ * Container contract, matched by ChapterFurniture: max-inline-size 72rem,
+ * padding-inline clamp(1.25rem, 5vw, 3rem). Full-bleed bands (chapter furniture, hero
+ * imagery, hairline data rows) are placed as direct children of <main> and set their
+ * own inner container; prose sits inside a 65ch column.
+ */
+import Base from "./Base.astro";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import BottomNav from "../components/BottomNav.astro";
+
+interface Props {
+  title: string;
+  description: string;
+  /** Printed page in the book this page corresponds to, if any. */
+  printedPage?: number;
+  /** "article" for chapter and Reality Check pages; "website" elsewhere. */
+  ogType?: "website" | "article";
+  /** Suppresses the canonical and emits robots noindex. For the 404 only. */
+  noindex?: boolean;
+}
+
+const { title, description, printedPage, ogType, noindex } = Astro.props;
+---
+
+<Base
+  title={title}
+  description={description}
+  printedPage={printedPage}
+  ogType={ogType}
+  noindex={noindex}
+>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <SiteHeader />
+
+  <main id="main" class="page-main">
+    <slot />
+  </main>
+
+  <SiteFooter />
+  <BottomNav />
+</Base>
+
+<style>
+  .skip-link {
+    /* fixed, not absolute: an absolutely positioned skip link parks itself at the top
+       of the document, which is off-screen for anyone who has already scrolled. */
+    position: fixed;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    z-index: 20;
+    /* Moved off-screen rather than display:none, so it stays in the tab order. */
+    transform: translateY(-120%);
+    padding: 0.75rem 1rem;
+    font-weight: 700;
+    /* Orange fill takes navy text — white on orange is 2.05:1 and is forbidden. */
+    color: var(--cta-text);
+    background: var(--cta-fill);
+  }
+
+  /* :focus as well as :focus-visible — some assistive tech focuses this
+     programmatically, and a skip link nobody can see is not a skip link. */
+  .skip-link:focus,
+  .skip-link:focus-visible {
+    transform: translateY(0);
+  }
+</style>

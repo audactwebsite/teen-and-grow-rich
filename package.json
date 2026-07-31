@@ -1,0 +1,30 @@
+{
+  "name": "teenandgrowrich",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Companion site for the book Teen & Grow Rich by Ryan Rijvers",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "prebuild": "node -e \"require('node:fs').rmSync('dist',{recursive:true,force:true})\"",
+    "build": "astro build",
+    "postbuild": "node tools/verify-no-external-hosts.mjs",
+    "preview": "astro preview",
+    "check": "astro check",
+    "content": "python tools/extract_book_content.py",
+    "verify:hosts": "node tools/verify-no-external-hosts.mjs",
+    "verify:content": "python tools/extract_book_content.py"
+  },
+  "dependencies": {
+    "astro": "^7.1.6"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.4",
+    "@tailwindcss/vite": "^4.3.3",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.9.0"
+  }
+}

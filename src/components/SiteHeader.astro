@@ -1,0 +1,188 @@
+---
+/**
+ * The book's running header, turned into site furniture: TEEN & GROW RICH on the left,
+ * SKILLS. FREEDOM. MONEY. MEANING. on the right, a hairline beneath.
+ *
+ * Not sticky. A reader on a 390px phone with the book open needs the height for the
+ * page-number field, and a bar that follows you down the page is the opposite of the
+ * book's register.
+ *
+ * The nav carries all four destinations from ≥768px because BottomNav — the thumb-zone
+ * nav — hides at exactly that width. Below it, only Builds shows; the rest is a thumb
+ * reach away at the bottom of the screen.
+ */
+const path = Astro.url.pathname.replace(/\/+$/, "") || "/";
+
+/* Mirrors BottomNav, so nothing is only reachable on one form factor. */
+const LINKS = [
+  { href: "/builds", label: "Builds", always: true },
+  { href: "/#chapters", label: "Chapters", always: false },
+  { href: "/receipts", label: "Receipts", always: false },
+];
+---
+
+{/* data-print="hide": the global print rule hides `nav, footer`, which strips the nav
+    list but leaves the wordmark, tagline and theme toggle on a sheet that exists to be
+    handed to an adult. Site chrome has no business on a printed worksheet. */}
+<header class="site-header" data-print="hide">
+  <div class="site-header__inner">
+    <a class="wordmark" href="/" data-tap>Teen &amp; Grow Rich</a>
+    <p class="tagline" aria-hidden="true">Skills. Freedom. Money. Meaning.</p>
+
+    <nav class="site-nav" aria-label="Sections">
+      <ul class="site-nav__list">
+        {
+          LINKS.map((l) => (
+            <li class:list={["site-nav__item", !l.always && "site-nav__item--wide"]}>
+              <a
+                href={l.href}
+                data-tap
+                aria-current={path === l.href || path.startsWith(`${l.href}/`) ? "page" : undefined}
+              >
+                {l.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    {/* Hidden until ThemeScript proves scripting ran — a toggle that cannot toggle is
+        worse than no toggle. */}
+    <button type="button" class="theme-toggle" data-theme-toggle>
+      <span data-theme-toggle-text>Light mode</span>
+    </button>
+  </div>
+</header>
+
+<script>
+  import { writeTheme, type Theme } from "../lib/storage";
+
+  const button = document.querySelector<HTMLButtonElement>("[data-theme-toggle]");
+  const text = document.querySelector<HTMLElement>("[data-theme-toggle-text]");
+
+  if (button && text) {
+    const root = document.documentElement;
+    // The label names the destination, not the current state: it is the answer to
+    // "what happens if I press this".
+    const paint = (theme: Theme) => {
+      text.textContent = theme === "dark" ? "Light mode" : "Dark mode";
+    };
+
+    paint(root.getAttribute("data-theme") === "light" ? "light" : "dark");
+
+    button.addEventListener("click", () => {
+      const next: Theme = root.getAttribute("data-theme") === "light" ? "dark" : "light";
+      root.setAttribute("data-theme", next);
+      paint(next);
+      writeTheme(next);
+    });
+  }
+</script>
+
+<style>
+  .site-header {
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .site-header__inner {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem 1rem;
+    flex-wrap: wrap;
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding: 0.6rem clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .wordmark {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-size: 1rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: var(--text-strong);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .tagline {
+    display: none;
+    font-size: var(--text-meta);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .site-nav {
+    margin-inline-start: auto;
+  }
+
+  .site-nav__list {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .site-nav__item--wide {
+    display: none;
+  }
+
+  .site-nav a {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    color: var(--text-default);
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    border-block-end: 2px solid transparent;
+  }
+
+  .site-nav a:hover {
+    border-block-end-color: var(--accent-spine);
+  }
+
+  .site-nav a[aria-current="page"] {
+    border-block-end-color: var(--accent-dot);
+  }
+
+  .theme-toggle {
+    display: none;
+    align-items: center;
+    padding: 0.35rem 0.7rem;
+    font: inherit;
+    font-size: var(--text-meta);
+    font-weight: 700;
+    color: var(--text-default);
+    background: transparent;
+    /* Not --rule-hairline: at 1.30:1 in light and 1.43:1 in dark, the only affordance on
+       a transparent button was invisible, and this is the only route into the
+       print / show-an-adult theme. --control-edge is the button/input edge token. */
+    border: 1px solid var(--control-edge);
+    cursor: pointer;
+  }
+
+  .theme-toggle:hover {
+    border-color: var(--accent-spine);
+  }
+
+  :global(:root[data-js]) .theme-toggle {
+    display: inline-flex;
+  }
+
+  @media (min-width: 768px) {
+    .site-nav__item--wide {
+      display: block;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .tagline {
+      display: block;
+    }
+  }
+</style>

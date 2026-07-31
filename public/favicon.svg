@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Teen &amp; Grow Rich">
+  <!-- The book's own chapter furniture at 32px: navy field, teal-bright spine down the
+       left edge, solid orange dot top-right. No lettering — a glyph is illegible here. -->
+  <rect width="32" height="32" fill="#06264d"/>
+  <rect x="0" y="0" width="4" height="32" fill="#00ddb3"/>
+  <circle cx="24" cy="8" r="4" fill="#ff9f1c"/>
+</svg>

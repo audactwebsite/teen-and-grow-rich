@@ -1,0 +1,606 @@
+---
+/**
+ * Shrink My First Step — AI tool 2 (docs/decisions.md D9, D10, D11).
+ *
+ * This is the SHELL. The serverless function does not exist yet, so the page degrades
+ * honestly: what it does, the input it will ask for, the shape of the answer, and a plain
+ * statement that it is not live. Nothing else on the site depends on it.
+ *
+ * The tool is Chapter 1's third Play step turned into a machine, so the step it automates
+ * is quoted here verbatim from the book rather than described.
+ *
+ * No <form> element — not because the CSP would stop one (the shipped policy is
+ * form-action 'self', which permits the same-origin page-number form on / and /404), but
+ * because an input that looks live and silently does nothing is worse than one that says
+ * it is off.
+ */
+import Page from "../../layouts/Page.astro";
+import ChapterFurniture from "../../components/ChapterFurniture.astro";
+import Box from "../../components/Box.astro";
+import Flag from "../../components/Flag.astro";
+import PageRef from "../../components/PageRef.astro";
+import { allChapters, allRealityChecks } from "../../lib/content";
+import { metaFor } from "../reality-check/_checks";
+
+const chapter = (await allChapters()).find((c) => c.data.slug === "dream-big")!;
+const step = chapter.data.play.find((p) => p.n === 3)!;
+const check = (await allRealityChecks()).find((c) => c.id === "dream-big")!;
+const checkMeta = metaFor(check.id);
+
+/* Illustrative only, and labelled as such on the page. Deliberately not built from the
+   book's Chapter 1 story: the 15 stories are the book's, not the site's (D4). */
+const EXAMPLE_GOAL = "I want to start a YouTube channel.";
+const EXAMPLE_STEPS = [
+  {
+    step: "Say the first sixty seconds of one video out loud and time it on your phone.",
+    proof: "A script you have actually heard, and a real number for how long it runs.",
+  },
+  {
+    step: "Film that sixty seconds in one take. Do not edit it, do not re-record it.",
+    proof: "One video file with today's date on it, which did not exist this morning.",
+  },
+  {
+    step: "Send the take to one person and ask what was confusing.",
+    proof: "One reply with one specific note in it — the first outside information you have.",
+  },
+];
+---
+
+<Page
+  title="Shrink My First Step"
+  description="Type the goal that is too big and get three first steps that fit in 20 minutes, each with the proof it leaves behind. Chapter 1's third Play step, as a tool."
+  printedPage={chapter.data.printedPage}
+>
+  <ChapterFurniture
+    eyebrow={`AI tool · ${chapter.data.eyebrow.split(" / ")[0]}`}
+    title="Shrink My First Step"
+    subtitle="Type the goal that is too big. Get three first steps that fit in twenty minutes, and the proof each one leaves."
+  />
+
+  <div class="wrap">
+    <p class="status" role="note">
+      <span class="status__badge">Not live yet</span>
+      The tool has not been switched on. Everything below shows exactly what it will ask
+      for and exactly what it will give back — nothing you type here goes anywhere today.
+    </p>
+
+    <div class="prose">
+      <p class="lede">
+        Goals rarely stall because they are too small. They stall because the first
+        move is enormous, public, and embarrassing to get wrong. This tool does one thing:
+        it cuts the goal down until the first step fits in twenty minutes and leaves
+        something behind that you can point at.
+      </p>
+      <p class="meta">
+        <PageRef page={chapter.data.printedPage} kind={`Chapter ${chapter.data.n} · The Play`} />
+      </p>
+    </div>
+  </div>
+
+  <section class="wrap section" aria-labelledby="from-book">
+    <h2 id="from-book">The step it automates</h2>
+    <div class="prose">
+      <p>
+        This is not a new idea bolted onto the book. It is the third step of Chapter 1's
+        Play, and the whole step reads:
+      </p>
+      <blockquote>
+        <p><b>{step.n}. {step.title}</b> {step.text}</p>
+        <cite>Teen &amp; Grow Rich, printed page {chapter.data.printedPage}</cite>
+      </blockquote>
+      <p>
+        You can do it without the tool in about a minute. The tool exists for the days when
+        you cannot see how.
+      </p>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="input">
+    <h2 id="input">What it asks for</h2>
+    <div class="prose">
+      <div class="field">
+        <label class="field__label" for="goal">The goal that feels too big</label>
+        <p class="field__hint" id="goal-hint">
+          <b class="field__ai">An AI model reads what you type. Nothing is stored.</b>
+          One sentence is enough. No names, no school, no address — it does not need them
+          and the answer is no better with them in.
+        </p>
+        <textarea
+          id="goal"
+          name="goal"
+          rows="3"
+          disabled
+          aria-describedby="goal-hint goal-status"
+          placeholder="The tool is not live yet."></textarea>
+        <p class="field__status" id="goal-status">
+          Disabled until the tool is live. It is disabled rather than hidden so you can see
+          the whole thing before you decide whether you would ever use it.
+        </p>
+      </div>
+      <button type="button" class="cta" disabled>Shrink it — not live yet</button>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="output">
+    <h2 id="output">What it gives back</h2>
+    <div class="prose">
+      <p>
+        Three steps. Each one fits in twenty minutes, and each one names the proof it
+        leaves behind — because proof is the thing the next chapter runs on, and a step
+        that leaves nothing behind is a step you cannot tell you took.
+      </p>
+    </div>
+
+    {/* A section rather than a div: an aria-label on a generic element is dropped by
+        several screen readers, and this block needs to announce itself as an example. */}
+    <section class="result" aria-label="Example of the output. Not advice about your goal.">
+      <p class="result__tag">Example output — not advice about your goal</p>
+      <p class="result__goal">
+        <span class="result__goal-key">Goal typed in</span>
+        {EXAMPLE_GOAL}
+      </p>
+
+      <ol class="steps">
+        {
+          EXAMPLE_STEPS.map((s, i) => (
+            <li class="step">
+              <p class="step__n">{i + 1} · 20 minutes</p>
+              <p class="step__do">{s.step}</p>
+              <p class="step__proof">
+                <span class="step__proof-key">The proof this leaves</span>
+                {s.proof}
+              </p>
+            </li>
+          ))
+        }
+      </ol>
+
+      <p class="result__action">
+        Pick one. Do it before tomorrow night. Keep whatever it produces.
+      </p>
+    </section>
+
+    <p class="prose note">
+      It never picks for you and it never tells you the goal is wrong. Three options, one
+      of which you can start now, is the entire job.
+    </p>
+  </section>
+
+  <section class="wrap section" aria-labelledby="check">
+    <h2 id="check">The Reality Check for this chapter</h2>
+    <div class="prose">
+      <p>
+        Straight from printed page {check.data.printedPage}, in full and unedited.
+      </p>
+    </div>
+    <Box kind="check" class="check">
+      {/* Every Reality Check carries its own flag, on every surface that shows one (D12). */}
+      {checkMeta && (
+        <p class="check__flag">
+          <Flag level={checkMeta.flag} size="sm" />
+        </p>
+      )}
+      <p>{check.data.text}</p>
+    </Box>
+  </section>
+
+  {/* The refusal path has to have a destination that exists whether or not the function
+      is ever switched on. Every route below is one the book's own Reality Check for
+      threats, sexual messages and blackmail already names.
+
+      There is deliberately NO helpline number or finder link here yet. Inventing one for a
+      13-year-old in a bad hour is worse than admitting the gap, so the gap is stated in
+      the block below and the routes that do exist are given plainly. See docs/for-ryan.md
+      §7 — a verified international finder plus a Dutch one, checked by someone who does
+      safeguarding professionally, is pre-launch work. */}
+  <section class="wrap section" aria-labelledby="help">
+    <h2 id="help">If the thing in the way is not a goal</h2>
+    <div class="prose">
+      <p>
+        If what is actually stopping you is someone threatening you, someone asking you to
+        keep a friendship secret, or how you are feeling about yourself, no twenty-minute
+        first step is the right answer to that. None of that gets broken into smaller
+        tasks, and it is not something you are supposed to solve on your own.
+      </p>
+
+      <div class="pending" aria-labelledby="helpline-h">
+        <p class="pending__label" id="helpline-h">Helpline finder — not in place yet</p>
+        <p class="pending__note">
+          This site does not yet list a helpline you can call or message. One verified
+          finder — international, plus one for the Netherlands — is being checked with
+          someone who does safeguarding professionally, and it will be added here before
+          this site goes live. Making one up in the meantime would be the worse mistake, so
+          the routes below are the ones this page can stand behind today. Nothing here is a
+          crisis service, including the mailbox in the footer: nobody reads that urgently.
+        </p>
+      </div>
+
+      <ul class="help">
+        <li>
+          Tell one adult today — a parent or guardian, a teacher, or your school's
+          safeguarding lead. If the first adult does not act, tell a second one.
+        </li>
+        <li>
+          The police, or your local emergency number, if you have been threatened or you
+          are frightened for your safety.
+        </li>
+        <li>
+          A family doctor if sleep or eating has changed, and a school counselor is a
+          reasonable first stop when the worry is at home.
+        </li>
+        <li>
+          <a href="/reality-check/mindful-tech">
+            What to do about threats, sexual messages or blackmail
+          </a>, in full. It does not need this tool to be running.
+        </li>
+      </ul>
+      <p class="note">
+        You do not have to work out what is wrong before you tell someone, and you do not
+        need the right words ready. Saying “something is going on and I do not know how to
+        say it” is a complete sentence and it is enough to start with.
+      </p>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="ai">
+    <h2 id="ai">About the AI, plainly</h2>
+    <div class="rows">
+      <div class="row">
+        <p class="row__key">It is AI</p>
+        <p class="row__value">
+          Your sentence is read by an AI model, and the three steps come back from that
+          model. It can be wrong, and it does not know anything about your situation beyond
+          the sentence you typed.
+        </p>
+      </div>
+      <div class="row">
+        <p class="row__key">Nothing is stored</p>
+        <p class="row__value">
+          Not your goal, not the steps, not a log of either. It is sent, answered and
+          dropped. There is no account here and nowhere for it to be kept.
+        </p>
+      </div>
+      <div class="row">
+        <p class="row__key">It is not a chat</p>
+        <p class="row__value">
+          One goal in, three steps out. It never writes in Ryan's voice and it never
+          generates content from the book.
+        </p>
+      </div>
+      <div class="row">
+        <p class="row__key">Some things it will not answer</p>
+        <p class="row__value">
+          If what you type involves self-harm, abuse, grooming or blackmail, it stops and
+          gives one fixed response instead: tell a trusted adult today, and the routes set
+          out under <a href="#help">If the thing in the way is not a goal</a> above. It
+          will not turn any of that into a twenty-minute task.
+        </p>
+      </div>
+      <div class="row">
+        <p class="row__key">If it is down</p>
+        <p class="row__value">
+          Nothing else on this site stops working. Do it by hand with{" "}
+          <a href="/c/01">Chapter 1's Play</a>, or start from{" "}
+          <a href="/worksheet/starting-point">Your Starting Point</a>.
+        </p>
+      </div>
+    </div>
+  </section>
+</Page>
+
+<style>
+  .wrap {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .prose {
+    max-inline-size: var(--container-measure);
+  }
+
+  .prose p + p,
+  .prose blockquote,
+  /* Equal air below the quote as above it, so the site's own words are clearly outside
+     the book's. */
+  .prose blockquote + p {
+    margin-block-start: 0.9em;
+  }
+
+  .status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem 0.75rem;
+    max-inline-size: var(--container-measure);
+    margin-block-start: 1.75rem;
+    padding: 0.85rem 1rem;
+    font-size: var(--text-meta);
+    color: var(--text-default);
+    background: var(--surface-card);
+    /* 3px, not 6px: 6px solid orange is the Your 24-Hour Build signature (design-system
+       §3) and this is a page-status note, not a box from the book. The hairline gives it
+       an edge in light mode, where --surface-card is the page white. */
+    border: 1px solid var(--rule-hairline);
+    border-inline-start: 3px solid var(--accent-dot);
+  }
+
+  .status__badge {
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-strong);
+  }
+
+  .lede {
+    margin-block-start: 1.5rem;
+    font-size: var(--text-subtitle);
+    line-height: var(--text-subtitle--line-height);
+    color: var(--text-strong);
+  }
+
+  .meta {
+    margin-block-start: 0.9rem;
+  }
+
+  .section {
+    margin-block-start: 3rem;
+  }
+
+  .section > h2 {
+    font-size: var(--text-h2);
+    line-height: var(--text-h2--line-height);
+    color: var(--text-section);
+    max-inline-size: var(--container-measure);
+  }
+
+  blockquote {
+    margin: 0;
+    padding-inline-start: 1rem;
+    border-inline-start: 3px solid var(--accent-spine);
+  }
+
+  cite {
+    display: block;
+    margin-block-start: 0.5rem;
+    font-size: var(--text-meta);
+    font-style: normal;
+    color: var(--text-muted);
+  }
+
+  .field {
+    margin-block-start: 1.25rem;
+  }
+
+  .field__label {
+    display: block;
+    font-size: var(--text-label);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-strong);
+  }
+
+  .field__hint,
+  .field__status {
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .field__hint {
+    margin-block: 0.35rem 0.6rem;
+  }
+
+  textarea {
+    inline-size: 100%;
+    padding: 0.75rem;
+    font: inherit;
+    font-size: var(--text-body);
+    color: var(--text-default);
+    background: var(--surface-card);
+    border: 1px solid var(--control-edge);
+    border-radius: 0;
+  }
+
+  textarea:disabled {
+    opacity: 1;
+    color: var(--text-muted);
+    border-style: dashed;
+  }
+
+  .field__status {
+    margin-block-start: 0.5rem;
+  }
+
+  .cta {
+    margin-block-start: 1.25rem;
+    padding: 0.8rem 1.2rem;
+    font: inherit;
+    font-weight: 700;
+    /* Orange fill takes navy text. White on orange is 2.05:1 and is forbidden. */
+    color: var(--cta-text);
+    background: var(--cta-fill);
+    border: none;
+  }
+
+  .cta:disabled {
+    color: var(--text-muted);
+    background: transparent;
+    border: 1px dashed var(--rule-hairline);
+  }
+
+  .result {
+    max-inline-size: var(--container-measure);
+    margin-block-start: 1.5rem;
+    padding: 1rem 1.1rem;
+    background: var(--surface-card);
+    /* Not --rule-hairline: in light mode --surface-card is the page white, so the border
+       is the only thing saying "this is an example, not your answer". A decorative
+       hairline at ~1.3:1 cannot carry that. */
+    border: 1px solid var(--control-edge);
+  }
+
+  .result__tag {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .result__goal {
+    margin-block-start: 0.75rem;
+    color: var(--text-strong);
+  }
+
+  .result__goal-key,
+  .step__proof-key {
+    display: block;
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .steps {
+    margin-block-start: 1.25rem;
+    padding: 0;
+    list-style: none;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .step {
+    padding-block: 0.9rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .step__n {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-muted);
+    /* Numerals are data. */
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+
+  .step__do {
+    margin-block-start: 0.25rem;
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  .step__proof {
+    margin-block-start: 0.5rem;
+  }
+
+  .result__action {
+    margin-block-start: 1rem;
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  .check {
+    margin-block-start: 1.25rem;
+  }
+
+  .check__flag {
+    margin-block-end: 0.6rem;
+  }
+
+  .field__ai {
+    display: block;
+    color: var(--text-strong);
+  }
+
+  /* Dashed, the same shape /get uses for a thing that is genuinely not built yet. A solid
+     card would read as an answer; this has to read as a missing one. */
+  .pending {
+    margin-block-start: 1.1rem;
+    padding: 0.9rem 1rem;
+    background: var(--surface-card);
+    border: 1px dashed var(--rule-hairline);
+  }
+
+  .pending__label {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-strong);
+  }
+
+  .pending__note {
+    margin-block-start: 0.35rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .help {
+    margin-block-start: 0.9rem;
+    padding-inline-start: 1.1rem;
+    list-style: none;
+  }
+
+  .help li {
+    position: relative;
+    margin-block-start: 0.45rem;
+  }
+
+  .help li::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: -1.1rem;
+    inset-block-start: 0.62em;
+    inline-size: 0.5rem;
+    block-size: 2px;
+    background: var(--accent-spine);
+  }
+
+  .rows {
+    margin-block-start: 1.5rem;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .row {
+    display: grid;
+    gap: 0.2rem 2rem;
+    padding-block: 0.9rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .row__key {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .row__value {
+    max-inline-size: var(--container-measure);
+  }
+
+  @media (min-width: 40rem) {
+    .row {
+      grid-template-columns: 12rem minmax(0, 1fr);
+      align-items: baseline;
+    }
+  }
+
+  .note {
+    margin-block-start: 1rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  a {
+    text-decoration-color: currentColor;
+    text-underline-offset: 3px;
+  }
+
+  a:hover {
+    text-decoration-color: var(--accent-spine);
+  }
+</style>

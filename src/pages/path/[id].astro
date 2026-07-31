@@ -1,0 +1,643 @@
+---
+/**
+ * The book's two sequences: the 90-day path (3 phases, 13 actions) and the 30-Day Tiny
+ * Launch (4 weeks, 21 tasks).
+ *
+ * Ticks are a repairable count-up, never a streak (D16). "6 of 21 done" is a real count
+ * and there is nothing to lose by missing a day — the count only goes up when the reader
+ * says the work happened.
+ *
+ * The Tiny Launch turns a chosen start date into real calendar dates and exports all 21
+ * as an RFC 5545 .ics file with an alarm on each. Generated entirely in the browser: the
+ * dates are the reader's plan and no plan leaves the device (D1). It also solves the
+ * real failure mode — a 30-day sequence lives or dies on whether it reaches the reader on
+ * day 12, and a page they must remember to reopen will not (D15).
+ */
+import Page from "../../layouts/Page.astro";
+import ChapterFurniture from "../../components/ChapterFurniture.astro";
+import PageRef from "../../components/PageRef.astro";
+import Flag from "../../components/Flag.astro";
+import { allSequences } from "../../lib/content";
+import type { Sequence } from "../../lib/content";
+
+export async function getStaticPaths() {
+  const sequences = await allSequences();
+  return sequences.map((sequence) => ({ params: { id: sequence.id }, props: { sequence } }));
+}
+
+type Props = { sequence: Sequence };
+
+const { sequence } = Astro.props;
+const s = sequence.data;
+const isTinyLaunch = sequence.id === "tiny-launch";
+
+const total = s.groups.reduce((n, g) => n + g.items.length, 0);
+
+/**
+ * Which actions carry a yellow flag: the ones whose own wording asks for a parent,
+ * guardian or adult. Read off the book's text rather than assigned by judgement, so the
+ * flag can never say something the printed page does not.
+ *
+ * Counting them also lets the page state a real number instead of a vague warning, and
+ * makes the D25 promise checkable: everything not flagged here is doable alone.
+ */
+const NEEDS_ADULT = /\b(parent|guardian|adult)\b/i;
+const flagged = s.groups.reduce((n, g) => n + g.items.filter((i) => NEEDS_ADULT.test(i)).length, 0);
+
+/* Week 1 of the Tiny Launch is six items — five named days plus a weekend — so the book's
+   own shape is preserved by giving each week a 7-day stride and each item within a week
+   the next day. Week 1 lands on days 1–6, week 4 on days 22–26. */
+const dayOffset = (groupIndex: number, itemIndex: number) => groupIndex * 7 + itemIndex;
+---
+
+<Page title={s.title} description={s.subtitle} printedPage={s.printedPage}>
+  <ChapterFurniture
+    eyebrow={isTinyLaunch ? "30-day sequence" : "90-day path"}
+    title={s.title}
+    subtitle={s.subtitle}
+  />
+
+  <div class="band">
+    <div class="band__inner">
+      <PageRef page={s.printedPage} kind={isTinyLaunch ? "Tiny Launch" : "The 90-day path"} />
+      <p class="band__count">
+        <span data-count>0 of {total}</span> done
+      </p>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <p class="lede">
+      {s.groups.length}
+      {isTinyLaunch ? " weeks" : " phases"}, {total} actions. {flagged} of them ask for a
+      parent, guardian or another trusted adult — a teacher, coach, librarian, youth
+      worker or a sibling over 18 all count. The other {total - flagged} you can do on your
+      own.
+    </p>
+
+    {
+      isTinyLaunch && (
+        <section class="dates" aria-labelledby="dates-heading" data-book-page={s.printedPage}>
+          <h2 class="dates__heading" id="dates-heading">
+            Put it in your calendar
+          </h2>
+
+          <div class="dates__field">
+            <label class="dates__label" for="start-date">
+              Start date
+            </label>
+            <input type="date" id="start-date" class="dates__input" data-start />
+          </div>
+
+          <p class="dates__note" data-dates-note>
+            Pick a date and every task below gets a real one. Nothing is sent anywhere —
+            the dates are worked out on this device.
+          </p>
+
+          <div class="dates__actions" data-print="hide">
+            <button type="button" class="btn btn--primary" data-ics disabled>
+              Download all 21 as calendar events
+            </button>
+          </div>
+
+          <p class="dates__status" role="status" data-ics-status />
+
+          <p class="dates__nojs">
+            Working out the dates needs JavaScript. The 21 tasks below are all here
+            without it, and they work fine written into any calendar or on paper.
+          </p>
+        </section>
+      )
+    }
+
+    <ol class="groups">
+      {
+        s.groups.map((group, gi) => (
+          <li class="group">
+            <h2 class="group__heading">{group.heading}</h2>
+
+            <ol class="steps">
+              {group.items.map((item, ii) => {
+                const stepId = `${sequence.id}:${group.id}:${ii + 1}`;
+                const adult = NEEDS_ADULT.test(item);
+                return (
+                  <li class="step">
+                    <label class="step__label">
+                      <input type="checkbox" class="step__box" data-step={stepId} />
+                      <span class="step__text">
+                        {/* Left empty on purpose: week 1's items already carry their own
+                            "Day 1:" label from the book, and a second invented day number
+                            beside it would contradict the printed page. It fills in only
+                            once the reader picks a start date. */}
+                        {isTinyLaunch && (
+                          <span class="step__date" data-date={String(dayOffset(gi, ii))} />
+                        )}
+                        <span class="step__body">{item}</span>
+                        {adult && (
+                          <span class="step__flag">
+                            <Flag level="yellow" size="sm" />
+                          </span>
+                        )}
+                      </span>
+                    </label>
+                  </li>
+                );
+              })}
+            </ol>
+          </li>
+        ))
+      }
+    </ol>
+
+    <p class="keep-note" data-keep-note>
+      Ticks are kept in this browser, never sent anywhere. A browser is not a safe place
+      to leave a record — print this page or copy your receipts to keep them.
+    </p>
+  </div>
+</Page>
+
+<script>
+  import { record, state, canKeep, valueOf } from "../../lib/storage";
+
+  const root = document.querySelector<HTMLElement>(".groups");
+
+  if (root) {
+    /* --- The count-up ------------------------------------------------------- */
+
+    const boxes = [...document.querySelectorAll<HTMLInputElement>("[data-step]")];
+    const count = document.querySelector<HTMLElement>("[data-count]");
+    const kept = state();
+
+    for (const box of boxes) {
+      if (kept.get(`day:${box.dataset.step}`) === 1) box.checked = true;
+    }
+
+    const paintCount = () => {
+      if (count) count.textContent = `${boxes.filter((b) => b.checked).length} of ${boxes.length}`;
+    };
+    paintCount();
+
+    root.addEventListener("change", (event) => {
+      const box = (event.target as HTMLElement | null)?.closest<HTMLInputElement>("[data-step]");
+      if (!box) return;
+      // Paint first, persist after the yield inside storage.ts (D22).
+      paintCount();
+      record("day", box.dataset.step ?? "", box.checked ? 1 : 0);
+    });
+
+    const note = document.querySelector<HTMLElement>("[data-keep-note]");
+    if (note && !canKeep()) {
+      note.textContent =
+        "This browser is not keeping anything, so these ticks go when you leave. Print this page instead.";
+    }
+
+    /* --- Real dates and the .ics ------------------------------------------- */
+
+    const startInput = document.querySelector<HTMLInputElement>("[data-start]");
+    const icsButton = document.querySelector<HTMLButtonElement>("[data-ics]");
+    const icsStatus = document.querySelector<HTMLElement>("[data-ics-status]");
+    const dateSlots = [...document.querySelectorAll<HTMLElement>("[data-date]")];
+
+    if (startInput && icsButton) {
+      /* new Date("2026-08-01") is parsed as UTC and lands on 31 July for anyone west of
+         Greenwich. Build the date from its parts so it is local from the first line. */
+      const parseLocal = (value: string): Date | null => {
+        const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+        if (!m) return null;
+        const d = new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+        return Number.isNaN(d.getTime()) ? null : d;
+      };
+
+      const addDays = (d: Date, n: number) =>
+        new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
+
+      const stamp = (d: Date) =>
+        `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
+
+      // The site is English only (D8), so the format is pinned rather than left to the
+      // device locale, which would print Dutch weekdays into an English sentence.
+      const human = new Intl.DateTimeFormat("en-GB", {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+      });
+
+      const paintDates = (start: Date | null) => {
+        for (const slot of dateSlots) {
+          const offset = Number(slot.dataset.date);
+          slot.textContent = start ? human.format(addDays(start, offset)) : "";
+        }
+      };
+
+      /* --- RFC 5545 ------------------------------------------------------------
+         Escaping and 75-octet folding are both required by §3.1/§3.3.11; a calendar
+         that silently refuses to import is worse than no export at all. */
+      const esc = (v: string) =>
+        v
+          .replace(/\\/g, "\\\\")
+          .replace(/;/g, "\\;")
+          .replace(/,/g, "\\,")
+          .replace(/\r?\n/g, "\\n");
+
+      const encoder = new TextEncoder();
+      const fold = (line: string): string => {
+        const out: string[] = [];
+        let buf = "";
+        let octets = 0;
+        for (const ch of line) {
+          const size = encoder.encode(ch).length;
+          if (octets + size > 73) {
+            out.push(buf);
+            buf = " ";
+            octets = 1;
+          }
+          buf += ch;
+          octets += size;
+        }
+        out.push(buf);
+        return out.join("\r\n");
+      };
+
+      const bookPage =
+        document.querySelector<HTMLElement>("[data-book-page]")?.dataset.bookPage ?? "";
+
+      const buildIcs = (start: Date): string => {
+        const now = new Date();
+        const dtstamp =
+          `${now.getUTCFullYear()}${String(now.getUTCMonth() + 1).padStart(2, "0")}` +
+          `${String(now.getUTCDate()).padStart(2, "0")}T` +
+          `${String(now.getUTCHours()).padStart(2, "0")}${String(now.getUTCMinutes()).padStart(2, "0")}` +
+          `${String(now.getUTCSeconds()).padStart(2, "0")}Z`;
+
+        const lines: string[] = [
+          "BEGIN:VCALENDAR",
+          "VERSION:2.0",
+          "PRODID:-//Teen & Grow Rich//30-Day Tiny Launch//EN",
+          "CALSCALE:GREGORIAN",
+          "METHOD:PUBLISH",
+          `X-WR-CALNAME:${esc("The 30-Day Tiny Launch")}`,
+        ];
+
+        for (const slot of dateSlots) {
+          const step = slot.closest(".step");
+          const body = step?.querySelector(".step__body")?.textContent?.trim() ?? "";
+          const heading =
+            step?.closest(".group")?.querySelector(".group__heading")?.textContent?.trim() ?? "";
+          const offset = Number(slot.dataset.date);
+          const day = addDays(start, offset);
+          const id = step?.querySelector<HTMLInputElement>("[data-step]")?.dataset.step ?? "";
+
+          lines.push(
+            "BEGIN:VEVENT",
+            // Deterministic, derived only from the task and the chosen start date. No
+            // random device id is minted, because that is exactly the thing this site
+            // promises never to create.
+            `UID:${esc(id.replace(/[^a-z0-9:-]/gi, ""))}-${stamp(start)}@teenandgrowrich.com`,
+            `DTSTAMP:${dtstamp}`,
+            `DTSTART;VALUE=DATE:${stamp(day)}`,
+            `DTEND;VALUE=DATE:${stamp(addDays(day, 1))}`,
+            `SUMMARY:${esc(`Tiny Launch · ${body}`)}`,
+            `DESCRIPTION:${esc(`${heading} — The 30-Day Tiny Launch, Teen & Grow Rich, book page ${bookPage}.`)}`,
+            "BEGIN:VALARM",
+            "ACTION:DISPLAY",
+            `DESCRIPTION:${esc(body)}`,
+            // Nine hours after midnight on an all-day event: a morning reminder without a
+            // VTIMEZONE block, which is where most hand-rolled .ics files go wrong.
+            "TRIGGER;RELATED=START:PT9H",
+            "END:VALARM",
+            "END:VEVENT",
+          );
+        }
+
+        lines.push("END:VCALENDAR");
+        return lines.map(fold).join("\r\n") + "\r\n";
+      };
+
+      const apply = (value: string, persist: boolean) => {
+        const start = parseLocal(value);
+        paintDates(start);
+        icsButton.disabled = start === null;
+        if (start && persist) record("field", "tiny-launch:start-date", value);
+      };
+
+      const restored = valueOf("field", "tiny-launch:start-date");
+      if (typeof restored === "string" && restored) {
+        startInput.value = restored;
+        apply(restored, false);
+      }
+
+      startInput.addEventListener("change", () => apply(startInput.value, true));
+
+      icsButton.addEventListener("click", () => {
+        const start = parseLocal(startInput.value);
+        if (!start) return;
+        const blob = new Blob([buildIcs(start)], { type: "text/calendar;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `tiny-launch-${startInput.value}.ics`;
+        a.click();
+        URL.revokeObjectURL(url);
+        if (icsStatus) {
+          icsStatus.textContent =
+            "21 events downloaded. Open the file to add them to your calendar. Nothing was uploaded.";
+        }
+      });
+    }
+  }
+</script>
+
+<style>
+  .band {
+    border-block: 1px solid var(--rule-hairline);
+  }
+
+  .band__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem 1.5rem;
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding: 0.7rem clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .band__count {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+
+  /* The count is a real count; without scripting it would read 0 forever, so it is not
+     shown at all rather than shown wrong. */
+  .band__count {
+    visibility: hidden;
+  }
+
+  :global(:root[data-js]) .band__count {
+    visibility: visible;
+  }
+
+  .wrap {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .lede {
+    max-inline-size: var(--container-measure);
+    margin-block-start: 2rem;
+    color: var(--text-default);
+  }
+
+  /* --- Start date and export ------------------------------------------------ */
+
+  .dates {
+    max-inline-size: var(--container-measure);
+    margin-block-start: 2rem;
+    padding: 1.1rem;
+    background: var(--surface-card);
+    border-inline-start: 6px solid var(--accent-dot);
+  }
+
+  .dates__heading {
+    font-size: var(--text-label);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-strong);
+  }
+
+  .dates__field {
+    margin-block-start: 0.9rem;
+  }
+
+  .dates__label {
+    display: block;
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  .dates__input {
+    inline-size: 100%;
+    max-inline-size: 18rem;
+    min-block-size: 48px;
+    margin-block-start: 0.4rem;
+    padding: 0.5rem 0.65rem;
+    font: inherit;
+    font-size: var(--text-body);
+    font-variant-numeric: tabular-nums slashed-zero;
+    color: var(--text-default);
+    background: var(--surface-page);
+    /* --control-edge, not --rule-hairline: this is a date field, and the hairline token
+       lands near 1.3:1 against the page, failing WCAG 2.2 1.4.11. */
+    border: 2px solid var(--control-edge);
+    border-radius: 0;
+  }
+
+  .dates__input:focus {
+    border-color: var(--accent-spine);
+  }
+
+  .dates__note,
+  .dates__status,
+  .dates__nojs {
+    margin-block-start: 0.7rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .dates__actions {
+    margin-block-start: 1rem;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 100%;
+    min-block-size: 48px;
+    padding: 0.5rem 1.1rem;
+    font: inherit;
+    font-size: var(--text-label);
+    font-weight: 700;
+    color: var(--text-default);
+    background: transparent;
+    /* --control-edge, not --rule-hairline. The hairline token is 14% of the text colour
+       and is for rules between blocks; on a control border it lands near 1.3:1 and fails
+       WCAG 2.2 1.4.11. Matches the shared .btn in global.css. */
+    border: 2px solid var(--control-edge);
+    cursor: pointer;
+  }
+
+  /* Orange fill takes navy text — white on orange is 2.05:1 and is forbidden. */
+  .btn--primary {
+    color: var(--cta-text);
+    background: var(--cta-fill);
+    border-color: var(--cta-fill);
+  }
+
+  .btn--primary:hover {
+    border-color: var(--cta-text);
+  }
+
+  .btn:disabled {
+    color: var(--text-muted);
+    background: transparent;
+    border-color: var(--rule-hairline);
+    cursor: not-allowed;
+  }
+
+  /* Nothing in this block works without scripting. */
+  .dates__field,
+  .dates__note,
+  .dates__actions,
+  .dates__status {
+    display: none;
+  }
+
+  :global(:root[data-js]) .dates__field,
+  :global(:root[data-js]) .dates__note,
+  :global(:root[data-js]) .dates__actions,
+  :global(:root[data-js]) .dates__status {
+    display: block;
+  }
+
+  :global(:root[data-js]) .dates__nojs {
+    display: none;
+  }
+
+  @media (min-width: 768px) {
+    .btn {
+      inline-size: auto;
+    }
+  }
+
+  /* --- Phases and actions --------------------------------------------------- */
+
+  .groups {
+    list-style: none;
+    margin: 2.5rem 0 0;
+    padding: 0;
+  }
+
+  .group + .group {
+    margin-block-start: 2.5rem;
+  }
+
+  .group__heading {
+    font-size: var(--text-h2);
+    line-height: var(--text-h2--line-height);
+    color: var(--text-section);
+    max-inline-size: var(--container-measure);
+  }
+
+  .steps {
+    list-style: none;
+    margin: 0.9rem 0 0;
+    padding: 0;
+    max-inline-size: var(--container-measure);
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .step {
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .step__label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    min-block-size: 44px;
+    padding: 0.85rem 0.25rem;
+    cursor: pointer;
+  }
+
+  .step__box {
+    flex: none;
+    inline-size: 24px;
+    block-size: 24px;
+    margin-block-start: 0.15rem;
+    accent-color: var(--flag-green);
+  }
+
+  .step__text {
+    display: block;
+  }
+
+  .step__date {
+    display: block;
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+
+  /* No start date chosen yet — an empty label would otherwise leave a phantom line above
+     every task. */
+  .step__date:empty {
+    display: none;
+  }
+
+  .step__body {
+    display: block;
+    margin-block-start: 0.15rem;
+    color: var(--text-default);
+  }
+
+  .step__flag {
+    display: block;
+    margin-block-start: 0.4rem;
+  }
+
+  .step__box:checked + .step__text .step__body {
+    color: var(--text-muted);
+  }
+
+  .keep-note {
+    max-inline-size: var(--container-measure);
+    margin-block-start: 2rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  @media print {
+    /* The global print block flips :root to the book's light tokens but leaves the three
+       semantic-box tokens dark. Fixed locally; global.css needs the same. */
+    :global(:root) {
+      --box-hill-fill: var(--color-tgr-tint-mint);
+      --box-hill-edge: var(--color-tgr-teal);
+      --box-build-fill: var(--color-tgr-tint-cream);
+      --box-build-edge: var(--color-tgr-orange);
+      --box-check-fill: var(--color-tgr-tint-blue);
+      --box-check-edge: var(--color-tgr-navy);
+    }
+
+    /* SiteHeader is a <header>, so the global "hide nav and footer" rule misses it. */
+    :global(.site-header) {
+      display: none !important;
+    }
+
+    /* The dates block is a control panel, not content: on paper the chosen dates are
+       already printed beside every task. */
+    .band,
+    .dates {
+      display: none;
+    }
+
+    .group,
+    .step {
+      break-inside: avoid;
+    }
+
+    /* On paper the boxes are ticked with a pen, so they need visible edges. */
+    .step__box {
+      appearance: none;
+      border: 1.5px solid var(--text-default);
+    }
+  }
+</style>

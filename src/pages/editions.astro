@@ -1,0 +1,263 @@
+---
+/**
+ * Editions (docs/decisions.md D13).
+ *
+ * This page exists because printed books outlive redesigns. A page number printed in the
+ * first run must still resolve after a second run moves it, so the routing is
+ * edition-aware and the editions have to be written down somewhere a reader can see.
+ *
+ * The routed-page count is read from the live page index rather than typed here, so it
+ * cannot drift away from what /p/[n] actually resolves.
+ */
+import Page from "../layouts/Page.astro";
+import ChapterFurniture from "../components/ChapterFurniture.astro";
+import { pageIndex } from "../lib/content";
+
+const index = await pageIndex();
+const routed = [...index.keys()].filter((n) => n >= 1 && n <= 64).length;
+
+const EDITION_ONE = [
+  { key: "Name", value: "The Condensed Gen Z Edition" },
+  { key: "Print run", value: "First, 2026" },
+  { key: "Publisher", value: "Bright Kids" },
+  { key: "Author", value: "Ryan Rijvers" },
+  { key: "Language", value: "English. Written for readers aged 13 and up." },
+  { key: "Printed pages", value: "64" },
+  { key: "Trim size", value: "140 × 216 mm" },
+  { key: "Page routing", value: "/p/1 to /p/64 resolve against this edition." },
+];
+---
+
+<Page
+  title="Editions"
+  description="Which print run this site's page numbers refer to, and how a printed page number keeps working after a second edition moves it."
+>
+  <ChapterFurniture
+    eyebrow="The record"
+    title="Editions"
+    subtitle="Which printed book this site's page numbers belong to — and what happens to them when a second run moves them."
+  />
+
+  <div class="wrap">
+    <div class="prose">
+      <p class="lede">
+        Every tool page on this site states the printed page it came from, and you can type
+        a page number straight into the homepage to get there. That only works if it is
+        clear which book the number is in. This page is that record.
+      </p>
+    </div>
+  </div>
+
+  <section class="wrap section" aria-labelledby="edition-1">
+    <h2 id="edition-1">Edition 1 — the one this site follows</h2>
+    <div class="rows">
+      {
+        EDITION_ONE.map((r) => (
+          <div class="row">
+            <p class="row__key">{r.key}</p>
+            <p class="row__value">{r.value}</p>
+          </div>
+        ))
+      }
+      <div class="row">
+        <p class="row__key">ISBN</p>
+        <div class="row__value">
+          <div data-placeholder class="placeholder">
+            <p class="placeholder__label">Not yet known</p>
+            <p class="placeholder__note">
+              The paperback and ebook ISBNs are not confirmed. They will be listed here,
+              in full, so a librarian or a bookseller can match this site to the physical
+              object without asking anyone.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="prose note">
+      <b>{routed}</b> of the 64 printed pages currently resolve to a tool on this site. The
+      rest are story and essay pages, which stay in the book.
+    </p>
+  </section>
+
+  <section class="wrap section" aria-labelledby="p65">
+    <h2 id="p65">Page 65</h2>
+    <div class="prose">
+      <p>
+        The book ends on printed page 64 with “End of the condensed edition.” There is no
+        page 65 in the book — but typing 65 here opens{" "}
+        <a href="/c/16">Chapter 16</a>, written by Ryan about what he learned after the book
+        went to print. It is the one thing a printed book can never contain.
+      </p>
+      <p>
+        It is not a locked room. Typing 65 is the pleasant way to find it; the plain link
+        above works just as well, it is in the site's navigation, and search engines can
+        read it. A secret that can only be reached by an easter egg excludes anyone using a
+        screen reader and anyone who never thinks to try.
+      </p>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="second-run">
+    <h2 id="second-run">When there is a second print run</h2>
+    <div class="prose">
+      <p>
+        Page numbers move when a book is reset. That is normal, and it is exactly how a
+        printed QR code turns into a dead link two years later. So three rules hold here:
+      </p>
+      <ul class="plain">
+        <li>
+          <b>The routing is per edition.</b> A second edition gets its own table on this
+          page, and its own mapping. The first edition's mapping is never edited to match
+          it.
+        </li>
+        <li>
+          <b>A printed address is permanent.</b> Anything printed in a book is treated as
+          immutable forever. <b>/p/1</b> to <b>/p/64</b> must never return a 404, no matter
+          how many times this site is rebuilt.
+        </li>
+        <li>
+          <b>Every page states its own number.</b> If a tool page says “book page 30” and
+          your copy says something else, your copy is a different edition — come back here
+          and check which.
+        </li>
+      </ul>
+      <p class="note">
+        Until a second edition exists, everything on this site refers to the first.
+      </p>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="corrections">
+    <h2 id="corrections">Corrections</h2>
+    <div class="prose">
+      <p>
+        If a page number here does not match the book in your hands, that is worth telling
+        us: the mailbox at the bottom of this page is read by an adult. Corrections get a
+        dated entry on <a href="/updates">the changelog</a> saying what was wrong, rather
+        than a silent edit.
+      </p>
+    </div>
+  </section>
+</Page>
+
+<style>
+  .wrap {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .prose {
+    max-inline-size: var(--container-measure);
+  }
+
+  .prose p + p,
+  .prose ul {
+    margin-block-start: 0.9em;
+  }
+
+  .lede {
+    margin-block-start: 1.75rem;
+    font-size: var(--text-subtitle);
+    line-height: var(--text-subtitle--line-height);
+    color: var(--text-strong);
+  }
+
+  .section {
+    margin-block-start: 3rem;
+  }
+
+  .section > h2 {
+    font-size: var(--text-h2);
+    line-height: var(--text-h2--line-height);
+    color: var(--text-section);
+    max-inline-size: var(--container-measure);
+  }
+
+  .section > .prose {
+    margin-block-start: 0.75rem;
+  }
+
+  .rows {
+    margin-block-start: 1.5rem;
+    /* The key column plus the gap plus the measure, so the hairlines end where the words
+       do rather than running on to the 72rem wrap. Matches grid-template-columns below. */
+    max-inline-size: calc(10rem + 2rem + var(--container-measure));
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .row {
+    display: grid;
+    gap: 0.25rem 2rem;
+    padding-block: 0.9rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .row__key {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .row__value {
+    max-inline-size: var(--container-measure);
+    /* Page numbers, trim sizes and ISBNs are data. */
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+
+  @media (min-width: 40rem) {
+    .row {
+      grid-template-columns: 10rem minmax(0, 1fr);
+      align-items: baseline;
+    }
+  }
+
+  [data-placeholder] {
+    padding: 0.85rem 1rem;
+    background: var(--surface-card);
+    border: 1px dashed var(--rule-hairline);
+  }
+
+  .placeholder__label {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-strong);
+  }
+
+  .placeholder__note {
+    margin-block-start: 0.35rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .plain {
+    list-style: none;
+    padding: 0;
+  }
+
+  .plain li {
+    padding-block: 0.55rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .note {
+    margin-block-start: 1.25rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .note b {
+    font-variant-numeric: tabular-nums slashed-zero;
+    color: var(--text-strong);
+  }
+
+  a {
+    text-decoration-color: currentColor;
+    text-underline-offset: 3px;
+  }
+</style>

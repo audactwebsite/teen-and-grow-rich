@@ -1,0 +1,639 @@
+---
+/**
+ * The 19 build pages. One printed 24-Hour Build, one page, one thing to do.
+ *
+ * Everything the book wrote is rendered verbatim from builds.yaml and
+ * reality-checks.yaml. The flag, the timer length, the time note and the adult-free green
+ * variant are interface metadata the book does not carry, and they all live in
+ * src/lib/build-meta.ts — one table, read by this page, the chapter pages and the hub.
+ * There used to be a second copy here and the two drifted on seven of nineteen builds,
+ * which is how a reader met a weaker flag on one page than on another.
+ */
+import Page from "../../layouts/Page.astro";
+import ChapterFurniture from "../../components/ChapterFurniture.astro";
+import Box from "../../components/Box.astro";
+import Flag from "../../components/Flag.astro";
+import Timer from "../../components/Timer.astro";
+import PageRef from "../../components/PageRef.astro";
+import { allBuilds, allChapters, allRealityChecks } from "../../lib/content";
+import { buildMeta } from "../../lib/build-meta";
+import type { BuildFlag } from "../../lib/build-meta";
+
+/* What the flag means for this page, in the book's register. The Flag component already
+   names the rule; this says what it costs you here. */
+const FLAG_MEANING: Record<BuildFlag, string> = {
+  green:
+    "Nothing in this build needs anyone's permission. You can start it now, on your own, and finish it today.",
+  yellow:
+    "One part of this build touches money, people you have not met, or details about you that are private. Check in with an adult before that part. The rest you can start right now.",
+  red: "This build cannot be done on your own. An adult has to be in it with you — not told about it afterwards.",
+};
+
+export async function getStaticPaths() {
+  const builds = await allBuilds();
+  const chapters = await allChapters();
+  const checks = await allRealityChecks();
+
+  return builds.map((build, i) => {
+    const prev = builds[i - 1];
+    const next = builds[i + 1];
+    const pad = (n: number) => String(n).padStart(2, "0");
+
+    return {
+      params: { n: pad(build.data.n) },
+      props: {
+        build,
+        chapter: chapters.find((c) => c.data.n === build.data.chapter),
+        /* The 16 builds that carry one. Builds 1, 18 and 19 do not, and the page says so
+           rather than rendering an empty Reality Check box. */
+        check: checks.find((c) => c.data.build === build.data.n),
+        prev: prev ? { n: pad(prev.data.n), title: prev.data.source } : undefined,
+        next: next ? { n: pad(next.data.n), title: next.data.source } : undefined,
+      },
+    };
+  });
+}
+
+const { build, chapter, check, prev, next } = Astro.props;
+const d = build.data;
+/* Throws on an unknown build id, and on a yellow or red build with no green variant.
+   Neither may fall back to a default: one would render silently as green, the other as an
+   approval gate with no adult-free route. */
+const meta = buildMeta(build.id);
+
+const nn = String(d.n).padStart(2, "0");
+const title = chapter ? chapter.data.title : d.source;
+const chapterPath = chapter ? `/c/${String(chapter.data.n).padStart(2, "0")}` : undefined;
+const proofId = `proof:${build.id}`;
+
+const description = `24-Hour Build ${nn} of 19 from Teen & Grow Rich, book page ${d.printedPage}: the instruction, a timer, the Reality Check in full, and somewhere to write what you made.`;
+---
+
+<Page title={`Build ${nn} · ${title}`} description={description} printedPage={d.printedPage}>
+  <ChapterFurniture
+    eyebrow={`24-Hour Build ${nn} of 19`}
+    title={title}
+    subtitle={chapter ? chapter.data.subtitle : undefined}
+  />
+
+  {/* Full-width hairline data row, then the 65ch prose column — the page rhythm from
+      spec §3. It stacks to one column at 320px and never scrolls sideways. */}
+  <div class="datarow">
+    <dl class="datarow__inner">
+      <div class="datarow__cell">
+        <dt>Flag</dt>
+        <dd><Flag level={meta.flag} size="sm" /></dd>
+      </div>
+      <div class="datarow__cell">
+        <dt>Time</dt>
+        <dd><span class="num">{meta.minutes}</span> min</dd>
+      </div>
+      <div class="datarow__cell">
+        <dt>In the book</dt>
+        <dd><PageRef page={d.printedPage} /></dd>
+      </div>
+      {/* Only when it says something the H1 does not. Builds 17–19 have no chapter, so
+          their source IS their title, and the cell repeated the heading above it —
+          unlinked, and costing a quarter of the first screen on a phone. */}
+      {
+        chapterPath && (
+          <div class="datarow__cell">
+            <dt>From</dt>
+            <dd>
+              <a href={chapterPath}>{d.source}</a>
+            </dd>
+          </div>
+        )
+      }
+    </dl>
+  </div>
+
+  <div class="wrap print-sheet">
+    <section class="section prose" aria-labelledby="flag-h">
+      <h2 id="flag-h">What the flag means here</h2>
+      <p>{FLAG_MEANING[meta.flag]}</p>
+    </section>
+
+    <section class="section" aria-labelledby="build-h">
+      <h2 id="build-h" class="prose">Do this</h2>
+      <Box kind="build">
+        <p>{d.build}</p>
+      </Box>
+
+      {/* The gate is stated above, in one sentence, before the work. These two paragraphs
+          are the same on all eleven yellow and red builds, and in front of the box they
+          put ~95 words of boilerplate between a reader arriving from a printed page and
+          the one thing this page exists for. */}
+      {
+        meta.flag !== "green" && (
+          <div class="prose gate">
+            <p>
+              An adult does not only mean a parent or guardian. A teacher, a coach, a
+              librarian, a youth worker or a sibling over 18 all count. Pick the one you
+              would actually tell the truth to.
+            </p>
+            <p>
+              Going around the gate is the failure, not the clever move. And if the person
+              you ask says no, that is information about timing — not about you.
+            </p>
+          </div>
+        )
+      }
+    </section>
+
+    <section class="section" aria-labelledby="check-h">
+      <h2 id="check-h" class="prose">The Reality Check</h2>
+      {
+        check ? (
+          /* Always in full, never collapsed, never truncated, never behind a control.
+             It is the safety layer of a book written for 13-year-olds. */
+          <Box kind="check">
+            <p>{check.data.text}</p>
+            <p class="section__source">
+              <PageRef page={check.data.printedPage} kind="Reality Check" />
+            </p>
+          </Box>
+        ) : (
+          <div class="prose">
+            <p>
+              This build does not have one. The book prints nineteen Reality Checks;
+              sixteen of them sit on a build, and this is one of the three that goes
+              without.
+            </p>
+            <p>
+              <a href="/reality-check">Read all nineteen Reality Checks</a> — they are
+              short, and they are the part of the book worth reading twice.
+            </p>
+          </div>
+        )
+      }
+    </section>
+
+    {
+      meta.green && (
+        /* Not a fourth box — the three semantic boxes are the book's and there is no
+           fourth. This is body content under a hairline, carrying a green flag. */
+        <section class="section alt" aria-labelledby="alone-h">
+          <h2 id="alone-h" class="prose">
+            If there is nobody to ask right now
+          </h2>
+          <div class="prose">
+            <p class="alt__flag">
+              <Flag level="green" label="Green · this version needs no adult" size="sm" />
+            </p>
+            <p>{meta.green}</p>
+            <p class="alt__caveat">
+              This is not a way around the gate. It is a smaller build that does not need
+              one, so that having nobody to ask today does not end the ninety days. The
+              full version is still there when the person is.
+            </p>
+          </div>
+        </section>
+      )
+    }
+
+    <section class="section" aria-labelledby="do-h">
+      <h2 id="do-h" class="prose">Start the clock</h2>
+      <div class="prose">
+        <p class="do__timing">
+          {
+            meta.minutesFromBook
+              ? `The book sets this build at ${meta.minutes} minutes.`
+              : `The book does not put a time on this one. ${meta.minutes} minutes is this site's default first step — short enough to start, long enough to make something.`
+          }
+        </p>
+        {meta.timeNote && <p class="do__timing">{meta.timeNote}</p>}
+      </div>
+
+      {/* Hidden on paper: a printed build page exists to be read or handed to an adult,
+          and a countdown is noise there. */}
+      <div class="do__timer" data-print="hide">
+        <Timer minutes={meta.minutes} buildId={build.id} />
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="proof-h">
+      <h2 id="proof-h" class="prose">Your proof</h2>
+      <div class="prose">
+        <p>
+          One line about what exists now that did not exist before you started. Not how
+          good it looked — what it is. Write it before or after you mark the build done;
+          the order does not matter.
+        </p>
+
+        <div class="proof" data-proof data-proof-id={proofId}>
+          <label class="proof__label" for="proof-field">What did you actually make?</label>
+          <textarea
+            id="proof-field"
+            class="proof__field"
+            rows="4"
+            data-proof-field
+            placeholder="e.g. one page with my three signal words on it"></textarea>
+
+          <p class="proof__note proof__note--nojs">
+            This box needs JavaScript to keep anything. You can still write in it and
+            print the page, or write your proof in your own notes — which lasts longer
+            than a browser does anyway.
+          </p>
+          {/* The idle sentence is in the markup, not written by the script on load: an
+              empty live region that fills during page load gets announced unprompted on
+              arrival. The script only replaces it when this browser turns out not to be
+              keeping anything, which is a change worth announcing. */}
+          <p class="proof__note proof__note--js" data-proof-note role="status">
+            Kept in this browser as you type, never sent anywhere.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="keep-h" data-print="hide">
+      <h2 id="keep-h" class="prose">Keeping it</h2>
+      <div class="prose">
+        <p>
+          Everything you tick or type here is kept in this browser and goes nowhere else.
+          Browsers throw this kind of storage away on their own, and a shared school laptop
+          clears it at sign-out, so the copy you print or paste into your own notes is the
+          record that lasts.
+        </p>
+        <p><a href="/receipts">Open your receipts</a> to copy, export or print the lot.</p>
+      </div>
+    </section>
+
+    <nav class="pager" aria-label="Builds" data-print="hide">
+      {
+        prev ? (
+          <a class="pager__link" href={`/build/${prev.n}`} data-tap>
+            <span class="pager__dir">Previous build</span>
+            <span class="pager__title">
+              <span class="num">{prev.n}</span> · {prev.title}
+            </span>
+          </a>
+        ) : (
+          <span />
+        )
+      }
+      {
+        next ? (
+          <a class="pager__link pager__link--next" href={`/build/${next.n}`} data-tap>
+            <span class="pager__dir">Next build</span>
+            <span class="pager__title">
+              <span class="num">{next.n}</span> · {next.title}
+            </span>
+          </a>
+        ) : (
+          <span />
+        )
+      }
+    </nav>
+
+    <p class="all-builds" data-print="hide"><a href="/builds">All nineteen builds</a></p>
+  </div>
+</Page>
+
+<script>
+  import { record, valueOf, canKeep } from "../../lib/storage";
+
+  const root = document.querySelector<HTMLElement>("[data-proof]");
+  const field = root?.querySelector<HTMLTextAreaElement>("[data-proof-field]");
+  const note = root?.querySelector<HTMLElement>("[data-proof-note]");
+
+  if (root && field && note) {
+    const id = root.dataset.proofId ?? "";
+
+    // A read, not a write, so it needs no gesture. Restoring rather than asking again is
+    // WCAG 2.2 3.3.7 (Redundant Entry) as much as it is a courtesy.
+    const kept = valueOf("field", id);
+    if (typeof kept === "string") field.value = kept;
+
+    const idle = canKeep()
+      ? "Kept in this browser as you type, never sent anywhere."
+      : "This browser is not keeping anything, so this will go when you leave. Copy it somewhere of your own.";
+    // Only touch the live region when the server-rendered sentence is actually wrong.
+    if (note.textContent?.trim() !== idle) note.textContent = idle;
+
+    let last = field.value;
+    let timer: number | undefined;
+
+    const persist = () => {
+      window.clearTimeout(timer);
+      timer = undefined;
+      if (field.value === last) return;
+      last = field.value;
+      // Every keystroke would append an event to a log capped at 4000; the pause is what
+      // makes an append-only log affordable for free text.
+      note.textContent = record("field", id, field.value)
+        ? "Kept in this browser."
+        : "Not kept — this browser is not keeping anything. Copy it somewhere of your own.";
+    };
+
+    field.addEventListener("input", () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(persist, 700);
+    });
+
+    // Leaving the field, or the page, must not lose the last few characters.
+    field.addEventListener("blur", persist);
+    window.addEventListener("pagehide", persist);
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") persist();
+    });
+  }
+</script>
+
+<style>
+  .wrap {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .prose {
+    max-inline-size: var(--container-measure);
+  }
+
+  .num {
+    font-variant-numeric: tabular-nums slashed-zero;
+    font-weight: 700;
+  }
+
+  /* --- The hairline data row ------------------------------------------------ */
+
+  .datarow {
+    border-block: 1px solid var(--rule-hairline);
+    background: var(--surface-card);
+  }
+
+  .datarow__inner {
+    display: grid;
+    /* One column at 320px, two on a phone in landscape, four from tablet up. Never a
+       horizontal scroll, and never a table that needs one. */
+    grid-template-columns: 1fr;
+    max-inline-size: 72rem;
+    margin: 0 auto;
+    padding: 0;
+  }
+
+  .datarow__cell {
+    padding: 0.7rem clamp(1.25rem, 5vw, 3rem);
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .datarow__cell:first-child {
+    border-block-start: 0;
+  }
+
+  .datarow__cell dt {
+    font-size: var(--text-eyebrow);
+    font-weight: 700;
+    letter-spacing: var(--text-eyebrow--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .datarow__cell dd {
+    margin: 0.2rem 0 0;
+    font-size: var(--text-meta);
+    color: var(--text-default);
+  }
+
+  .datarow__cell a {
+    font-weight: 700;
+    text-underline-offset: 3px;
+    text-decoration-color: currentColor;
+  }
+
+  .datarow__cell a:hover {
+    text-decoration-color: var(--accent-spine);
+  }
+
+  @media (min-width: 30rem) {
+    .datarow__inner {
+      grid-template-columns: 1fr 1fr;
+    }
+    .datarow__cell:nth-child(2) {
+      border-block-start: 0;
+    }
+  }
+
+  @media (min-width: 48rem) {
+    .datarow__inner {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      padding-inline: clamp(1.25rem, 5vw, 3rem);
+    }
+    .datarow__cell {
+      padding-inline: 0 1.5rem;
+      border-block-start: 0;
+    }
+  }
+
+  /* --- Sections ------------------------------------------------------------- */
+
+  .section {
+    margin-block-start: 2.5rem;
+  }
+
+  h2 {
+    font-size: var(--text-h2);
+    line-height: var(--text-h2--line-height);
+    color: var(--text-section);
+  }
+
+  .section h2 {
+    margin-block-end: 0.9rem;
+  }
+
+  p + p {
+    margin-block-start: 0.8em;
+  }
+
+  a {
+    text-underline-offset: 3px;
+  }
+
+  .section__source {
+    margin-block-start: 0.9rem;
+  }
+
+  .gate {
+    margin-block-start: 1.25rem;
+  }
+
+  /* --- The green variant ---------------------------------------------------- */
+
+  /* Capped to the measure so its rule ends where its text ends. Everything else in this
+     section is 65ch; a divider running the full 72rem read as 2.5× the column it split. */
+  .alt {
+    max-inline-size: var(--container-measure);
+    padding-block-start: 2.25rem;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .alt__flag {
+    margin-block-end: 0.8rem;
+  }
+
+  /* Body size, body ink. It was 14px muted directly under the adult-free workaround it
+     qualifies — the rule that keeps a yellow gate meaningful must never be set weaker
+     than the thing it is qualifying. */
+  .alt__caveat {
+    color: var(--text-default);
+  }
+
+  /* --- Timing and proof ----------------------------------------------------- */
+
+  .do__timing {
+    color: var(--text-muted);
+    font-size: var(--text-meta);
+  }
+
+  .do__timer {
+    margin-block-start: 1.25rem;
+  }
+
+  .proof {
+    margin-block-start: 1.25rem;
+  }
+
+  .proof__label {
+    display: block;
+    font-size: var(--text-label);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-strong);
+    margin-block-end: 0.5rem;
+  }
+
+  .proof__field {
+    inline-size: 100%;
+    /* Comfortably past the coarse-pointer floor and big enough to see what you wrote. */
+    min-block-size: 6.5rem;
+    padding: 0.7rem 0.8rem;
+    font: inherit;
+    color: var(--text-default);
+    background: var(--surface-card);
+    border: 1px solid var(--control-edge);
+    border-left: 4px solid var(--accent-spine);
+    resize: vertical;
+  }
+
+  .proof__field::placeholder {
+    color: var(--text-muted);
+  }
+
+  .proof__field:focus {
+    border-color: var(--accent-spine);
+  }
+
+  .proof__note {
+    margin-block-start: 0.6rem;
+    min-block-size: 1.45em;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  /* A note about persistence must tell the truth about whether scripting is running. */
+  .proof__note--js {
+    display: none;
+  }
+
+  :global(:root[data-js]) .proof__note--js {
+    display: block;
+  }
+
+  :global(:root[data-js]) .proof__note--nojs {
+    display: none;
+  }
+
+  /* --- Pager ---------------------------------------------------------------- */
+
+  .pager {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    margin-block-start: 3rem;
+    padding-block-start: 1.5rem;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .pager__link {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-block-size: 44px;
+    padding: 0.75rem 0.9rem;
+    text-decoration: none;
+    border: 1px solid var(--rule-hairline);
+    border-left: 4px solid var(--accent-dot);
+  }
+
+  .pager__link:hover {
+    border-color: var(--accent-spine);
+    border-left-color: var(--accent-dot);
+  }
+
+  .pager__dir {
+    font-size: var(--text-eyebrow);
+    font-weight: 700;
+    letter-spacing: var(--text-eyebrow--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .pager__title {
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  @media (min-width: 48rem) {
+    .pager {
+      grid-template-columns: 1fr 1fr;
+    }
+    .pager__link--next {
+      text-align: right;
+      border-left: 1px solid var(--rule-hairline);
+      border-right: 4px solid var(--accent-dot);
+    }
+  }
+
+  .all-builds {
+    margin-block-start: 1.25rem;
+    font-size: var(--text-meta);
+    font-weight: 700;
+  }
+
+  /* --- Print ---------------------------------------------------------------- */
+
+  @media print {
+    .datarow {
+      background: transparent;
+    }
+
+    .datarow__inner {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      padding-inline: 0;
+    }
+
+    .datarow__cell {
+      padding-inline: 0 1rem;
+      border-block-start: 0;
+    }
+
+    .section {
+      margin-block-start: 1.5rem;
+      break-inside: avoid;
+    }
+
+    /* The proof box is meant to be filled in with a pen when it comes off a printer. */
+    .proof__field {
+      min-block-size: 3.5cm;
+      background: var(--surface-page);
+      border: 1px solid var(--text-default);
+      border-left-width: 4px;
+    }
+
+    .proof__note {
+      display: none;
+    }
+  }
+</style>

@@ -1,0 +1,187 @@
+---
+/**
+ * The Play, as five ticked steps. Every chapter has exactly five.
+ *
+ * Server-rendered real checkboxes with one delegated listener — not a framework. Five
+ * checkboxes do not need a runtime (D22), and native inputs bring keyboard support,
+ * form semantics and the platform's own focus ring for free.
+ *
+ * The count is a real count — "2 of 5 done" — and nothing else. No score, no badge, no
+ * percentage, no streak. The book argues against exactly that.
+ */
+interface Props {
+  /** Namespace for the stored ids, normally the chapter slug. */
+  id: string;
+  steps: { n: number; title: string; text: string }[];
+  class?: string;
+}
+
+const { id, steps, class: className } = Astro.props;
+---
+
+<div class:list={["checklist", className]} data-checklist data-id={id}>
+  {/* aria-live is attached by the script, not authored here — see the note beside
+      paintCount below. The count is hidden entirely without scripting. */}
+  <p class="checklist__count" data-checklist-count>0 of {steps.length} done</p>
+
+  <ol class="checklist__list">
+    {
+      steps.map((step) => (
+        <li class="checklist__item">
+          <label class="checklist__label">
+            <input type="checkbox" class="checklist__box" data-checklist-step={step.n} />
+            <span class="checklist__text">
+              <span class="checklist__title">
+                <span class="checklist__n">{step.n}</span>
+                {step.title}
+              </span>
+              <span class="checklist__body">{step.text}</span>
+            </span>
+          </label>
+        </li>
+      ))
+    }
+  </ol>
+
+  <p class="checklist__note" data-checklist-note></p>
+</div>
+
+<script>
+  import { record, state, canKeep } from "../lib/storage";
+
+  for (const root of document.querySelectorAll<HTMLElement>("[data-checklist]")) {
+    const id = root.dataset.id ?? "";
+    const boxes = [...root.querySelectorAll<HTMLInputElement>("[data-checklist-step]")];
+    const count = root.querySelector<HTMLElement>("[data-checklist-count]");
+    const note = root.querySelector<HTMLElement>("[data-checklist-note]");
+    if (!boxes.length || !count || !note) continue;
+
+    const paintCount = () => {
+      count.textContent = `${boxes.filter((b) => b.checked).length} of ${boxes.length} done`;
+    };
+
+    // Fold the log back onto the boxes. A read, not a write, so no gesture is required.
+    const kept = state();
+    for (const box of boxes) {
+      if (kept.get(`play:${id}:${box.dataset.checklistStep}`) === 1) box.checked = true;
+    }
+    paintCount();
+
+    // The tick itself is announced natively, but the running total is only ever
+    // rewritten by script, so without a live region it is never announced at all
+    // (WCAG 4.1.3). The attribute goes on after the first paint, so folding the kept
+    // ticks back on does not fire an announcement the reader did not ask for.
+    count.setAttribute("aria-live", "polite");
+
+    // "kept in this browser", never "saved" — WebKit clears script-writable storage
+    // after seven days of Safari use without a visit, and school Chromebooks wipe on
+    // sign-out. The printable receipt is the durable record; this is a cache.
+    note.textContent = canKeep()
+      ? "Ticks are kept in this browser, never sent anywhere. Print or copy your receipt to keep them for good."
+      : "This browser is not keeping anything, so these ticks will go when you leave. Print or copy your receipt.";
+
+    // One listener for all five. change fires for pointer, keyboard and assistive tech.
+    root.addEventListener("change", (event) => {
+      const box = (event.target as HTMLElement | null)?.closest<HTMLInputElement>(
+        "[data-checklist-step]",
+      );
+      if (!box) return;
+      // The tick has already painted natively; the count follows immediately and
+      // persistence comes last, because storage.ts yields before it touches
+      // localStorage and nothing visible may wait on that (D22).
+      paintCount();
+      record("play", `${id}:${box.dataset.checklistStep}`, box.checked ? 1 : 0);
+    });
+  }
+</script>
+
+<style>
+  .checklist {
+    max-inline-size: var(--container-measure);
+  }
+
+  /* Without JS the boxes still tick, but nothing is kept and the count would lie, so
+     the count is not shown at all. */
+  .checklist__count {
+    display: none;
+    font-size: var(--text-meta);
+    font-weight: 700;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums slashed-zero;
+    margin-block-end: 0.75rem;
+  }
+
+  :global(:root[data-js]) .checklist__count {
+    display: block;
+  }
+
+  .checklist__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .checklist__item {
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .checklist__label {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    /* Whole row is the target, comfortably past the 44px coarse-pointer floor. */
+    min-block-size: 44px;
+    padding: 0.85rem 0.25rem;
+    cursor: pointer;
+  }
+
+  .checklist__box {
+    flex: none;
+    inline-size: 24px;
+    block-size: 24px;
+    margin-block-start: 0.15rem;
+    accent-color: var(--flag-green);
+  }
+
+  .checklist__text {
+    display: block;
+  }
+
+  .checklist__title {
+    display: block;
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  .checklist__n {
+    display: inline-block;
+    min-inline-size: 1.4em;
+    color: var(--text-section);
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+
+  .checklist__body {
+    display: block;
+    margin-block-start: 0.2rem;
+    color: var(--text-default);
+  }
+
+  .checklist__box:checked + .checklist__text .checklist__title {
+    color: var(--text-muted);
+  }
+
+  .checklist__note {
+    margin-block-start: 0.9rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  @media print {
+    /* On paper the boxes are ticked with a pen, so they must have visible edges. */
+    .checklist__box {
+      appearance: none;
+      border: 1.5px solid var(--text-default);
+    }
+  }
+</style>

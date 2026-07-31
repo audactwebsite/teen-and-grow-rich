@@ -1,0 +1,1116 @@
+---
+/**
+ * The book's four worksheets, completable on a phone.
+ *
+ * Layout follows design-system §5: a worksheet table inverts the book's normal table, so
+ * from 768px this is a tinted label column on the left and a plain input column on the
+ * right. Below that it stacks — a two-column form at 390px is a form nobody finishes.
+ *
+ * Answers are kept in this browser only, written on blur through storage.ts. Never
+ * "saved" (D24). Copy-as-text is the durable output and is offered first; print is the
+ * second, because print is an output and never a requirement (D25).
+ *
+ * The Real Rich Scoreboard is the one worksheet with a different control: six 1–10
+ * sliders and one bar visual. There is no total, no average and no grade — the book's
+ * instruction is "choose one action for the lowest area", so the only derived fact the
+ * page states is which area is lowest.
+ */
+import Page from "../../layouts/Page.astro";
+import ChapterFurniture from "../../components/ChapterFurniture.astro";
+import PageRef from "../../components/PageRef.astro";
+import Box from "../../components/Box.astro";
+import Flag from "../../components/Flag.astro";
+import { allWorksheets, allRealityChecks, allOffers } from "../../lib/content";
+import type { Worksheet } from "../../lib/content";
+import { metaFor } from "../reality-check/_checks";
+
+export async function getStaticPaths() {
+  const worksheets = await allWorksheets();
+  return worksheets.map((worksheet) => ({ params: { id: worksheet.id }, props: { worksheet } }));
+}
+
+type Props = { worksheet: Worksheet };
+
+const { worksheet } = Astro.props;
+const w = worksheet.data;
+const isScoreboard = worksheet.id === "real-rich-scoreboard";
+
+/**
+ * Which fields carry a flag, and at what level (D12: every worksheet field touching
+ * money, people or data carries one).
+ *
+ * The level is read off the book's own hint, never invented. Red where the hint itself
+ * requires a parent or guardian; yellow where the field commits the reader to other
+ * people or to a public boundary; green where it is safe to do alone — so that no field
+ * is a dead end for a reader with nobody to ask (D25).
+ */
+const FIELD_FLAGS: Record<string, "green" | "yellow" | "red"> = {
+  "starting-point:my-safe-witness": "green",
+  "first-offer-canvas:who-i-help": "green",
+  "first-offer-canvas:the-starter-price": "red",
+  "first-offer-canvas:the-safe-contact-route": "red",
+  "first-offer-canvas:the-stop-rules": "yellow",
+  "real-rich-plan:my-safe-witness": "green",
+  "real-rich-plan:my-first-offer": "yellow",
+  "real-rich-plan:my-money-split": "yellow",
+  "real-rich-plan:my-stop-rules": "yellow",
+};
+
+/* Two fields are a name and a date. Every other field in the book's worksheets is a
+   sentence or more, where a textarea that grows is the phone-friendly default. */
+const SINGLE_LINE = new Set(["my-name", "start-date"]);
+
+/* Reality Checks are matched on the printed page they share with the worksheet, which is
+   the same fact /p/[n] routing runs on. It renders in full, always visible, never behind
+   anything.
+
+   Plus one explicit attachment: the First Offer Canvas is on page 58 and the check that
+   defines what makes a first offer safe is on page 57, so page equality alone leaves the
+   one worksheet with two red-flagged fields — the starter price and the safe contact
+   route — carrying no check at all. */
+const EXTRA_CHECKS: Record<string, string[]> = {
+  "first-offer-canvas": ["seven-safe-offers"],
+};
+
+const allChecks = await allRealityChecks();
+const extraIds = EXTRA_CHECKS[worksheet.id] ?? [];
+const checks = allChecks.filter(
+  (c) => c.data.printedPage === w.printedPage || extraIds.includes(c.id),
+);
+
+for (const id of extraIds) {
+  if (!allChecks.some((c) => c.id === id)) {
+    throw new Error(
+      `Worksheet "${worksheet.id}" requires Reality Check "${id}", which is not in ` +
+        "reality-checks.yaml. A required safety element must fail the build, never vanish.",
+    );
+  }
+}
+
+/**
+ * The First Offer Canvas can arrive pre-filled from /offers via ?from=<offer-id>. Only
+ * the two fields the book's own offers table actually answers are seeded — the
+ * deliverable and the first proof. Nothing else is guessed on the reader's behalf.
+ *
+ * Carried in a data attribute rather than an inline JSON script so it stays outside the
+ * CSP script-src surface entirely.
+ */
+const prefill =
+  worksheet.id === "first-offer-canvas"
+    ? JSON.stringify(
+        Object.fromEntries(
+          (await allOffers()).map((o) => [
+            o.id,
+            {
+              offer: o.data.offer,
+              fields: {
+                "the-deliverable": o.data.deliverable,
+                "the-proof": o.data.firstProof,
+              },
+            },
+          ]),
+        ),
+      )
+    : undefined;
+---
+
+<Page title={w.title} description={w.subtitle} printedPage={w.printedPage}>
+  <ChapterFurniture eyebrow="Worksheet" title={w.title} subtitle={w.subtitle} />
+
+  <div class="band">
+    <div class="band__inner">
+      <PageRef page={w.printedPage} kind="Worksheet" />
+      <p class="band__count">
+        {w.fields.length}
+        {isScoreboard ? " areas" : " fields"}
+      </p>
+    </div>
+  </div>
+
+  <div
+    class="sheet print-sheet"
+    data-worksheet={worksheet.id}
+    data-title={w.title}
+    data-page={String(w.printedPage)}
+    data-prefill={prefill}
+  >
+    {/* Print only: the book's running header, so a printed sheet reads as a book page. */}
+    <div class="sheet__running" aria-hidden="true">
+      <span>Teen &amp; Grow Rich</span>
+      <span>Skills. Freedom. Money. Meaning.</span>
+    </div>
+
+    {/* No heading here: ChapterFurniture already prints the title and the subtitle at the
+        top of the page, and restating both 200px below themselves reads as a bug. The
+        print-only running head and folio below carry the sheet's identity on paper. */}
+    <p class="sheet__seed" data-seed hidden></p>
+
+    {
+      isScoreboard ? (
+        <>
+          <ol class="scores">
+            {w.fields.map((f) => (
+              <li class="score" data-score-row={f.id}>
+                <label class="score__label" for={`f-${f.id}`}>
+                  {f.label}
+                </label>
+                <div class="score__controls">
+                  <button
+                    type="button"
+                    class="score__step"
+                    data-score-step="-1"
+                    data-score-for={f.id}
+                    aria-label={`Lower ${f.label} by one`}
+                  >
+                    −
+                  </button>
+                  <input
+                    type="range"
+                    id={`f-${f.id}`}
+                    class="score__range"
+                    min="1"
+                    max="10"
+                    step="1"
+                    value="5"
+                    aria-valuetext="Not scored yet"
+                    aria-describedby={`h-${f.id}`}
+                    data-score={f.id}
+                    data-label={f.label}
+                  />
+                  <button
+                    type="button"
+                    class="score__step"
+                    data-score-step="1"
+                    data-score-for={f.id}
+                    aria-label={`Raise ${f.label} by one`}
+                  >
+                    +
+                  </button>
+                  <output class="score__out" for={`f-${f.id}`} data-score-out={f.id}>
+                    —
+                  </output>
+                </div>
+                <p class="score__hint" id={`h-${f.id}`}>
+                  {f.hint}
+                </p>
+              </li>
+            ))}
+          </ol>
+
+          {/* One honest bar visual: six bars, drawn from the six numbers, nothing more.
+              No radar, no animation, no total, no grade. */}
+          <section class="bars" aria-label="Your six areas as bars">
+            <h3 class="bars__heading">Your six areas</h3>
+            <p class="bars__empty" data-bars-empty>
+              Move a slider and its bar appears here.
+            </p>
+            <ol class="bars__list">
+              {w.fields.map((f) => (
+                <li class="bars__row" data-bar-row={f.id}>
+                  <span class="bars__label">{f.label}</span>
+                  <span class="bars__track">
+                    <span class="bars__fill" data-bar={f.id} />
+                  </span>
+                  <span class="bars__n" data-bar-n={f.id}>
+                    —
+                  </span>
+                </li>
+              ))}
+            </ol>
+            <p class="bars__lowest" role="status" data-lowest></p>
+          </section>
+        </>
+      ) : (
+        <ol class="fields">
+          {w.fields.map((f) => {
+            const level = FIELD_FLAGS[`${worksheet.id}:${f.id}`];
+            const describedBy = [f.hint ? `h-${f.id}` : "", level ? `g-${f.id}` : ""]
+              .filter(Boolean)
+              .join(" ");
+            return (
+              <li class="field">
+                <div class="field__ask">
+                  <label class="field__label" for={`f-${f.id}`}>
+                    {f.label}
+                  </label>
+                  {f.hint && (
+                    <p class="field__hint" id={`h-${f.id}`}>
+                      {f.hint}
+                    </p>
+                  )}
+                  {level && (
+                    <p class="field__flag" id={`g-${f.id}`}>
+                      <Flag level={level} size="sm" />
+                    </p>
+                  )}
+                </div>
+
+                <div class="field__answer">
+                  {SINGLE_LINE.has(f.id) ? (
+                    <input
+                      type="text"
+                      id={`f-${f.id}`}
+                      class="field__input"
+                      autocomplete="off"
+                      aria-describedby={describedBy || undefined}
+                      data-field={f.id}
+                      data-label={f.label}
+                    />
+                  ) : (
+                    <textarea
+                      id={`f-${f.id}`}
+                      class="field__input field__input--area"
+                      rows="2"
+                      aria-describedby={describedBy || undefined}
+                      data-field={f.id}
+                      data-label={f.label}
+                    />
+                  )}
+                  {/* Printed instead of the control: a textarea clips its own overflow on
+                      paper. Empty, it leaves a ruled line to write on by hand. */}
+                  <p class="field__printed" data-printed={f.id} />
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+      )
+    }
+
+    <p class="sheet__folio" aria-hidden="true">Book page {w.printedPage}</p>
+  </div>
+
+  {
+    checks.length > 0 && (
+      <div class="wrap wrap--prose">
+        {checks.map((c) => (
+          <Box kind="check" class="check">
+            {/* Every Reality Check carries its own flag, on every surface that shows one
+                (D12). Without it a reader meets a risk paragraph with no risk level. */}
+            {metaFor(c.id) && (
+              <p class="check__flag">
+                <Flag level={metaFor(c.id)!.flag} size="sm" />
+              </p>
+            )}
+            <p>{c.data.text}</p>
+            <p class="check__ref">
+              <PageRef page={c.data.printedPage} />
+            </p>
+          </Box>
+        ))}
+      </div>
+    )
+  }
+
+  {/* Primary actions last, so on a phone they land under the thumb after the reader has
+      scrolled through the sheet. */}
+  <div class="wrap actions" data-print="hide">
+    <h2 class="actions__heading">Get this off the device</h2>
+    <p class="actions__note" data-keep-note>
+      Answers are kept in this browser, never sent anywhere. A browser is not a safe
+      place to leave work — copy it out or print it.
+    </p>
+
+    <div class="actions__row">
+      <button type="button" class="btn btn--primary" data-copy>Copy my answers as text</button>
+      <button type="button" class="btn" data-print-btn>Print this worksheet</button>
+    </div>
+
+    <p class="actions__status" role="status" data-status></p>
+
+    <label class="actions__fallback" data-fallback hidden>
+      <span>Copying did not work in this browser. Select all of this and copy it.</span>
+      <textarea readonly rows="8" data-fallback-text></textarea>
+    </label>
+
+    <p class="actions__nojs">
+      Without JavaScript this worksheet still prints and still fills in by hand. Nothing
+      here is locked.
+    </p>
+  </div>
+</Page>
+
+<script>
+  import { record, state, canKeep } from "../../lib/storage";
+
+  const sheet = document.querySelector<HTMLElement>("[data-worksheet]");
+  const status = document.querySelector<HTMLElement>("[data-status]");
+
+  if (sheet) {
+    const wsId = sheet.dataset.worksheet ?? "";
+    const kept = state();
+
+    const say = (message: string) => {
+      if (status) status.textContent = message;
+    };
+
+    /* --- Text fields ------------------------------------------------------- */
+
+    type Field = HTMLInputElement | HTMLTextAreaElement;
+    const fields = [...sheet.querySelectorAll<Field>("[data-field]")];
+
+    const mirror = (el: Field) => {
+      const out = sheet.querySelector<HTMLElement>(`[data-printed="${el.dataset.field}"]`);
+      if (out) out.textContent = el.value;
+    };
+
+    const grow = (el: Field) => {
+      if (!(el instanceof HTMLTextAreaElement)) return;
+      el.style.height = "auto";
+      el.style.height = `${el.scrollHeight}px`;
+    };
+
+    /* Last value written per field. The log is append-only, so writing an unchanged field
+       on every focusout would fill it with duplicates of the same fact. */
+    const written = new Map<string, string>();
+
+    for (const el of fields) {
+      const id = el.dataset.field ?? "";
+      const v = kept.get(`field:${wsId}:${id}`);
+      if (typeof v === "string") {
+        el.value = v;
+        written.set(id, v);
+      }
+      mirror(el);
+      grow(el);
+    }
+
+    /* Seeded from /offers. Applied only to fields the reader has not already filled, and
+       deliberately NOT written to storage: a page load is not a user gesture, and
+       persisting one would break the ePrivacy 5(3) exemption (D23). It is kept the first
+       time the reader leaves the field, like anything else they type. */
+    const from = new URLSearchParams(window.location.search).get("from");
+    if (from && sheet.dataset.prefill) {
+      try {
+        const table = JSON.parse(sheet.dataset.prefill) as Record<
+          string,
+          { offer: string; fields: Record<string, string> }
+        >;
+        const seed = table[from];
+        if (seed) {
+          let used = 0;
+          for (const el of fields) {
+            const text = seed.fields[el.dataset.field ?? ""];
+            if (!text || el.value.trim()) continue;
+            el.value = text;
+            mirror(el);
+            grow(el);
+            used += 1;
+          }
+          const banner = sheet.querySelector<HTMLElement>("[data-seed]");
+          if (banner && used > 0) {
+            banner.textContent = `Started from the Seven Safe First Offers: ${seed.offer}. Change anything. Nothing is kept until you leave a field.`;
+            banner.hidden = false;
+          }
+        }
+      } catch {
+        /* A hand-edited query string is not an error worth showing a 13-year-old. */
+      }
+    }
+
+    sheet.addEventListener("input", (event) => {
+      const el = (event.target as HTMLElement | null)?.closest<Field>("[data-field]");
+      if (!el) return;
+      mirror(el);
+      grow(el);
+    });
+
+    /* focusout, not blur: blur does not bubble, and one listener for nine fields is the
+       whole reason this page ships no framework. */
+    sheet.addEventListener("focusout", (event) => {
+      const el = (event.target as HTMLElement | null)?.closest<Field>("[data-field]");
+      if (!el) return;
+      const id = el.dataset.field ?? "";
+      const value = el.value.trim();
+      if (written.get(id) === value) return;
+      written.set(id, value);
+      record("field", `${wsId}:${id}`, value);
+    });
+
+    /* --- Scoreboard sliders ------------------------------------------------ */
+
+    const ranges = [...sheet.querySelectorAll<HTMLInputElement>("[data-score]")];
+    const lowest = sheet.querySelector<HTMLElement>("[data-lowest]");
+    const barsEmpty = sheet.querySelector<HTMLElement>("[data-bars-empty]");
+
+    const scored = new Map<string, number>();
+
+    const paintScore = (id: string, value: number) => {
+      const out = sheet.querySelector<HTMLElement>(`[data-score-out="${id}"]`);
+      const fill = sheet.querySelector<HTMLElement>(`[data-bar="${id}"]`);
+      const n = sheet.querySelector<HTMLElement>(`[data-bar-n="${id}"]`);
+      if (out) out.textContent = `${value} / 10`;
+      if (fill) fill.style.inlineSize = `${value * 10}%`;
+      if (n) n.textContent = String(value);
+      sheet.querySelector(`[data-score-row="${id}"]`)?.setAttribute("data-scored", "yes");
+      sheet.querySelector(`[data-bar-row="${id}"]`)?.setAttribute("data-scored", "yes");
+    };
+
+    /* Named, never totalled. A total would be a grade, and the book's instruction is to
+       pick one action for the lowest area — so the lowest area is the only thing derived. */
+    const paintLowest = () => {
+      if (!lowest) return;
+      if (scored.size < ranges.length) {
+        lowest.textContent = "";
+        return;
+      }
+      let min = 11;
+      for (const v of scored.values()) min = Math.min(min, v);
+      const names = ranges
+        .filter((r) => scored.get(r.dataset.score ?? "") === min)
+        .map((r) => r.dataset.label ?? "");
+      lowest.textContent = `Lowest right now: ${names.join(", ")}. Choose one action for it.`;
+    };
+
+    for (const range of ranges) {
+      const id = range.dataset.score ?? "";
+      const v = kept.get(`score:${wsId}:${id}`);
+      if (typeof v === "number") {
+        range.value = String(v);
+        range.setAttribute("aria-valuetext", `${v} out of 10`);
+        scored.set(id, v);
+        paintScore(id, v);
+      }
+    }
+    if (scored.size > 0 && barsEmpty) barsEmpty.hidden = true;
+    paintLowest();
+
+    /* Showing and keeping are deliberately separate.
+
+       One thumb drag across a slider fires dozens of `input` events, and record() appends
+       one entry per call to a log that storage.ts caps at MAX_EVENTS and then trims from
+       the OLDEST end. Recording on `input` therefore lets a few seconds of sliding evict
+       a reader's real build ticks and written answers — on a phone, which is where the
+       sliding happens. So `input` only paints; `change` (once, when the drag or the arrow
+       key settles) is what gets kept. */
+    const showScore = (range: HTMLInputElement) => {
+      const id = range.dataset.score ?? "";
+      const value = Number(range.value);
+      range.setAttribute("aria-valuetext", `${value} out of 10`);
+      scored.set(id, value);
+      paintScore(id, value);
+      if (barsEmpty) barsEmpty.hidden = true;
+      paintLowest();
+    };
+
+    /** Last value written per area, so re-touching a slider at the same number is free. */
+    const keptScores = new Map<string, number>();
+    for (const [id, v] of scored) keptScores.set(id, v);
+
+    const keepScore = (range: HTMLInputElement) => {
+      showScore(range);
+      const id = range.dataset.score ?? "";
+      const value = Number(range.value);
+      if (keptScores.get(id) === value) return;
+      keptScores.set(id, value);
+      record("score", `${wsId}:${id}`, value);
+    };
+
+    sheet.addEventListener("input", (event) => {
+      const range = (event.target as HTMLElement | null)?.closest<HTMLInputElement>("[data-score]");
+      if (range) showScore(range);
+    });
+
+    sheet.addEventListener("change", (event) => {
+      const range = (event.target as HTMLElement | null)?.closest<HTMLInputElement>("[data-score]");
+      if (range) keepScore(range);
+    });
+
+    /* WCAG 2.2 §2.5.7: dragging a slider must not be the only way to set it. Arrow keys
+       already satisfy that for a keyboard; these two buttons satisfy it for a thumb. */
+    sheet.addEventListener("click", (event) => {
+      const step = (event.target as HTMLElement | null)?.closest<HTMLButtonElement>(
+        "[data-score-step]",
+      );
+      if (!step) return;
+      const range = sheet.querySelector<HTMLInputElement>(`[data-score="${step.dataset.scoreFor}"]`);
+      if (!range) return;
+      const next = Math.min(10, Math.max(1, Number(range.value) + Number(step.dataset.scoreStep)));
+      range.value = String(next);
+      /* Setting .value from script fires neither `input` nor `change`, so the button path
+         has to keep the value itself. One press is one deliberate step, so it is safe to
+         record immediately. */
+      keepScore(range);
+    });
+
+    /* --- Getting the work off the device ----------------------------------- */
+
+    const asText = (): string => {
+      const lines = [
+        sheet.dataset.title ?? "",
+        `Teen & Grow Rich — book page ${sheet.dataset.page}`,
+        "",
+      ];
+      for (const el of sheet.querySelectorAll<Field | HTMLInputElement>("[data-field], [data-score]")) {
+        const label = el.dataset.label ?? "";
+        if (el.dataset.score) {
+          const v = scored.get(el.dataset.score);
+          lines.push(`${label}: ${v === undefined ? "not scored yet" : `${v} / 10`}`);
+        } else {
+          lines.push(label, el.value.trim() || "—", "");
+        }
+      }
+      if (lowest?.textContent) lines.push("", lowest.textContent);
+      lines.push("", "Copied from teenandgrowrich.com. This text is the copy that lasts.");
+      return lines.join("\n");
+    };
+
+    document.querySelector<HTMLButtonElement>("[data-copy]")?.addEventListener("click", async () => {
+      const text = asText();
+      try {
+        await navigator.clipboard.writeText(text);
+        say("Copied. Paste it into your notes, or send it to yourself.");
+      } catch {
+        const box = document.querySelector<HTMLElement>("[data-fallback]");
+        const area = document.querySelector<HTMLTextAreaElement>("[data-fallback-text]");
+        if (box && area) {
+          area.value = text;
+          box.hidden = false;
+          area.focus();
+          area.select();
+        }
+        say("This browser blocked the clipboard, so the text is below instead.");
+      }
+    });
+
+    document
+      .querySelector<HTMLButtonElement>("[data-print-btn]")
+      ?.addEventListener("click", () => window.print());
+
+    const note = document.querySelector<HTMLElement>("[data-keep-note]");
+    if (note && !canKeep()) {
+      note.textContent =
+        "This browser is not keeping anything, so these answers go when you leave the page. Copy them out or print them now.";
+    }
+  }
+</script>
+
+<style>
+  /* Full-width hairline data row, then the prose-width sheet — the page rhythm from the
+     spec's design direction. */
+  .band {
+    border-block: 1px solid var(--rule-hairline);
+  }
+
+  .band__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem 1.5rem;
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding: 0.7rem clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .band__count {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+
+  .wrap {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .wrap--prose {
+    margin-block-start: 2rem;
+  }
+
+  .sheet {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding: 2rem clamp(1.25rem, 5vw, 3rem) 0;
+  }
+
+  .sheet__running,
+  .sheet__folio {
+    display: none;
+  }
+
+  .sheet__seed {
+    max-inline-size: var(--container-measure);
+    margin-block-start: 1rem;
+    padding: 0.6rem 0.8rem;
+    font-size: var(--text-meta);
+    color: var(--text-default);
+    border-inline-start: 6px solid var(--accent-dot);
+    background: var(--surface-card);
+  }
+
+  /* --- Text worksheets ----------------------------------------------------- */
+
+  .fields {
+    list-style: none;
+    margin: 1.75rem 0 0;
+    padding: 0;
+    border-block-start: 1px solid var(--rule-hairline);
+    max-inline-size: 48rem;
+  }
+
+  .field {
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .field__ask {
+    padding: 0.9rem 0.9rem 0.5rem;
+    background: var(--surface-raised);
+  }
+
+  .field__label {
+    display: block;
+    font-size: var(--text-label);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    color: var(--text-strong);
+  }
+
+  /* Not --text-muted: this sits on --surface-raised, and in light mode --tgr-muted on
+     --tgr-tint-mint is 4.41:1 at 14px, which fails AA. design-system.md §"contrast"
+     already calls this exact pair out and says to raise it to --tgr-ink. */
+  .field__hint {
+    margin-block-start: 0.3rem;
+    font-size: var(--text-meta);
+    color: var(--text-default);
+  }
+
+  .field__flag {
+    margin-block-start: 0.45rem;
+    /* A safety label must never break mid-phrase — "an adult must / be involved". */
+    text-wrap: balance;
+  }
+
+  .field__answer {
+    padding: 0.75rem 0.9rem 0.9rem;
+    background: var(--surface-card);
+  }
+
+  .field__input {
+    inline-size: 100%;
+    min-block-size: 44px;
+    padding: 0.55rem 0.65rem;
+    font: inherit;
+    font-size: var(--text-body);
+    color: var(--text-default);
+    background: var(--surface-page);
+    border: 2px solid var(--control-edge);
+    border-radius: 0;
+  }
+
+  .field__input--area {
+    resize: vertical;
+    /* Grows with its content where supported; the script does the same job elsewhere. */
+    field-sizing: content;
+    min-block-size: 3.4em;
+  }
+
+  .field__input:focus {
+    border-color: var(--accent-spine);
+  }
+
+  .field__printed {
+    display: none;
+    white-space: pre-wrap;
+    /* The printed sheet is the durable record. An answer holding a URL or an email must
+       not run past the 190mm sheet edge and be cut off by the printer. */
+    overflow-wrap: anywhere;
+  }
+
+  @media (min-width: 768px) {
+    /* design-system §5: worksheet tables invert the book's table — tinted label column
+       left, plain input column right. */
+    .field {
+      display: grid;
+      /* Wide enough for the longest flag label, "Red · an adult must be involved", to sit
+         on one line. A safety label split mid-phrase is the one break to avoid here. */
+      grid-template-columns: 18rem 1fr;
+      align-items: start;
+    }
+
+    .field__ask,
+    .field__answer {
+      /* Both cells paint the full row height, so the row is one flat two-tone band.
+         Without this the answer's fill stops at the input and leaves a notch. */
+      block-size: 100%;
+    }
+
+    .field__ask {
+      padding-block-end: 0.9rem;
+      border-inline-end: 1px solid var(--rule-hairline);
+    }
+  }
+
+  /* --- Scoreboard ---------------------------------------------------------- */
+
+  .scores {
+    list-style: none;
+    margin: 1.75rem 0 0;
+    padding: 0;
+    max-inline-size: 34rem;
+  }
+
+  .score + .score {
+    margin-block-start: 1.4rem;
+  }
+
+  .score__label {
+    display: block;
+    font-size: var(--text-label);
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  .score__controls {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-block-start: 0.5rem;
+  }
+
+  .score__step {
+    flex: none;
+    inline-size: 44px;
+    min-block-size: 44px;
+    font: inherit;
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--text-default);
+    background: transparent;
+    border: 2px solid var(--control-edge);
+    cursor: pointer;
+  }
+
+  .score__step:hover {
+    border-color: var(--accent-spine);
+  }
+
+  .score__range {
+    flex: 1 1 auto;
+    min-inline-size: 0;
+    min-block-size: 44px;
+    accent-color: var(--flag-green);
+  }
+
+  .score__out {
+    flex: none;
+    min-inline-size: 4.5ch;
+    font-weight: 700;
+    text-align: end;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+
+  .score[data-scored] .score__out {
+    color: var(--text-strong);
+  }
+
+  .score__hint {
+    margin-block-start: 0.3rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .bars {
+    margin-block-start: 2.5rem;
+    max-inline-size: 34rem;
+  }
+
+  .bars__heading {
+    font-size: var(--text-label);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-strong);
+  }
+
+  .bars__empty {
+    margin-block-start: 0.5rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .bars__list {
+    list-style: none;
+    margin: 0.9rem 0 0;
+    padding: 0;
+  }
+
+  .bars__row {
+    display: grid;
+    grid-template-columns: 6.5rem 1fr 2.5ch;
+    align-items: center;
+    gap: 0.75rem;
+    padding-block: 0.35rem;
+  }
+
+  .bars__label {
+    font-size: var(--text-meta);
+    color: var(--text-default);
+  }
+
+  .bars__track {
+    block-size: 10px;
+    background: var(--surface-raised);
+    border: 1px solid var(--rule-hairline);
+  }
+
+  .bars__fill {
+    display: block;
+    block-size: 100%;
+    inline-size: 0;
+    background: var(--accent-spine);
+    print-color-adjust: exact;
+  }
+
+  .bars__n {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    text-align: end;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+
+  .bars__row[data-scored] .bars__n {
+    color: var(--text-strong);
+  }
+
+  .bars__lowest {
+    margin-block-start: 1rem;
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  /* --- Reality Check + actions --------------------------------------------- */
+
+  .check__flag {
+    margin-block-end: 0.6rem;
+  }
+
+  .check__ref {
+    margin-block-start: 0.6rem;
+  }
+
+  .actions {
+    margin-block-start: 2.5rem;
+  }
+
+  .actions__heading {
+    font-size: var(--text-h2);
+    line-height: var(--text-h2--line-height);
+    color: var(--text-section);
+  }
+
+  .actions__note,
+  .actions__status,
+  .actions__nojs {
+    max-inline-size: var(--container-measure);
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .actions__note {
+    margin-block-start: 0.6rem;
+  }
+
+  .actions__row {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-block-start: 1.1rem;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-block-size: 48px;
+    padding: 0.5rem 1.1rem;
+    font: inherit;
+    font-size: var(--text-label);
+    font-weight: 700;
+    color: var(--text-default);
+    background: transparent;
+    /* --control-edge, not --rule-hairline: the hairline token is for rules between
+       blocks and lands near 1.3:1 on a control, failing WCAG 2.2 1.4.11. Matches the
+       shared .btn in global.css. */
+    border: 2px solid var(--control-edge);
+    cursor: pointer;
+  }
+
+  .btn:hover {
+    border-color: var(--accent-spine);
+  }
+
+  /* Orange fill takes navy text — white on orange is 2.05:1 and is forbidden. */
+  .btn--primary {
+    color: var(--cta-text);
+    background: var(--cta-fill);
+    border-color: var(--cta-fill);
+  }
+
+  .btn--primary:hover {
+    border-color: var(--cta-text);
+  }
+
+  .actions__status {
+    margin-block-start: 0.75rem;
+    min-block-size: 1.45em;
+  }
+
+  .actions__fallback {
+    display: block;
+    margin-block-start: 1rem;
+    max-inline-size: var(--container-measure);
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .actions__fallback textarea {
+    inline-size: 100%;
+    margin-block-start: 0.4rem;
+    padding: 0.55rem 0.65rem;
+    font: inherit;
+    font-size: var(--text-meta);
+    color: var(--text-default);
+    background: var(--surface-card);
+    border: 2px solid var(--control-edge);
+  }
+
+  .actions__nojs {
+    margin-block-start: 1.25rem;
+  }
+
+  /* The copy and print buttons only do anything with scripting. */
+  :global(:root[data-js]) .actions__nojs {
+    display: none;
+  }
+
+  .actions__row,
+  .actions__status {
+    display: none;
+  }
+
+  :global(:root[data-js]) .actions__row {
+    display: flex;
+  }
+
+  :global(:root[data-js]) .actions__status {
+    display: block;
+  }
+
+  @media (min-width: 768px) {
+    :global(:root[data-js]) .actions__row {
+      flex-direction: row;
+    }
+  }
+
+  /* --- Print: the sheet becomes the book page ------------------------------ */
+
+  @media print {
+    /* The global print stylesheet flips :root to the book's light tokens but leaves the
+       three box tokens on their dark values, so a Reality Check printed from dark mode
+       would come out dark-on-dark. Fixed locally; global.css needs the same block.  */
+    :global(:root) {
+      --box-hill-fill: var(--color-tgr-tint-mint);
+      --box-hill-edge: var(--color-tgr-teal);
+      --box-build-fill: var(--color-tgr-tint-cream);
+      --box-build-edge: var(--color-tgr-orange);
+      --box-check-fill: var(--color-tgr-tint-blue);
+      --box-check-edge: var(--color-tgr-navy);
+    }
+
+    /* SiteHeader is a <header>, so the global "hide nav and footer" rule misses it. */
+    :global(.site-header) {
+      display: none !important;
+    }
+
+    .band,
+    .sheet__seed,
+    .bars__empty {
+      display: none;
+    }
+
+    .sheet {
+      /* Explicit millimetres. @page size is Safari 18.2+, so it cannot be the mechanism. */
+      inline-size: 190mm;
+      max-inline-size: 190mm;
+      padding: 0;
+      margin-inline: auto;
+    }
+
+    .sheet__running {
+      display: flex;
+      justify-content: space-between;
+      padding-block-end: 3mm;
+      margin-block-end: 6mm;
+      font-size: 8pt;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      border-block-end: 0.5pt solid var(--rule-hairline);
+    }
+
+    .sheet__folio {
+      display: block;
+      margin-block-start: 8mm;
+      font-size: 9pt;
+      text-align: center;
+      color: var(--text-muted);
+    }
+
+    .fields {
+      max-inline-size: none;
+      border-block-start: 0.5pt solid var(--rule-hairline);
+    }
+
+    .field {
+      display: grid;
+      grid-template-columns: 55mm 1fr;
+      break-inside: avoid;
+      border-block-end: 0.5pt solid var(--rule-hairline);
+    }
+
+    .field__ask {
+      background: var(--box-hill-fill);
+      border-inline-end: 0.5pt solid var(--rule-hairline);
+      print-color-adjust: exact;
+    }
+
+    .field__flag {
+      /* The flag's own print rule already drops the label to book ink. */
+      margin-block-start: 0.3rem;
+    }
+
+    .field__answer {
+      background: transparent;
+    }
+
+    /* With scripting the answer prints as text, because a textarea clips its overflow on
+       paper. Without it, the control itself prints and is written on by hand. */
+    :global(:root[data-js]) .field__input {
+      display: none;
+    }
+
+    :global(:root[data-js]) .field__printed {
+      display: block;
+      min-block-size: 9mm;
+      border-block-end: 0.5pt solid var(--rule-hairline);
+    }
+
+    /* On paper the six sliders are unusable and the bar visual already carries the label,
+       the bar and the number, so the sliders go and the bars stay. */
+    .scores {
+      display: none;
+    }
+
+    .bars {
+      margin-block-start: 0;
+      max-inline-size: none;
+      break-inside: avoid;
+    }
+  }
+</style>

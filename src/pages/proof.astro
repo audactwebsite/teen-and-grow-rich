@@ -1,0 +1,519 @@
+---
+/**
+ * Ryan's verifiable record (docs/decisions.md D5).
+ *
+ * Evidence that the method in the book is one the author has actually run — not a second
+ * brand and not a personality page. Only the facts listed in CLAUDE.md appear here.
+ *
+ * Two hard constraints:
+ *  - No Formula 4 claim. It is unverified, and a book whose first promise is "no fake
+ *    case studies" cannot carry an unverifiable claim about its own author. The gap is
+ *    stated on the page rather than left for a reader to notice.
+ *  - He is a minor (D34). Achievements are public; routines, schools, schedules and
+ *    anything that locates him day to day are not. Imagery is back-of-head Monaco frames
+ *    plus the two portraits already printed in the book, and nothing else.
+ */
+import { Image } from "astro:assets";
+import Page from "../layouts/Page.astro";
+import ChapterFurniture from "../components/ChapterFurniture.astro";
+
+/* D34: the two portraits are the only faces used anywhere on the site, and both are
+   already printed in the book — nothing here adds new exposure of a minor. The harbour
+   frame is shot from behind, which is both more cinematic and less identifying. */
+import harbour from "../assets/photos/monaco-harbour-03.jpg";
+import portraitBw from "../assets/photos/ryan-portrait-bw.jpg";
+import portraitIllustrated from "../assets/photos/ryan-portrait-illustrated.jpg";
+
+/* D29: the record carries a date, and goes stale visibly rather than quietly. */
+const VERIFIED_ON = "2026-07-30";
+const verifiedOn = new Date(VERIFIED_ON);
+const stale = Math.floor((Date.now() - verifiedOn.getTime()) / 86_400_000) > 180;
+const verifiedLabel = verifiedOn.toLocaleDateString("en-GB", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
+
+/**
+ * Publicly reported and safe to state. Nothing here is inferred or rounded up.
+ *
+ * `needs` names the document that would prove that specific line. Every row carries one,
+ * because every row is a claim and most of them are numbers — non-negotiable 10 applies to
+ * the author's own record first, not last. Keeping `needs` on the row rather than in a
+ * separate list means a line cannot be added without someone deciding what would prove it.
+ */
+const RECORD = [
+  {
+    key: "Age 8",
+    label: "First kart at eight",
+    value: "First time in a kart.",
+    needs: "A published interview or press profile giving the age.",
+  },
+  {
+    key: "First race",
+    label: "Spa, first race ever",
+    value:
+      "Spa, Micromax, round 2 of the Dutch Rotax Max championship. Fourth place, best rookie, and driver of the day — in the first race he ever entered.",
+    needs:
+      "The round 2 classification sheet for the Micromax class, plus the organiser's report naming best rookie and driver of the day. Three separate claims, so possibly three links.",
+  },
+  {
+    key: "Age 10",
+    label: "Belgian champion, Mini Rookie",
+    value: "Belgian champion, Rotax Max Mini Rookie.",
+    needs: "The Belgian Rotax Max championship final standings for that season.",
+  },
+  {
+    key: "Age 10",
+    label: "Genk round 2 win",
+    value:
+      "Won round 2 of the German Rotax Max championship at Genk, ahead of a Rotax world champion.",
+    needs:
+      "The Genk round 2 classification sheet. It has to show the finishing order, since the claim is about who finished behind him as well as the win.",
+  },
+  {
+    key: "Teams",
+    label: "Teams",
+    value: "Strawberry Racing and François Slangen.",
+    needs: "An entry list or team announcement naming him for each of the two.",
+  },
+  {
+    key: "Series",
+    label: "Series entered",
+    value: "Rotax Max Euro Trophy, and the Rotax international finals at Le Mans.",
+    needs: "The Euro Trophy entry list, and the Le Mans international finals entry list.",
+  },
+  {
+    key: "Home",
+    label: "Home town",
+    value: "Schimmert, the Netherlands.",
+    needs:
+      "A published profile. Town only, and it stays town only — nothing on this site narrows it further.",
+  },
+  {
+    key: "Inspired by",
+    label: "Inspired by Verstappen",
+    value: "Max Verstappen.",
+    needs: "An interview in which he says so, in his own words.",
+  },
+];
+---
+
+<Page
+  title="Ryan's record"
+  description="The karting record of Ryan Rijvers, author of Teen & Grow Rich: verifiable results only, and a plain note about the one claim we have not been able to confirm."
+>
+  <ChapterFurniture
+    eyebrow="Proof"
+    title="Ryan's record"
+    subtitle="The book argues for proof over polish. This is the author's, and it is meant to be checked."
+  />
+
+  <div class="wrap">
+    <div class="prose">
+      <p class="lede">
+        Ryan Rijvers is thirteen, from Schimmert in the Netherlands, and wrote this book
+        himself. He first sat in a kart at eight. What follows is the karting record —
+        here as evidence that the method in the book is one he has actually run, and for
+        no other reason.
+      </p>
+    </div>
+  </div>
+
+  {/* Back-of-head Monaco frame: more cinematic and less identifying than a face, and the
+      same harbour and light the book's illustrations were made from (D34). */}
+  <div class="wrap">
+    <figure class="hero">
+      <div class="hero__frame">
+        <Image
+          src={harbour}
+          alt="Ryan Rijvers seen from behind at the harbour in Monaco at dusk, looking out
+               over moored boats and the lit hillside beyond."
+          widths={[640, 1024, 1600, 2560]}
+          sizes="(min-width: 60rem) 56rem, 100vw"
+          loading="eager"
+        />
+      </div>
+      <figcaption>
+        The harbour the book's illustrations were drawn from. Photographs on this page are
+        of the author; the illustrations in the book are of a character the reader is meant
+        to see themselves in. The two are never mixed.
+      </figcaption>
+    </figure>
+  </div>
+
+  <section class="wrap section" aria-labelledby="record">
+    <h2 id="record">The record</h2>
+    <div class="rows">
+      {
+        RECORD.map((r) => (
+          <div class="row">
+            <p class="row__key">{r.key}</p>
+            <p class="row__value">{r.value}</p>
+          </div>
+        ))
+      }
+    </div>
+
+    <div class="prose sources">
+      <p class="sources__label">Sources</p>
+      <div data-placeholder class="placeholder placeholder--inline">
+        <p class="placeholder__label">Result links pending — one per line above</p>
+        <p class="placeholder__note">
+          Every line above is publicly reported, and none of it is sourced here yet. This
+          is the outstanding list, not an excuse for it: each claim and the document that
+          would prove it. Until a line has its link, read it as unverified.
+        </p>
+        <ul class="needs">
+          {
+            RECORD.map((r) => (
+              <li class="needs__item">
+                <span class="needs__claim">{r.label}</span>
+                <span class="needs__doc">{r.needs}</span>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+      <p class="sources__date">
+        Record checked on {verifiedLabel}.
+        {
+          stale && (
+            <span class="sources__stale">
+              We have not re-checked this since then — confirm it yourself before relying
+              on it.
+            </span>
+          )
+        }
+      </p>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="f4">
+    <h2 id="f4">The claim we are not making</h2>
+    <div class="prose">
+      <p>
+        You may see it said that Ryan raced Formula 4 at eleven. It is not on this page,
+        because we have not been able to confirm it.
+      </p>
+      <p>
+        Zolder sells an F4 Experience through the ERA Racing School. Driving a car is not
+        the same thing as contesting a championship, and the difference is exactly the kind
+        of gap this book spends fifteen chapters arguing about. The exact facts are being
+        confirmed with the people who were there. When they are, this page will state them
+        precisely — including if the honest version is smaller than the rumour.
+      </p>
+      <p class="aside">
+        A book whose first promise is “no fake case studies” cannot carry an unverifiable
+        claim about its own author. That rule costs something here, which is the point of
+        having it.
+      </p>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="portraits">
+    <h2 id="portraits">The two portraits</h2>
+    <div class="prose">
+      <p>
+        Both of these are already printed in the book. Nothing on this site adds new
+        exposure of a minor beyond what the book itself published.
+      </p>
+    </div>
+
+    <div class="portraits">
+      <figure class="portrait">
+        <div class="portrait__frame">
+          <Image
+            src={portraitBw}
+            alt="Ryan Rijvers photographed head-on in black and white, in a racing
+                 underlayer, against a plain wall."
+            widths={[400, 800, 1179]}
+            sizes="(min-width: 46rem) 22rem, 50vw"
+            loading="lazy"
+          />
+        </div>
+        <figcaption>The back-cover photograph.</figcaption>
+      </figure>
+
+      <figure class="portrait">
+        <div class="portrait__frame portrait__frame--tall">
+          <Image
+            src={portraitIllustrated}
+            alt="An illustrated portrait of Ryan Rijvers in a light blue polo shirt, against
+                 navy, teal and orange brush strokes on off-white."
+            widths={[300, 600]}
+            sizes="(min-width: 46rem) 18rem, 50vw"
+            loading="lazy"
+          />
+        </div>
+        <figcaption>The illustrated portrait from the closing pages.</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="not-here">
+    <h2 id="not-here">What is deliberately not here</h2>
+    <div class="prose">
+      <p>
+        No school, no address, no training schedule, no race calendar, no daily routine,
+        no live location, and no way to contact him. He is thirteen. Results are public;
+        a child's week is not.
+      </p>
+      <p>
+        There is one mailbox for this whole site, at the bottom of every page, and an adult
+        reads it. Ryan does not reply to strangers anywhere.
+      </p>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="why">
+    <h2 id="why">Why this page exists</h2>
+    <div class="prose">
+      <p>
+        “Why would I take advice from a thirteen-year-old?” is a fair question, and the
+        honest answer is not that the karting makes him an authority on money. It is that
+        the book's whole method — pick one thing, shrink the first step, do it before
+        tomorrow night, keep the proof — is the method he already uses somewhere it is
+        impossible to fake, because a stopwatch is watching.
+      </p>
+      <p>
+        The rest of the site is the same method, free and unlocked:
+        <a href="/builds">the nineteen 24-hour builds</a>,
+        <a href="/reality-check">every Reality Check</a>, and the worksheets. The book is
+        the part that is not here — <a href="/get">what is in it, honestly stated</a>.
+      </p>
+    </div>
+  </section>
+</Page>
+
+<style>
+  .wrap {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .prose {
+    max-inline-size: var(--container-measure);
+  }
+
+  .prose p + p {
+    margin-block-start: 0.9em;
+  }
+
+  .lede {
+    margin-block-start: 1.75rem;
+    font-size: var(--text-subtitle);
+    line-height: var(--text-subtitle--line-height);
+    color: var(--text-strong);
+  }
+
+  .section {
+    margin-block-start: 3rem;
+  }
+
+  .section > h2 {
+    font-size: var(--text-h2);
+    line-height: var(--text-h2--line-height);
+    color: var(--text-section);
+    max-inline-size: var(--container-measure);
+  }
+
+  .rows {
+    margin-block-start: 1.5rem;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .row {
+    display: grid;
+    gap: 0.2rem 2rem;
+    padding-block: 0.9rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .row__key {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+
+  .row__value {
+    max-inline-size: var(--container-measure);
+  }
+
+  @media (min-width: 40rem) {
+    .row {
+      grid-template-columns: 10rem minmax(0, 1fr);
+      align-items: baseline;
+    }
+  }
+
+  /* Image placeholders. A solid card at the real aspect ratio, so the layout the
+     photograph will land in is the layout being reviewed now. */
+  [data-placeholder] {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 1rem;
+    background: var(--surface-card);
+    border: 1px dashed var(--rule-hairline);
+  }
+
+  .placeholder__label {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-strong);
+  }
+
+  .placeholder__note {
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .hero {
+    margin: 2rem 0 0;
+  }
+
+  .hero__frame {
+    aspect-ratio: 16 / 9;
+  }
+
+  /* The frames were sized for placeholders; now they hold real photographs. Cover rather
+     than contain, so a frame is never part image and part empty box. */
+  .hero__frame,
+  .portrait__frame {
+    overflow: hidden;
+  }
+
+  .hero__frame :global(img),
+  .portrait__frame :global(img) {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* Both portraits are head-and-shoulders: bias the crop upward so a square frame never
+     cuts the top of the head off. */
+  .portrait__frame :global(img) {
+    object-position: 50% 22%;
+  }
+
+  figcaption {
+    margin-block-start: 0.75rem;
+    max-inline-size: var(--container-measure);
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .portraits {
+    display: grid;
+    gap: 1.5rem;
+    margin-block-start: 1.5rem;
+  }
+
+  @media (min-width: 40rem) {
+    .portraits {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      max-inline-size: 44rem;
+    }
+  }
+
+  .portrait {
+    margin: 0;
+  }
+
+  /* One ratio for both. They are a matched set — the same face, photographed and drawn —
+     and two different frame heights left the captions on different lines, which read as
+     a ragged accident rather than a pair. */
+  .portrait__frame,
+  .portrait__frame--tall {
+    aspect-ratio: 4 / 5;
+  }
+
+  .placeholder--inline {
+    aspect-ratio: auto;
+    margin-block-start: 0.75rem;
+  }
+
+  /* The outstanding-sources checklist. Two columns where there is room, stacked below
+     that — same collapse rule as every table on this site, so nothing scrolls sideways
+     at 320px. */
+  .needs {
+    margin-block-start: 0.9rem;
+    padding: 0;
+    list-style: none;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .needs__item {
+    display: grid;
+    gap: 0.2rem 1.5rem;
+    padding-block: 0.6rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  @media (min-width: 40rem) {
+    .needs__item {
+      grid-template-columns: 14rem minmax(0, 1fr);
+      align-items: baseline;
+    }
+  }
+
+  .needs__claim {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  .needs__doc {
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .sources {
+    margin-block-start: 1.75rem;
+  }
+
+  .sources__label {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-strong);
+  }
+
+  .sources__date {
+    margin-block-start: 1rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .sources__stale {
+    display: block;
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  .aside {
+    margin-block-start: 1.25rem;
+    padding-block-start: 1rem;
+    border-block-start: 3px solid var(--accent-dot);
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  /* An inline link is identified by its underline, so the underline has to be as
+     visible as the text. --rule-hairline is a divider colour (1.30:1 light, 1.43:1
+     dark) and cannot carry that job. */
+  a {
+    text-decoration-color: currentColor;
+    text-underline-offset: 3px;
+  }
+</style>

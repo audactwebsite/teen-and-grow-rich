@@ -1,0 +1,529 @@
+---
+/**
+ * The Seven Safe First Offers, printed page 57.
+ *
+ * Two flags per offer, and they are the point of the page rather than decoration. Every
+ * one of the book's seven first-proof steps is something a reader builds for themselves —
+ * a demo cafe, their own recording, three objects at home — so it is green and needs
+ * nobody. Every one of the seven paid deliverables is work for another person, which the
+ * book's own Reality Check on printed page 56 says to build with a parent or guardian
+ * from day one, so it is red. That pairing is D25 made visible: no reader's path
+ * terminates because there is no adult in the house tonight.
+ *
+ * The table becomes stacked cards below 768px. The labels that appear in card mode are
+ * real text, not aria-hidden decoration, because the column headers are gone at that
+ * width and a screen-reader user would otherwise get seven bare values.
+ */
+import Page from "../layouts/Page.astro";
+import ChapterFurniture from "../components/ChapterFurniture.astro";
+import PageRef from "../components/PageRef.astro";
+import Box from "../components/Box.astro";
+import Flag from "../components/Flag.astro";
+import { allOffers, allRealityChecks } from "../lib/content";
+import { metaFor } from "./reality-check/_checks";
+
+const offers = await allOffers();
+
+/* The standalone Reality Check that belongs to this page and to no build (spec §7). It
+   renders in full, always visible, never behind anything. */
+const check = (await allRealityChecks()).find((c) => c.id === "seven-safe-offers");
+
+const PRINTED_PAGE = 57;
+---
+
+<Page
+  title="Seven Safe First Offers"
+  description="Seven first offers from the book, each with the smallest proof you can build on your own before anyone pays you."
+  printedPage={PRINTED_PAGE}
+>
+  <ChapterFurniture
+    eyebrow="Templates"
+    title="Seven Safe First Offers"
+    subtitle="Start with the proof, not the price."
+  />
+
+  <div class="band">
+    <div class="band__inner">
+      <PageRef page={PRINTED_PAGE} kind="Seven Safe First Offers" />
+      <p class="band__count">{offers.length} offers</p>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <p class="lede">
+      Each row has two halves. The first proof is yours to build alone, today, for nobody.
+      The deliverable is work for a real person, and that half needs an adult in it from
+      the start — a parent or guardian, or a teacher, coach, librarian, youth worker or a
+      sibling over 18.
+    </p>
+
+    <div class="table-wrap">
+      <table class="offers">
+        <caption class="offers__caption">
+          The seven offers from printed page {PRINTED_PAGE}, each linking to a First Offer
+          Canvas started from that row.
+        </caption>
+
+        <thead>
+          <tr>
+            <th scope="col" class="offers__num">#</th>
+            <th scope="col">Offer</th>
+            <th scope="col">Deliverable</th>
+            <th scope="col">First proof</th>
+            <th scope="col">Canvas</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {
+            offers.map((o) => (
+              <tr>
+                <td class="offers__num" data-cell="n">
+                  <span class="cell__value">{o.data.n}</span>
+                </td>
+
+                <td data-cell="offer">
+                  <span class="cell__label">Offer</span>
+                  <span class="cell__value cell__value--strong">{o.data.offer}</span>
+                </td>
+
+                <td data-cell="deliverable">
+                  <span class="cell__label">Deliverable</span>
+                  <span class="cell__value">{o.data.deliverable}</span>
+                  <span class="cell__flag">
+                    <Flag level="red" size="sm" label="Red · an adult must be involved" />
+                  </span>
+                </td>
+
+                <td data-cell="proof">
+                  <span class="cell__label">First proof</span>
+                  <span class="cell__value">{o.data.firstProof}</span>
+                  <span class="cell__flag">
+                    <Flag level="green" size="sm" label="Green · build this one on your own" />
+                  </span>
+                </td>
+
+                <td data-cell="canvas">
+                  <span class="cell__label">Canvas</span>
+                  <a
+                    class="cell__link"
+                    href={`/worksheet/first-offer-canvas?from=${o.id}`}
+                    data-tap
+                  >
+                    Start the canvas
+                    <span class="visually-hidden">for {o.data.offer}</span>
+                  </a>
+                </td>
+              </tr>
+            ))
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <p class="canvas-note">
+      Starting a canvas fills in the deliverable and the first proof from that row. Every
+      other line is yours, and you can change all of it.
+    </p>
+
+    {
+      check && (
+        <Box kind="check" class="check">
+          {/* Every Reality Check carries its own flag, on every surface that shows one
+              (D12). Without it a reader meets a risk paragraph with no risk level, and
+              this page's whole argument is that the two halves of a row differ in level. */}
+          {metaFor(check.id) && (
+            <p class="check__flag">
+              <Flag level={metaFor(check.id)!.flag} size="sm" />
+            </p>
+          )}
+          <p>{check.data.text}</p>
+          <p class="check__ref">
+            <PageRef page={check.data.printedPage} />
+          </p>
+        </Box>
+      )
+    }
+
+    <p class="onward">
+      <a class="onward__link onward__link--primary" href="/worksheet/first-offer-canvas" data-tap>
+        Open a blank First Offer Canvas
+      </a>
+      <a class="onward__link" href="/path/tiny-launch" data-tap>
+        Or run the 30-Day Tiny Launch
+      </a>
+    </p>
+  </div>
+</Page>
+
+<style>
+  .band {
+    border-block: 1px solid var(--rule-hairline);
+  }
+
+  .band__inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem 1.5rem;
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding: 0.7rem clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .band__count {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+
+  .wrap {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .lede {
+    max-inline-size: var(--container-measure);
+    margin-block-start: 2rem;
+    color: var(--text-default);
+  }
+
+  .visually-hidden {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* --- Cards at 390px ------------------------------------------------------- */
+
+  .table-wrap {
+    margin-block-start: 1.75rem;
+  }
+
+  .offers {
+    inline-size: 100%;
+    border-collapse: collapse;
+  }
+
+  .offers__caption {
+    /* block while the table is a stack of cards, table-caption once it is a real table —
+       a table-caption inside a display:block table generates an anonymous table box. */
+    display: block;
+    max-inline-size: var(--container-measure);
+    margin-block-end: 0.9rem;
+    font-size: var(--text-meta);
+    text-align: start;
+    color: var(--text-muted);
+  }
+
+  .offers thead {
+    display: none;
+  }
+
+  .offers tbody,
+  .offers tr,
+  .offers td {
+    display: block;
+  }
+
+  .offers tr {
+    padding: 1rem 1.1rem;
+    background: var(--surface-card);
+    border: 1px solid var(--rule-hairline);
+    border-inline-start: 6px solid var(--accent-spine);
+  }
+
+  /* In the light theme --surface-card is the page white, so the fill alone cannot say
+     where one offer ends and the next begins. The edge does that job there. */
+  :global(:root[data-theme="light"]) .offers tr {
+    border-color: var(--control-edge);
+    border-inline-start-color: var(--accent-spine);
+  }
+
+  .offers tr + tr {
+    margin-block-start: 1rem;
+  }
+
+  /* The number is the row's position in a printed table; on a card it is noise.
+     Class plus element, or `.offers td { display: block }` outranks it and it shows. */
+  .offers td.offers__num {
+    display: none;
+  }
+
+  .offers td + td {
+    margin-block-start: 0.7rem;
+  }
+
+  .cell__label {
+    display: block;
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .cell__value {
+    display: block;
+    margin-block-start: 0.1rem;
+    color: var(--text-default);
+  }
+
+  .cell__value--strong {
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  .cell__flag {
+    display: block;
+    margin-block-start: 0.35rem;
+  }
+
+  .cell__link {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 44px;
+    margin-block-start: 0.25rem;
+    font-weight: 700;
+    color: var(--text-strong);
+    text-decoration-color: var(--accent-dot);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+  }
+
+  .cell__link:hover {
+    text-decoration-color: var(--accent-spine);
+  }
+
+  /* --- A real table from 768px ---------------------------------------------- */
+
+  @media (min-width: 768px) {
+    .offers {
+      display: table;
+    }
+
+    .offers__caption {
+      display: table-caption;
+    }
+
+    .offers thead {
+      display: table-header-group;
+    }
+
+    .offers tbody {
+      display: table-row-group;
+    }
+
+    .offers tr {
+      display: table-row;
+      padding: 0;
+      background: transparent;
+      border: 0;
+    }
+
+    .offers tr + tr {
+      margin-block-start: 0;
+    }
+
+    /* design-system §5: the book's table is a navy header row with white labels. Dark
+       mode keeps the raised surface (the book's own ink at 13.6:1); the light theme, which
+       has to reproduce the book page, takes the navy itself — see the screen-only block
+       below. global.css still wants --table-header-fill / --table-header-text. */
+    .offers th {
+      padding: 0.7rem 0.85rem;
+      font-size: var(--text-meta);
+      font-weight: 700;
+      letter-spacing: var(--text-label--letter-spacing);
+      text-transform: uppercase;
+      text-align: start;
+      color: var(--text-strong);
+      background: var(--surface-raised);
+      border: 1px solid var(--rule-hairline);
+    }
+
+    .offers td {
+      display: table-cell;
+      padding: 0.8rem 0.85rem;
+      margin-block-start: 0;
+      vertical-align: top;
+      border: 1px solid var(--rule-hairline);
+    }
+
+    .offers td.offers__num {
+      display: table-cell;
+      inline-size: 3rem;
+      font-variant-numeric: tabular-nums slashed-zero;
+      color: var(--text-muted);
+    }
+
+    /* One phrase, one continuous underline. At ~110px this wrapped to "Start the /
+       canvas" in all seven rows and broke the rule with it. */
+    .cell__link {
+      white-space: nowrap;
+    }
+
+    /* The column headers carry the labels here, so repeating them in every cell would
+       make a screen reader say "Deliverable" twice per row. */
+    .cell__label {
+      display: none;
+    }
+
+    /* The book's own alternating rows. */
+    .offers tbody tr:nth-child(odd) td {
+      background: var(--surface-card);
+    }
+  }
+
+  /* Screen only. The print block below sets its own header and needs the tint that
+     survives a mono photocopier, so this must not reach paper. */
+  @media screen and (min-width: 768px) {
+    /* Navy fill, white labels — 13.9:1, and the pair the printed table uses. White on
+       navy is fine; the forbidden pair is white on orange. */
+    :global(:root[data-theme="light"]) .offers th {
+      color: var(--color-tgr-page);
+      background: var(--color-tgr-navy);
+      border-color: var(--color-tgr-navy);
+    }
+
+    /* --surface-card is the page white in light, so the alternation vanished. */
+    :global(:root[data-theme="light"]) .offers tbody tr:nth-child(odd) td {
+      background: var(--color-tgr-tint-mint);
+    }
+  }
+
+  /* --- Reality Check and onward links --------------------------------------- */
+
+  .canvas-note {
+    max-inline-size: var(--container-measure);
+    margin-block-start: 1rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .check {
+    margin-block-start: 2rem;
+  }
+
+  .check__flag {
+    margin-block-end: 0.6rem;
+  }
+
+  .check__ref {
+    margin-block-start: 0.6rem;
+  }
+
+  .onward {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    gap: 0.9rem;
+    margin-block-start: 2rem;
+  }
+
+  .onward__link {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 44px;
+    font-weight: 700;
+    color: var(--text-strong);
+    text-decoration-color: var(--accent-dot);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+  }
+
+  .onward__link:hover {
+    text-decoration-color: var(--accent-spine);
+  }
+
+  /* The page's own next step, given the same weight it has everywhere else on the site.
+     Orange fill, navy text — white on orange is 2.05:1 and is forbidden. */
+  .onward__link--primary {
+    padding: 0.7rem 1.1rem;
+    color: var(--cta-text);
+    background: var(--cta-fill);
+    text-decoration: none;
+  }
+
+  @media print {
+    /* The global print block flips :root to the book's light tokens but leaves the three
+       semantic-box tokens dark, so a Reality Check printed from dark mode would come out
+       dark on dark. Fixed locally; global.css needs the same block. */
+    :global(:root) {
+      --box-hill-fill: var(--color-tgr-tint-mint);
+      --box-hill-edge: var(--color-tgr-teal);
+      --box-build-fill: var(--color-tgr-tint-cream);
+      --box-build-edge: var(--color-tgr-orange);
+      --box-check-fill: var(--color-tgr-tint-blue);
+      --box-check-edge: var(--color-tgr-navy);
+    }
+
+    /* SiteHeader is a <header>, so the global "hide nav and footer" rule misses it. */
+    :global(.site-header) {
+      display: none !important;
+    }
+
+    .band,
+    .onward {
+      display: none;
+    }
+
+    /* Paper is never 390px wide, so the printed version is always the real table. */
+    .offers {
+      display: table;
+      inline-size: 190mm;
+      max-inline-size: 190mm;
+    }
+
+    .offers__caption {
+      display: table-caption;
+    }
+
+    .offers thead {
+      display: table-header-group;
+    }
+
+    .offers tbody {
+      display: table-row-group;
+    }
+
+    .offers tr {
+      display: table-row;
+      padding: 0;
+      background: transparent;
+      border: 0;
+      break-inside: avoid;
+    }
+
+    .offers th,
+    .offers td {
+      display: table-cell;
+      padding: 2mm 2.5mm;
+      margin-block-start: 0;
+      vertical-align: top;
+      border: 0.5pt solid var(--rule-hairline);
+    }
+
+    .offers th {
+      background: var(--box-hill-fill);
+      text-align: start;
+      print-color-adjust: exact;
+    }
+
+    .offers td.offers__num {
+      display: table-cell;
+      inline-size: 8mm;
+    }
+
+    .cell__label {
+      display: none;
+    }
+  }
+</style>

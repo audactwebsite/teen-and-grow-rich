@@ -1,0 +1,414 @@
+---
+/**
+ * One Reality Check, one URL (D30).
+ *
+ * This is the only content class where this site can plausibly outrank everyone, and it
+ * sidesteps the YMYL credential wall because it is consumer-protection writing rather
+ * than financial advice. Hence the shape, which is deliberate and not decorative:
+ * a question-shaped H1, then a 40–60 word direct answer as the very first paragraph,
+ * then the book's own words in full, then why, then what to do, then who to tell.
+ *
+ * The Reality Check box is the book, verbatim. Everything around it is ours, and the page
+ * says which is which — a site whose argument is "no invented case studies" cannot blur
+ * that line on its own safety pages.
+ */
+import Page from "../../layouts/Page.astro";
+import ChapterFurniture from "../../components/ChapterFurniture.astro";
+import Box from "../../components/Box.astro";
+import Flag from "../../components/Flag.astro";
+import PageRef from "../../components/PageRef.astro";
+import { allRealityChecks, allBuilds, allChapters } from "../../lib/content";
+import { CHECKS, THEMES, metaFor, orderedIds, WHO_COUNTS, FAMILY_RULE } from "./_checks";
+
+export async function getStaticPaths() {
+  const checks = await allRealityChecks();
+  return checks.map((check) => ({ params: { id: check.id }, props: { check } }));
+}
+
+const { check } = Astro.props;
+const meta = metaFor(check.id);
+
+if (!meta) {
+  // A Reality Check with no editorial layer would publish a page with an empty answer,
+  // which on a safety page is worse than a build failure.
+  throw new Error(
+    `No entry in src/pages/reality-check/_checks.ts for "${check.id}". ` +
+      `All ${CHECKS.length} Reality Checks need one before this page can build.`,
+  );
+}
+
+const data = check.data;
+const theme = THEMES.find((t) => t.id === meta.theme)!;
+
+/* --- What this check guards -------------------------------------------------- */
+
+const builds = await allBuilds();
+const chapters = await allChapters();
+const checks = await allRealityChecks();
+
+const build = data.build === null ? undefined : builds.find((b) => b.data.n === data.build);
+const chapter = build?.data.chapter
+  ? chapters.find((c) => c.data.n === build.data.chapter)
+  : undefined;
+const buildHref = build ? `/build/${String(build.data.n).padStart(2, "0")}` : undefined;
+
+/* --- Prev / next through the library ----------------------------------------- */
+
+const pageOf = new Map(checks.map((c) => [c.id, c.data.printedPage]));
+const order = orderedIds((id) => pageOf.get(id) ?? 0);
+const here = order.indexOf(check.id);
+const prev = here > 0 ? metaFor(order[here - 1]!) : undefined;
+const next = here < order.length - 1 ? metaFor(order[here + 1]!) : undefined;
+
+/* --- Structured data ---------------------------------------------------------
+   Article, Book and Person only (D30). No FAQPage: Google removed FAQ rich results, and
+   marking safety text up as an FAQ would be busywork.
+
+   dateModified is a constant, not a build timestamp. A rebuild does not modify the
+   safety text, and a date that moves on every deploy is a claim about freshness that
+   nobody made. It changes when the words change (D29). */
+const REVIEWED = "2026-07-30";
+
+const canonical = new URL(`/reality-check/${check.id}`, Astro.site).href;
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Article",
+  headline: meta.question,
+  description: meta.answer,
+  articleSection: theme.title,
+  inLanguage: "en",
+  isAccessibleForFree: true,
+  datePublished: REVIEWED,
+  dateModified: REVIEWED,
+  mainEntityOfPage: { "@type": "WebPage", "@id": canonical },
+  author: { "@type": "Person", name: "Ryan Rijvers" },
+  publisher: { "@type": "Organization", name: "Bright Kids" },
+  isPartOf: {
+    "@type": "Book",
+    name: "Teen & Grow Rich",
+    author: { "@type": "Person", name: "Ryan Rijvers" },
+    publisher: { "@type": "Organization", name: "Bright Kids" },
+  },
+};
+
+/* Escape the one character that could close the script element early. */
+const jsonLdText = JSON.stringify(jsonLd).replace(/</g, "\\u003c");
+---
+
+<Page title={meta.question} description={meta.answer} printedPage={data.printedPage}>
+  {/* In the body, not the head: Base.astro exposes no head slot, and JSON-LD is valid
+      and indexed anywhere in the document. See the note in this team's report. */}
+  <script type="application/ld+json" set:html={jsonLdText} is:inline />
+
+  <div class="opener">
+    <ChapterFurniture
+      eyebrow={`Reality Check · ${theme.title}`}
+      title={meta.question}
+    />
+  </div>
+
+  <div class="prose">
+    {/* The direct answer, first, before anything else on the page. */}
+    <p class="answer">{meta.answer}</p>
+
+    <div class="verdict">
+      <Flag level={meta.flag} />
+      <PageRef page={data.printedPage} kind="Reality Check" />
+    </div>
+
+    <h2 class="section">What the book says</h2>
+    <p class="attribution">
+      Word for word from printed page {data.printedPage}. Nothing is cut, and this is the
+      only part of the page written by the author.
+    </p>
+    <div class="check-box">
+      <Box kind="check">
+        <p>{data.text}</p>
+      </Box>
+    </div>
+
+    <h2 class="section">Why this happens</h2>
+    {meta.why.map((p) => <p>{p}</p>)}
+
+    <h2 class="section">What to do instead</h2>
+    {meta.instead.map((p) => <p>{p}</p>)}
+
+    <h2 class="section">Who to talk to</h2>
+    {meta.talkTo.map((p) => <p>{p}</p>)}
+
+    <p class="who-lead">If none of those is available, an adult here also counts:</p>
+    <ul class="who">
+      {WHO_COUNTS.map((who) => <li>{who}</li>)}
+    </ul>
+    <p class="who-note">
+      Going around the gate is the failure, not the clever move. And if the adult you ask
+      says no, that is information about timing — not about you. There is more on how
+      that conversation tends to go on <a href="/parents">Race Control, for parents</a>.
+    </p>
+
+    <p class="rule">{FAMILY_RULE}</p>
+  </div>
+
+  <div class="links">
+    <div class="links__inner">
+      {
+        build && buildHref ? (
+          <a class="card" href={buildHref}>
+            <span class="card__label">This guards</span>
+            <span class="card__title">
+              Build {String(build.data.n).padStart(2, "0")} —{" "}
+              {chapter?.data.title ?? build.data.source}
+            </span>
+            <span class="card__meta">Book page {build.data.printedPage}</span>
+          </a>
+        ) : (
+          <a class="card" href={meta.standalone?.href ?? "/reality-check"}>
+            <span class="card__label">Belongs to no build</span>
+            <span class="card__title">{meta.standalone?.label ?? data.belongsTo}</span>
+            <span class="card__meta">Book page {data.printedPage}</span>
+          </a>
+        )
+      }
+
+      {
+        chapter && (
+          <a class="card" href={`/c/${String(chapter.data.n).padStart(2, "0")}`}>
+            <span class="card__label">The chapter it comes from</span>
+            <span class="card__title">
+              {String(chapter.data.n).padStart(2, "0")} · {chapter.data.title}
+            </span>
+            <span class="card__meta">Book page {chapter.data.printedPage}</span>
+          </a>
+        )
+      }
+    </div>
+  </div>
+
+  <nav class="pager" aria-label="Reality Checks">
+    <div class="pager__inner">
+      {
+        prev && (
+          <a class="pager__link" href={`/reality-check/${prev.id}`} rel="prev">
+            <span class="pager__dir">Previous</span>
+            <span class="pager__title">{prev.short}</span>
+          </a>
+        )
+      }
+      <a class="pager__link pager__link--all" href="/reality-check">
+        <span class="pager__dir">All {checks.length}</span>
+        <span class="pager__title">The Reality Check library</span>
+      </a>
+      {
+        next && (
+          <a class="pager__link" href={`/reality-check/${next.id}`} rel="next">
+            <span class="pager__dir">Next</span>
+            <span class="pager__title">{next.short}</span>
+          </a>
+        )
+      }
+    </div>
+  </nav>
+</Page>
+
+<style>
+  /* The opener carries a question, not a chapter title, so it steps down from the 50px
+     display size — a seven-word question at H1 scale fills a phone screen on its own.
+     Set from outside the component through a wrapper, so ChapterFurniture stays untouched
+     for the chapter pages it was built for. */
+  .opener :global(.furniture__title) {
+    font-size: clamp(1.6rem, 5.5vw, 2.6rem);
+    max-inline-size: 24ch;
+  }
+
+  .prose {
+    max-inline-size: var(--container-measure);
+    margin-inline: auto;
+    padding: 1.75rem clamp(1.25rem, 5vw, 3rem) 0;
+  }
+
+  .prose p {
+    margin-block-start: 0.9em;
+  }
+
+  .answer {
+    /* The one paragraph most readers will read, and the one a search result quotes. */
+    margin-block-start: 0;
+    font-size: var(--text-subtitle);
+    line-height: var(--text-subtitle--line-height);
+    color: var(--text-strong);
+  }
+
+  .verdict {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem 1.25rem;
+    margin-block-start: 1.25rem;
+    padding-block: 0.75rem;
+    border-block: 1px solid var(--rule-hairline);
+  }
+
+  .section {
+    margin-block-start: 2.25rem;
+    font-size: var(--text-h2);
+    line-height: var(--text-h2--line-height);
+    color: var(--text-section);
+  }
+
+  .attribution {
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .check-box {
+    margin-block-start: 0.9rem;
+  }
+
+  .who-lead {
+    font-weight: 700;
+  }
+
+  .who {
+    margin-block-start: 0.5rem;
+    padding-inline-start: 1.1rem;
+  }
+
+  .who li {
+    margin-block-start: 0.2rem;
+    /* The book uses a teal marker for its lists. */
+    list-style: none;
+    position: relative;
+  }
+
+  .who li::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: -1.1rem;
+    inset-block-start: 0.62em;
+    inline-size: 0.5rem;
+    block-size: 2px;
+    background: var(--accent-spine);
+  }
+
+  .who-note {
+    color: var(--text-muted);
+  }
+
+  .rule {
+    margin-block-start: 2rem;
+    padding-inline-start: 1rem;
+    border-inline-start: 6px double var(--box-check-edge);
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  /* --- Where it leads ------------------------------------------------------ */
+
+  .links {
+    margin-block-start: 2.5rem;
+  }
+
+  .links__inner,
+  .pager__inner {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+    display: grid;
+    gap: 1rem;
+  }
+
+  @media (min-width: 40rem) {
+    .links__inner {
+      grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+    }
+  }
+
+  .card {
+    display: block;
+    padding: 1rem 1.1rem;
+    background: var(--surface-card);
+    border: 1px solid var(--rule-hairline);
+    border-left: 4px solid var(--accent-spine);
+    text-decoration: none;
+    min-block-size: 44px;
+  }
+
+  .card:hover {
+    border-left-color: var(--accent-dot);
+  }
+
+  .card__label {
+    display: block;
+    font-size: var(--text-eyebrow);
+    font-weight: 700;
+    letter-spacing: var(--text-eyebrow--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-eyebrow-colour);
+  }
+
+  .card__title {
+    display: block;
+    margin-block-start: 0.35rem;
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  .card__meta {
+    display: block;
+    margin-block-start: 0.2rem;
+    font-size: var(--text-meta);
+    font-variant-numeric: tabular-nums slashed-zero;
+    color: var(--text-muted);
+  }
+
+  /* --- Prev / next --------------------------------------------------------- */
+
+  .pager {
+    margin-block-start: 2rem;
+  }
+
+  @media (min-width: 40rem) {
+    .pager__inner {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .pager__link {
+    display: block;
+    padding: 0.85rem 0;
+    border-block-start: 2px solid var(--rule-hairline);
+    text-decoration: none;
+    min-block-size: 44px;
+  }
+
+  .pager__link:hover {
+    border-block-start-color: var(--accent-spine);
+  }
+
+  .pager__dir {
+    display: block;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+
+  .pager__title {
+    display: block;
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  @media print {
+    .prose,
+    .links__inner {
+      max-inline-size: none;
+      padding-inline: 0;
+    }
+
+    .links,
+    .pager {
+      display: none;
+    }
+  }
+</style>

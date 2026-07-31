@@ -1,0 +1,91 @@
+---
+/**
+ * The book's three semantic boxes, and there is no fourth. If content does not belong
+ * in one of these, it is body copy.
+ *
+ * Border weight and border style differ per kind on purpose (design-system §3): the
+ * three tint washes sit at almost identical luminance, so a monochrome photocopy — the
+ * way a teacher will reproduce a worksheet for a class — renders all three as the same
+ * grey. Fill, edge weight, edge style and the spelled-out label are four independent
+ * signals, of which colour is only one.
+ *
+ * The Reality Check is never collapsible, never behind a tab, never truncated. It is
+ * the safety layer of a book written for 13-year-olds.
+ */
+export type BoxKind = "hill" | "build" | "check";
+
+interface Props {
+  kind: BoxKind;
+  class?: string;
+}
+
+/* Always in full, never abbreviated. Cased normally in the DOM and uppercased in CSS,
+   because several screen readers spell out literal all-caps letter by letter. */
+const LABEL: Record<BoxKind, string> = {
+  hill: "Hill's Original Idea",
+  build: "Your 24-Hour Build",
+  check: "Reality Check",
+};
+
+const { kind, class: className } = Astro.props;
+---
+
+<section class:list={["box", `box--${kind}`, className]} aria-label={LABEL[kind]}>
+  <p class="box__label">{LABEL[kind]}</p>
+  <div class="box__body"><slot /></div>
+</section>
+
+<style>
+  /* `box` is also the hook for the global print rule that stops one breaking across
+     pages — a Reality Check split over a page turn is a Reality Check half-read. */
+  .box {
+    padding: 1rem 1.1rem;
+    max-inline-size: var(--container-measure);
+    print-color-adjust: exact;
+  }
+
+  .box__label {
+    font-size: var(--text-label);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-strong);
+    margin-block-end: 0.5rem;
+  }
+
+  .box__body {
+    color: var(--text-default);
+  }
+
+  /* --text-muted is tuned for the page background, not for a tint wash. #637386 on
+     --box-check-fill (#EDF2F9) is 4.31:1 and the PageRef under a Reality Check is 14px,
+     so it fails AA on the light/print theme — the one theme a reader switches to in
+     order to show the check to an adult. Inside a box, meta text takes body ink. */
+  .box__body :global(.page-ref) {
+    color: var(--text-default);
+  }
+
+  /* Slotted markup is not scoped to this component, so spacing has to be global here. */
+  .box__body :global(p + p),
+  .box__body :global(ul),
+  .box__body :global(ol) {
+    margin-block-start: 0.7em;
+  }
+
+  .box--hill {
+    background: var(--box-hill-fill);
+    border-left: 2px solid var(--box-hill-edge);
+  }
+
+  .box--build {
+    background: var(--box-build-fill);
+    border: 1px solid var(--box-build-edge);
+    border-left-width: 6px;
+  }
+
+  .box--check {
+    background: var(--box-check-fill);
+    border: 1px solid var(--box-check-edge);
+    border-left: 6px double var(--box-check-edge);
+  }
+</style>

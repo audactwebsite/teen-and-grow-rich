@@ -1,0 +1,13 @@
+---
+/**
+ * Pre-paint theme resolution. See src/lib/inline-scripts.mjs for the script source and
+ * the reason it lives there: `security.csp` is on and Astro does not hash `is:inline`
+ * scripts, so this block needs a hash supplied from the config. Rendering and hashing the
+ * same exported string is what keeps the two in step.
+ *
+ * It must stay `is:inline`; a bundled module is deferred, which would paint dark first.
+ */
+import { THEME_SCRIPT } from "../lib/inline-scripts.mjs";
+---
+
+<script is:inline set:html={THEME_SCRIPT} />

@@ -1,0 +1,581 @@
+---
+/**
+ * /builds — the hub. All 19 builds as a dense typographic index, not cards.
+ *
+ * Cards would give 19 equally weighted boxes with nothing to compare; an index gives a
+ * reader holding the book a column of page numbers to scan, and a reader with twenty
+ * free minutes a column of times. Rows carry the full printed instruction rather than a
+ * trimmed summary — shortening book copy is the same defect as paraphrasing it.
+ *
+ * Filtering is CSS, not JavaScript. `:has()` reads the state of a real <select> and real
+ * radios, so chapter and flag filtering work with scripting off, on a school Chromebook,
+ * and inside a print preview. Only the done filter needs JS, because done state lives in
+ * localStorage — that control is hidden until scripting has proved itself.
+ */
+import Page from "../../layouts/Page.astro";
+import ChapterFurniture from "../../components/ChapterFurniture.astro";
+import Flag from "../../components/Flag.astro";
+import { allBuilds, allChapters } from "../../lib/content";
+import { buildMeta, FLAG_RULE, FLAG_RULE_PAGE } from "../../lib/build-meta";
+
+const pad = (n: number) => String(n).padStart(2, "0");
+
+const builds = await allBuilds();
+const chapters = await allChapters();
+const byNumber = new Map(chapters.map((c) => [c.data.n, c]));
+
+const rows = builds.map((build) => {
+  const chapter = build.data.chapter ? byNumber.get(build.data.chapter) : undefined;
+  const meta = buildMeta(build.id);
+  return {
+    id: build.id,
+    n: build.data.n,
+    /* Chapter builds are named by their chapter; the other four are named by the part of
+       the book they come from, which is the only name the book gives them. */
+    title: chapter ? chapter.data.title : build.data.source,
+    source: chapter ? `Chapter ${pad(chapter.data.n)}` : build.data.source,
+    chapter: chapter?.data.n,
+    printedPage: build.data.printedPage,
+    text: build.data.build,
+    ...meta,
+  };
+});
+
+/* Real counts only. The done count needs JS and is filled in below; without it the page
+   states the one number it can actually verify. */
+const total = rows.length;
+const flagCounts = {
+  green: rows.filter((r) => r.flag === "green").length,
+  yellow: rows.filter((r) => r.flag === "yellow").length,
+  red: rows.filter((r) => r.flag === "red").length,
+};
+---
+
+<Page
+  title="The 19 builds"
+  description="Every 24-hour build in Teen & Grow Rich, with the chapter it comes from, the page it is printed on, its flag and how long it takes. Nothing here is locked."
+>
+  <ChapterFurniture
+    eyebrow="Every build in the book"
+    title="The 19 Builds"
+    subtitle="One build per chapter, plus four from the rest of the book. Start with the page you are holding, or with the time you have."
+  />
+
+  <div class="hub" data-hub>
+    <div class="hub__inner">
+      {/* Filtering is CSS, so rows vanish silently. This is the only feedback that a
+          filter did anything, which makes it a status message (WCAG 4.1.3). */}
+      <p class="hub__count" role="status" aria-live="polite" data-count>{total} builds</p>
+
+      <div class="filters">
+        <div class="filters__group">
+          <label class="filters__legend" for="f-chapter">Chapter</label>
+          <select id="f-chapter" class="filters__select">
+            <option value="all" selected>All chapters</option>
+            {
+              chapters.map((c) => (
+                <option value={String(c.data.n)}>
+                  {pad(c.data.n)} · {c.data.title}
+                </option>
+              ))
+            }
+            <option value="none">Not from a chapter</option>
+          </select>
+        </div>
+
+        <fieldset class="filters__group">
+          <legend class="filters__legend">Flag</legend>
+          <div class="filters__options">
+            <label class="chip"
+              ><input type="radio" name="f-flag" id="f-flag-all" checked /><span
+                >All</span
+              ></label
+            >
+            <label class="chip"
+              ><input type="radio" name="f-flag" id="f-flag-green" /><span
+                >Green · {flagCounts.green}</span
+              ></label
+            >
+            <label class="chip"
+              ><input type="radio" name="f-flag" id="f-flag-yellow" /><span
+                >Yellow · {flagCounts.yellow}</span
+              ></label
+            >
+            <label class="chip"
+              ><input type="radio" name="f-flag" id="f-flag-red" /><span
+                >Red · {flagCounts.red}</span
+              ></label
+            >
+          </div>
+        </fieldset>
+
+        {/* Done state is read from this browser, so this control cannot exist without JS. */}
+        <fieldset class="filters__group filters__group--js">
+          <legend class="filters__legend">Status</legend>
+          <div class="filters__options">
+            <label class="chip"
+              ><input type="radio" name="f-status" id="f-status-all" checked /><span
+                >All</span
+              ></label
+            >
+            <label class="chip"
+              ><input type="radio" name="f-status" id="f-status-todo" /><span
+                >Not done</span
+              ></label
+            >
+            <label class="chip"
+              ><input type="radio" name="f-status" id="f-status-done" /><span
+                >Done</span
+              ></label
+            >
+          </div>
+        </fieldset>
+
+        {/* Works without JS: it is a plain navigation back to the unfiltered page. */}
+        <a class="filters__clear" href="/builds" data-tap>Clear filters</a>
+      </div>
+
+      <ol class="index">
+        {
+          rows.map((row) => (
+            <li
+              class="build-row"
+              data-build-id={row.id}
+              data-flag={row.flag}
+              data-chapter={row.chapter ? String(row.chapter) : undefined}
+            >
+              <p class="build-row__n">{pad(row.n)}</p>
+
+              <div class="build-row__main">
+                <h2 class="build-row__title">
+                  <a href={`/build/${pad(row.n)}`} data-tap>{row.title}</a>
+                </h2>
+                <p class="build-row__text">{row.text}</p>
+              </div>
+
+              <div class="build-row__meta">
+                <Flag level={row.flag} size="sm" />
+                {/* The four builds with no chapter are named by the part of the book they
+                    come from, which is already the heading 20px above — printing it again
+                    here said nothing and cost a third meta line on a phone. Only a real
+                    chapter earns the source token. */}
+                <p class="build-row__facts">
+                  {row.chapter && (
+                    <>
+                      <a href={`/c/${pad(row.chapter)}`} class="build-row__source">
+                        {row.source}
+                      </a>
+                      <span class="build-row__sep" aria-hidden="true">&#160;·</span>{" "}
+                    </>
+                  )}
+                  <span class="build-row__page">
+                    Book page <span class="build-row__num">{row.printedPage}</span>
+                  </span>
+                  <span class="build-row__sep" aria-hidden="true">&#160;·</span>{" "}
+                  <span class="build-row__time">
+                    <span class="build-row__num">{row.minutes}</span> min
+                    {!row.minutesFromBook && (
+                      <>
+                        <span aria-hidden="true">*</span>
+                        <span class="u-sr-only"> — no length printed in the book</span>
+                      </>
+                    )}
+                  </span>
+                  <span class="build-row__done" data-done-cell />
+                </p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+
+      <p class="index__note">
+        * The book sets no length for that build, so the timer uses the site's standard
+        20-minute first step.
+      </p>
+
+      <section class="legend" aria-labelledby="flags">
+        <h2 id="flags" class="legend__h">What the flags mean</h2>
+        <blockquote class="legend__quote">
+          <p>{FLAG_RULE}</p>
+          <footer>Teen &amp; Grow Rich, book page {FLAG_RULE_PAGE}</footer>
+        </blockquote>
+        <p class="legend__note">
+          The book prints that rule once, for parents and guardians. The flag on each
+          build above is this site applying it — it is not a mark printed beside the
+          build in the book. <a href="/parents">Race Control</a> explains how a family
+          uses it, and every Reality Check is on <a href="/reality-check">one page</a> —
+          sixteen also sit on their build, and three belong to no build at all.
+        </p>
+      </section>
+    </div>
+  </div>
+</Page>
+
+<script>
+  import { state } from "../../lib/storage";
+
+  const hub = document.querySelector<HTMLElement>("[data-hub]");
+  const rows = [...document.querySelectorAll<HTMLElement>("[data-build-id]")];
+  const countEl = document.querySelector<HTMLElement>("[data-count]");
+
+  /* Fold the log onto the rows. A read, so no user gesture is needed (D23). Done state
+     is keyed by the build's content id, not its number, which is why the row carries
+     both — the number is the URL, the id is the storage key. */
+  const kept = state();
+  let done = 0;
+
+  for (const row of rows) {
+    const buildId = row.dataset.buildId ?? "";
+    if (kept.get(`build:${buildId}`) === 1) {
+      row.dataset.done = "yes";
+      const cell = row.querySelector<HTMLElement>("[data-done-cell]");
+      if (cell) cell.textContent = "Done";
+      done += 1;
+    }
+  }
+
+  const totalRows = rows.length;
+  if (countEl) countEl.textContent = `${done} of ${totalRows} builds done`;
+
+  /* Filtering itself is CSS. This only reports how many rows survived it, because a
+     count is the one thing CSS cannot say out loud. */
+  const report = () => {
+    const shown = rows.filter((row) => row.offsetParent !== null).length;
+    if (!countEl) return;
+    countEl.textContent =
+      shown === totalRows
+        ? `${done} of ${totalRows} builds done`
+        : `Showing ${shown} of ${totalRows} builds · ${done} done`;
+  };
+
+  hub?.addEventListener("change", report);
+</script>
+
+<style>
+  .hub__inner {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding: 1.5rem clamp(1.25rem, 5vw, 3rem) 0;
+  }
+
+  .u-sr-only {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .hub__count {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+
+  /* --- Filters --------------------------------------------------------------- */
+
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 1rem 1.5rem;
+    margin-block-start: 1rem;
+    padding-block-end: 1.25rem;
+  }
+
+  .filters__group {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-inline-size: 0;
+  }
+
+  .filters__legend {
+    display: block;
+    padding: 0;
+    font-size: var(--text-eyebrow);
+    font-weight: 700;
+    letter-spacing: var(--text-eyebrow--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-eyebrow-colour);
+    margin-block-end: 0.45rem;
+  }
+
+  .filters__select {
+    min-block-size: 44px;
+    max-inline-size: 100%;
+    padding: 0.4rem 0.6rem;
+    font: inherit;
+    font-size: var(--text-meta);
+    font-weight: 700;
+    color: var(--text-default);
+    background: var(--surface-card);
+    /* A control's boundary needs 3:1 (SC 1.4.11); --rule-hairline is a divider. */
+    border: 2px solid var(--control-edge);
+  }
+
+  .filters__options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    min-block-size: 44px;
+    padding: 0.35rem 0.75rem;
+    font-size: var(--text-meta);
+    font-weight: 700;
+    color: var(--text-default);
+    background: var(--surface-card);
+    border: 2px solid var(--control-edge);
+    cursor: pointer;
+  }
+
+  .chip input {
+    inline-size: 18px;
+    block-size: 18px;
+    /* --flag-green, as every other checkbox and radio on the site uses: teal-bright is
+       1.75:1 on the light chip and cannot carry the checked state (SC 1.4.11). */
+    accent-color: var(--flag-green);
+  }
+
+  /* The checked chip is marked by a high-contrast neutral edge, not by orange:
+     --accent-dot is 2.05:1 on the light chip, so "this filter is on" would not be
+     perceivable. Neutral rather than a flag colour — a green edge on the "Red" chip
+     would read as a flag, and the flags mean one thing on this site. */
+  .chip:has(input:checked) {
+    border-color: var(--text-strong);
+    color: var(--text-strong);
+  }
+
+  .filters__group--js {
+    display: none;
+  }
+
+  :global(:root[data-js]) .filters__group--js {
+    display: block;
+  }
+
+  .filters__clear {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 44px;
+    font-size: var(--text-meta);
+    font-weight: 700;
+    color: var(--text-default);
+    text-underline-offset: 3px;
+  }
+
+  /* --- The filter itself, in CSS ---------------------------------------------
+     Written out rather than generated: an Astro <style> block is static CSS, and a
+     generated one could not be hashed for the CSP. Fifteen chapters is a fixed number
+     that the book cannot change without a new edition. */
+
+  .hub:has(#f-flag-green:checked) .build-row:not([data-flag="green"]),
+  .hub:has(#f-flag-yellow:checked) .build-row:not([data-flag="yellow"]),
+  .hub:has(#f-flag-red:checked) .build-row:not([data-flag="red"]) {
+    display: none;
+  }
+
+  .hub:has(#f-status-done:checked) .build-row:not([data-done="yes"]),
+  .hub:has(#f-status-todo:checked) .build-row[data-done="yes"] {
+    display: none;
+  }
+
+  .hub:has(#f-chapter option[value="none"]:checked) .build-row[data-chapter] {
+    display: none;
+  }
+
+  .hub:has(#f-chapter option[value="1"]:checked) .build-row:not([data-chapter="1"]),
+  .hub:has(#f-chapter option[value="2"]:checked) .build-row:not([data-chapter="2"]),
+  .hub:has(#f-chapter option[value="3"]:checked) .build-row:not([data-chapter="3"]),
+  .hub:has(#f-chapter option[value="4"]:checked) .build-row:not([data-chapter="4"]),
+  .hub:has(#f-chapter option[value="5"]:checked) .build-row:not([data-chapter="5"]),
+  .hub:has(#f-chapter option[value="6"]:checked) .build-row:not([data-chapter="6"]),
+  .hub:has(#f-chapter option[value="7"]:checked) .build-row:not([data-chapter="7"]),
+  .hub:has(#f-chapter option[value="8"]:checked) .build-row:not([data-chapter="8"]),
+  .hub:has(#f-chapter option[value="9"]:checked) .build-row:not([data-chapter="9"]),
+  .hub:has(#f-chapter option[value="10"]:checked) .build-row:not([data-chapter="10"]),
+  .hub:has(#f-chapter option[value="11"]:checked) .build-row:not([data-chapter="11"]),
+  .hub:has(#f-chapter option[value="12"]:checked) .build-row:not([data-chapter="12"]),
+  .hub:has(#f-chapter option[value="13"]:checked) .build-row:not([data-chapter="13"]),
+  .hub:has(#f-chapter option[value="14"]:checked) .build-row:not([data-chapter="14"]),
+  .hub:has(#f-chapter option[value="15"]:checked) .build-row:not([data-chapter="15"]) {
+    display: none;
+  }
+
+  /* --- The index ------------------------------------------------------------- */
+
+  .index {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .build-row {
+    display: grid;
+    grid-template-columns: 2.75rem 1fr;
+    column-gap: 0.5rem;
+    padding-block: 1.1rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .build-row__n {
+    font-size: var(--text-h2);
+    line-height: 1.1;
+    font-weight: 700;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+
+  .build-row__title {
+    font-size: var(--text-subtitle);
+    line-height: var(--text-subtitle--line-height);
+  }
+
+  .build-row__title a {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 44px;
+    color: var(--text-strong);
+    text-decoration-color: currentColor;
+    text-underline-offset: 4px;
+  }
+
+  .build-row__title a:hover {
+    text-decoration-color: var(--accent-spine);
+  }
+
+  .build-row__text {
+    margin-block-start: 0.25rem;
+    max-inline-size: var(--container-measure);
+    color: var(--text-default);
+  }
+
+  .build-row__meta {
+    grid-column: 2;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem 1rem;
+    margin-block-start: 0.7rem;
+  }
+
+  /* Text flow, not flex. As flex items each "·" was its own box and could wrap onto a
+     line alone, or open one. Each separator now carries a non-breaking space and sits
+     inside the run it follows, so it can never start a line, and each fact is unbreakable
+     so "Book page 27" never splits across two. */
+  .build-row__facts {
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .build-row__source,
+  .build-row__page,
+  .build-row__time {
+    white-space: nowrap;
+  }
+
+  .build-row__num {
+    font-weight: 700;
+    color: var(--text-strong);
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+
+  .build-row__source {
+    font-weight: 700;
+    color: var(--text-default);
+  }
+
+  .build-row__done:not(:empty) {
+    font-weight: 700;
+    color: var(--text-section);
+  }
+
+  .build-row__done:not(:empty)::before {
+    /* Non-breaking space first: the separator belongs to the time before it. */
+    content: "\00a0· ";
+    color: var(--text-muted);
+  }
+
+  .index__note {
+    margin-block-start: 1rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+    max-inline-size: var(--container-measure);
+  }
+
+  /* --- Flag legend ----------------------------------------------------------- */
+
+  .legend {
+    margin-block-start: 3rem;
+    max-inline-size: var(--container-measure);
+  }
+
+  .legend__h {
+    font-size: var(--text-h2);
+    line-height: var(--text-h2--line-height);
+    color: var(--text-section);
+  }
+
+  /* 3px teal, the same edge every other quotation from the book carries (/hill, /terms,
+     /tools/shrink). 2px solid teal is also the Hill's-Original-Idea box's own weight, and
+     this is the rule all nineteen flags are derived from — it should not read thinner
+     than the quotes around the site. */
+  .legend__quote {
+    margin: 1rem 0 0;
+    padding-inline-start: 1rem;
+    border-inline-start: 3px solid var(--accent-spine);
+  }
+
+  .legend__quote footer {
+    margin-block-start: 0.5rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .legend__note {
+    margin-block-start: 1rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .legend__note a {
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  @media (min-width: 768px) {
+    .build-row {
+      /* 15rem could not hold "Yellow · check in with an adult first" or a whole facts
+         line, so twelve of nineteen rows broke with an orphaned word. It grows to 19rem
+         where the width exists — the middle column is capped at 65ch and idles past
+         ~1200px — and stays at 15rem at 768px, where the instruction column needs it. */
+      grid-template-columns: 3.5rem minmax(0, 1fr) clamp(15rem, 22vw, 19rem);
+      column-gap: 1.25rem;
+    }
+
+    .build-row__meta {
+      grid-column: 3;
+      grid-row: 1;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.4rem;
+      margin-block-start: 0.35rem;
+    }
+  }
+
+  @media print {
+    .filters,
+    .hub__count {
+      display: none;
+    }
+  }
+</style>

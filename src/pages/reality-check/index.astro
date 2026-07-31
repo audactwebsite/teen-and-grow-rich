@@ -1,0 +1,411 @@
+---
+/**
+ * The Reality Check library — all 19, in full, on one page.
+ *
+ * Non-negotiable 2: a Reality Check is never collapsed, never behind a tab, never
+ * truncated and never lazy-loaded. So this page does the expensive thing on purpose and
+ * renders every one of the 19 complete, grouped by the risk it is about. A summary list
+ * linking to 19 detail pages would be shorter and would be wrong: the reader who most
+ * needs one of these is the reader least likely to click through to it.
+ *
+ * The grouping is site-authored (see _checks.ts); every word inside a Reality Check box
+ * is the book's, verbatim.
+ *
+ * Printing is a first-class output here. A teacher photocopying the safety layer for a
+ * class is a use we designed for, so the print stylesheet drops the navigation, the
+ * flags keep their shape without their colour, and no box breaks across a page.
+ */
+import Page from "../../layouts/Page.astro";
+import ChapterFurniture from "../../components/ChapterFurniture.astro";
+import Box from "../../components/Box.astro";
+import Flag from "../../components/Flag.astro";
+import PageRef from "../../components/PageRef.astro";
+import { allRealityChecks, allBuilds, allChapters } from "../../lib/content";
+import { THEMES, CHECKS, FAMILY_RULE } from "./_checks";
+
+const checks = await allRealityChecks();
+const builds = await allBuilds();
+const chapters = await allChapters();
+
+/** The book's own text, keyed by id, so the loop below reads from one place only. */
+const bookText = new Map(checks.map((c) => [c.id, c.data]));
+
+/** "Guards Build 08 — Boss Decisions", or nothing for the three that guard no build. */
+function guard(buildN: number | null) {
+  if (buildN === null) return undefined;
+  const build = builds.find((b) => b.data.n === buildN);
+  if (!build) return undefined;
+  const chapter = build.data.chapter
+    ? chapters.find((c) => c.data.n === build.data.chapter)
+    : undefined;
+  return {
+    href: `/build/${String(buildN).padStart(2, "0")}`,
+    label: `Build ${String(buildN).padStart(2, "0")} — ${chapter?.data.title ?? build.data.source}`,
+  };
+}
+
+const grouped = THEMES.map((theme) => ({
+  theme,
+  items: CHECKS.filter((c) => c.theme === theme.id)
+    .flatMap((meta) => {
+      const data = bookText.get(meta.id);
+      return data ? [{ meta, data }] : [];
+    })
+    .sort((a, b) => a.data.printedPage - b.data.printedPage),
+}));
+
+const total = checks.length;
+---
+
+<Page
+  title="All 19 Reality Checks"
+  description={`Every Reality Check from Teen & Grow Rich, in full and grouped by risk: money and contracts, privacy, online contact, mental health, platform rules, and scams. ${total} of them, free, nothing locked.`}
+>
+  <ChapterFurniture
+    eyebrow="The safety layer"
+    title="Reality Checks"
+    subtitle={`All ${total} of them, in full, exactly as they are printed in the book.`}
+  />
+
+  <div class="prose">
+    <p>
+      A Reality Check is the paragraph in each chapter that says what could actually go
+      wrong, and what to do about it. There are {total} in the book. Every one is on this
+      page, complete — none is folded away, shortened, or held back for anyone.
+    </p>
+    <p>
+      Each has its own page too, with a plain answer to the question it is really about,
+      why the situation happens, and who to raise it with. Below, they are grouped by the
+      kind of risk rather than by chapter, because that is how the problem arrives.
+    </p>
+
+    <p class="print-hint" data-print="hide">
+      Printing gives you all {total} on paper, without the navigation — for a class set, a
+      wall, or the front of the receipts folder.
+    </p>
+
+    {/* Hidden unless scripting proved it can work. A print button that does nothing is
+        worse than the browser's own print command, which every reader already has. */}
+    <p class="print-action" data-print="hide">
+      <button type="button" data-print-page>Print all {total} Reality Checks</button>
+    </p>
+  </div>
+
+  <nav class="themes" aria-label="Risk themes" data-print="hide">
+    <ul class="themes__list">
+      {
+        grouped.map(({ theme, items }) => (
+          <li>
+            <a href={`#${theme.id}`} data-tap>
+              <span class="themes__title">{theme.title}</span>
+              <span class="themes__count">{items.length}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+
+  <div class="print-sheet">
+    {
+      grouped.map(({ theme, items }) => (
+        <section class="theme" id={theme.id} aria-labelledby={`${theme.id}-h`}>
+          <div class="theme__head">
+            <h2 id={`${theme.id}-h`} class="theme__title">
+              {theme.title}
+            </h2>
+            <p class="theme__blurb">{theme.blurb}</p>
+            <p class="theme__count">
+              {items.length} of {total}
+            </p>
+          </div>
+
+          {items.map(({ meta, data }) => {
+            const guards = guard(data.build);
+            return (
+              <article class="rc" id={meta.id}>
+                <div class="rc__meta">
+                  <PageRef page={data.printedPage} kind="Reality Check" />
+                  <Flag level={meta.flag} size="sm" />
+                </div>
+
+                <h3 class="rc__question">
+                  <a href={`/reality-check/${meta.id}`}>{meta.question}</a>
+                </h3>
+
+                <div class="rc__box">
+                  <Box kind="check">
+                    <p>{data.text}</p>
+                  </Box>
+                </div>
+
+                <p class="rc__guards">
+                  {guards ? (
+                    <>
+                      Guards <a href={guards.href}>{guards.label}</a>
+                    </>
+                  ) : (
+                    <>
+                      Belongs to no build — it sits with{" "}
+                      {meta.standalone ? (
+                        <a href={meta.standalone.href}>{meta.standalone.label}</a>
+                      ) : (
+                        data.belongsTo
+                      )}
+                      .
+                    </>
+                  )}
+                </p>
+              </article>
+            );
+          })}
+        </section>
+      ))
+    }
+
+    <section class="family-rule" aria-labelledby="family-rule-h">
+      <h2 id="family-rule-h" class="family-rule__label">A simple family rule</h2>
+      <p class="family-rule__text">{FAMILY_RULE}</p>
+      <p class="family-rule__source">
+        Teen &amp; Grow Rich, printed page 61. The whole of{" "}
+        <a href="/parents">Race Control — for parents and guardians</a> is built on it.
+      </p>
+    </section>
+  </div>
+</Page>
+
+<script>
+  // Progressive enhancement only: the page is complete and printable without this, and
+  // the button is invisible until ThemeScript has set data-js on <html>.
+  document
+    .querySelector<HTMLButtonElement>("[data-print-page]")
+    ?.addEventListener("click", () => window.print());
+</script>
+
+<style>
+  .prose {
+    max-inline-size: var(--container-measure);
+    margin-inline: auto;
+    padding: 1.75rem clamp(1.25rem, 5vw, 3rem) 0;
+  }
+
+  .prose p + p {
+    margin-block-start: 0.9em;
+  }
+
+  .print-hint {
+    color: var(--text-muted);
+    font-size: var(--text-meta);
+  }
+
+  .print-action {
+    display: none;
+  }
+
+  :global(:root[data-js]) .print-action {
+    display: block;
+  }
+
+  .print-action button {
+    /* Orange fill takes navy text. White on orange is 2.05:1 and is forbidden. */
+    background: var(--cta-fill);
+    color: var(--cta-text);
+    border: 0;
+    padding: 0.7rem 1.1rem;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  /* --- Theme index -------------------------------------------------------- */
+
+  .themes {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding: 1.75rem clamp(1.25rem, 5vw, 3rem) 0;
+  }
+
+  .themes__list {
+    display: grid;
+    /* One column at 390px, two from ~34rem, three when there is room. No media query
+       needed, and nothing overflows at 320px. */
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: 1px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    background: var(--rule-hairline);
+    border: 1px solid var(--rule-hairline);
+  }
+
+  .themes__list a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-block-size: 44px;
+    padding: 0.7rem 0.9rem;
+    background: var(--surface-page);
+    text-decoration: none;
+    font-weight: 700;
+  }
+
+  .themes__list a:hover .themes__title {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .themes__count {
+    /* A real count, never a score. Tabular so the column of numbers lines up. */
+    font-variant-numeric: tabular-nums slashed-zero;
+    color: var(--text-muted);
+  }
+
+  /* --- Themed groups ------------------------------------------------------ */
+
+  .theme {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+    /* Clears the header when a #theme anchor is followed. */
+    scroll-margin-block-start: 1.5rem;
+  }
+
+  .theme__head {
+    margin-block: 3rem 1.5rem;
+    padding-block-end: 0.75rem;
+    border-block-end: 2px solid var(--accent-spine);
+  }
+
+  .theme__title {
+    font-size: var(--text-h2);
+    line-height: var(--text-h2--line-height);
+    color: var(--text-section);
+  }
+
+  .theme__blurb {
+    margin-block-start: 0.4rem;
+    max-inline-size: var(--container-measure);
+    color: var(--text-default);
+  }
+
+  .theme__count {
+    margin-block-start: 0.4rem;
+    font-size: var(--text-meta);
+    font-variant-numeric: tabular-nums slashed-zero;
+    color: var(--text-muted);
+  }
+
+  /* --- One check ---------------------------------------------------------- */
+
+  .rc {
+    padding-block: 1.5rem;
+    border-block-start: 1px solid var(--rule-hairline);
+    scroll-margin-block-start: 1.5rem;
+  }
+
+  .rc:first-of-type {
+    border-block-start: 0;
+  }
+
+  .rc__meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem 1rem;
+  }
+
+  .rc__question {
+    margin-block-start: 0.5rem;
+    max-inline-size: var(--container-measure);
+    font-size: var(--text-subtitle);
+    line-height: var(--text-subtitle--line-height);
+  }
+
+  .rc__question a {
+    text-decoration: none;
+    /* The underline is the affordance; a colour change would not survive light mode,
+       where teal-bright and orange may not carry text. */
+    border-block-end: 2px solid var(--accent-spine);
+  }
+
+  .rc__question a:hover {
+    border-block-end-color: var(--accent-dot);
+  }
+
+  .rc__box {
+    margin-block-start: 0.9rem;
+  }
+
+  .rc__guards {
+    margin-block-start: 0.7rem;
+    max-inline-size: var(--container-measure);
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .rc__guards a {
+    font-weight: 700;
+    color: var(--text-default);
+    text-underline-offset: 3px;
+  }
+
+  /* --- The family rule ---------------------------------------------------- */
+
+  .family-rule {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    margin-block-start: 3.5rem;
+    padding: 1.5rem clamp(1.25rem, 5vw, 3rem);
+    border-block: 1px solid var(--rule-hairline);
+    background: var(--surface-card);
+  }
+
+  .family-rule__label {
+    font-size: var(--text-label);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-strong);
+  }
+
+  .family-rule__text {
+    margin-block-start: 0.6rem;
+    max-inline-size: var(--container-measure);
+    font-size: var(--text-subtitle);
+    line-height: var(--text-subtitle--line-height);
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  .family-rule__source {
+    margin-block-start: 0.8rem;
+    max-inline-size: var(--container-measure);
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  @media print {
+    .prose,
+    .theme,
+    .family-rule {
+      max-inline-size: none;
+      padding-inline: 0;
+    }
+
+    .theme__head {
+      margin-block: 1.5rem 0.75rem;
+      break-after: avoid;
+    }
+
+    .rc {
+      break-inside: avoid;
+      padding-block: 0.85rem;
+    }
+
+    .family-rule {
+      background: none;
+      break-inside: avoid;
+    }
+  }
+</style>

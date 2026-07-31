@@ -1,0 +1,167 @@
+---
+/**
+ * The book's chapter opener, rebuilt: navy bar across the top, teal-bright spine down
+ * the left edge, solid orange dot top right, then under the H1 a teal-bright rule at
+ * ~70% width followed by a short orange rule — two rules, two colours, in that order.
+ *
+ * This is the single strongest recognition cue a reader arriving from the printed page
+ * can get, so it is reproduced, not reinterpreted.
+ *
+ * It renders as a full-width band and supplies its own container, because the spine and
+ * the navy bar have to reach the edges of the viewport. Pages place it outside their own
+ * prose column. Container contract, matched by Page.astro: max 72rem,
+ * padding-inline clamp(1.25rem, 5vw, 3rem).
+ */
+interface Props {
+  eyebrow?: string;
+  title: string;
+  subtitle?: string;
+  class?: string;
+}
+
+const { eyebrow, title, subtitle, class: className } = Astro.props;
+---
+
+<header class:list={["furniture", className]}>
+  <div class="furniture__bar" aria-hidden="true"></div>
+  <div class="furniture__spine" aria-hidden="true"></div>
+
+  <div class="furniture__inner">
+    <span class="furniture__dot" aria-hidden="true"></span>
+
+    {eyebrow && <p class="furniture__eyebrow">{eyebrow}</p>}
+    <h1 class="furniture__title">{title}</h1>
+
+    <div class="furniture__rules" aria-hidden="true">
+      <span class="furniture__rule furniture__rule--teal"></span>
+      <span class="furniture__rule furniture__rule--orange"></span>
+    </div>
+
+    {subtitle && <p class="furniture__subtitle">{subtitle}</p>}
+  </div>
+</header>
+
+<style>
+  .furniture {
+    /* Navy is the book's bar, but on the dark base it drops to 1.2:1 and vanishes.
+       navy-lift is the palette's own stand-in for exactly this case. */
+    --furniture-bar: var(--color-tgr-navy-lift);
+
+    position: relative;
+    inline-size: 100%;
+    padding-block: 2rem 1.75rem;
+    print-color-adjust: exact;
+  }
+
+  :global(:root[data-theme="light"]) .furniture {
+    --furniture-bar: var(--color-tgr-navy);
+  }
+
+  .furniture__bar {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline: 0;
+    block-size: 10px;
+    background: var(--furniture-bar);
+  }
+
+  .furniture__spine {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    inline-size: 6px;
+    background: var(--accent-spine);
+  }
+
+  .furniture__inner {
+    position: relative;
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    /* Clears the 6px spine at 320px without a media query. */
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .furniture__dot {
+    position: absolute;
+    inset-block-start: 0.35rem;
+    inset-inline-end: clamp(1.25rem, 5vw, 3rem);
+    inline-size: 14px;
+    block-size: 14px;
+    border-radius: 50%;
+    background: var(--accent-dot);
+  }
+
+  .furniture__eyebrow {
+    font-size: var(--text-eyebrow);
+    font-weight: 700;
+    letter-spacing: var(--text-eyebrow--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-eyebrow-colour);
+    /* At 390px "Chapter 11 · Hill Remix: Riches Made Practical" wraps, and the default
+       greedy break orphaned "MADE PRACTICAL" onto a near-empty second line. */
+    text-wrap: balance;
+    /* Room for the dot at 320px, where the H1 and the dot would otherwise collide. */
+    padding-inline-end: 1.75rem;
+  }
+
+  .furniture__title {
+    margin-block-start: 0.6rem;
+    /* 34px floor is the measured mobile size; 50px is the print ratio at a 17px body. */
+    font-size: clamp(2.125rem, 7vw, var(--text-h1));
+    line-height: var(--text-h1--line-height);
+    letter-spacing: var(--text-h1--letter-spacing);
+    max-inline-size: 18ch;
+  }
+
+  .furniture__rules {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-block-start: 1.1rem;
+  }
+
+  .furniture__rule {
+    block-size: 3px;
+  }
+
+  .furniture__rule--teal {
+    inline-size: 70%;
+    /* The cap has to be 70% of the text measure, not an arbitrary 22rem: .furniture__inner
+       is up to 72rem wide, so an unrelated cap made the rule read as 55% of the column it
+       sits over. Design-system §4 specifies ~70%. */
+    max-inline-size: calc(var(--container-measure) * 0.7);
+    background: var(--accent-spine);
+  }
+
+  .furniture__rule--orange {
+    inline-size: 3.5rem;
+    background: var(--accent-dot);
+  }
+
+  .furniture__subtitle {
+    margin-block-start: 1.1rem;
+    font-size: var(--text-subtitle);
+    line-height: var(--text-subtitle--line-height);
+    font-weight: 700;
+    color: var(--text-strong);
+    /* --container-measure is 65ch and `ch` resolves against the element's own font-size,
+       so at the 22px subtitle it measured ~795px against the 17px body column's ~614px and
+       the opener overhung every element below it. Scaling by body/subtitle gives the two
+       one right edge without hard-coding a pixel width. */
+    max-inline-size: calc(var(--container-measure) * 17 / 22);
+  }
+
+  @media print {
+    .furniture {
+      /* Semantic layer only — global.css already resolves this to the book's navy
+         under @media print. A literal here would be a second source of truth. */
+      --furniture-bar: var(--text-strong);
+      padding-block: 0 1rem;
+      break-after: avoid;
+    }
+    .furniture__bar {
+      position: static;
+      margin-block-end: 1rem;
+    }
+  }
+</style>

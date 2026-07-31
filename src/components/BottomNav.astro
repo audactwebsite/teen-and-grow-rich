@@ -1,0 +1,111 @@
+---
+/**
+ * Thumb-zone navigation, phone only. Both printed QR codes land a reader on a phone
+ * with the book open, so the four things they can want are one thumb reach from the
+ * bottom of the screen rather than a scroll back to the top.
+ *
+ * Hidden from 768px, where SiteHeader carries the same destinations.
+ *
+ * Text labels, no icons: there is no icon font on this site, emoji are ruled out as
+ * iconography, and four invented glyphs would each need a learned meaning that a word
+ * already has.
+ *
+ * The two hash targets are a contract with the homepage: it must expose `#page-number`
+ * on the page-number field and `#chapters` on the chapter index.
+ */
+const path = Astro.url.pathname.replace(/\/+$/, "") || "/";
+
+const ITEMS = [
+  { href: "/#page-number", label: "Page no." },
+  { href: "/builds", label: "Builds" },
+  { href: "/#chapters", label: "Chapters" },
+  { href: "/receipts", label: "Receipts" },
+];
+
+/* Astro.url.pathname never carries a fragment, so comparing it against the raw href
+   could never match "/#page-number" or "/#chapters" — which meant no item was marked
+   current on the homepage, the one page both printed QR codes land on. Compare the path
+   part only.
+   Only the FIRST match is marked. Both hash items resolve to "/", so marking every match
+   put two orange "you are here" rules in a four-cell bar and gave a screen-reader user two
+   aria-current="page" in one nav, which identifies nothing. On "/" the first item wins,
+   which is the right one: the page-number field is what a reader arriving from a printed
+   QR code is here for. */
+const matchesPath = (href: string) => {
+  const target = href.split("#")[0].replace(/\/+$/, "") || "/";
+  return path === target || path.startsWith(`${target}/`);
+};
+
+const currentIndex = ITEMS.findIndex((item) => matchesPath(item.href));
+---
+
+<nav class="bottom-nav" aria-label="Quick links">
+  <ul class="bottom-nav__list">
+    {
+      ITEMS.map((item, i) => (
+        <li>
+          <a
+            href={item.href}
+            data-tap
+            aria-current={i === currentIndex ? "page" : undefined}
+          >
+            {item.label}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>
+
+<style>
+  .bottom-nav {
+    position: fixed;
+    inset-inline: 0;
+    inset-block-end: 0;
+    z-index: 10;
+    /* Raised, not card: in the light theme --surface-card resolves to the page white, so a
+       card-filled bar was white on white and the content scrolling under it simply
+       disappeared behind an invisible strip. --surface-raised is the token that is a lift
+       in both themes (tint-mint in light, dark-surface-2 in dark). */
+    background: var(--surface-raised);
+    border-block-start: 1px solid var(--rule-hairline);
+    /* Home-indicator gutter on iOS; 0 everywhere else. */
+    padding-block-end: env(safe-area-inset-bottom, 0px);
+  }
+
+  .bottom-nav__list {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .bottom-nav a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Above the 44px coarse-pointer floor with room for the focus ring. */
+    min-block-size: 52px;
+    padding: 0.5rem 0.25rem;
+    font-size: var(--text-meta);
+    font-weight: 700;
+    text-align: center;
+    text-decoration: none;
+    color: var(--text-default);
+    border-block-start: 3px solid transparent;
+    /* Focus must not be clipped by the neighbouring cell. */
+    outline-offset: -3px;
+  }
+
+  .bottom-nav a[aria-current="page"] {
+    border-block-start-color: var(--accent-dot);
+    color: var(--text-strong);
+  }
+
+  @media (min-width: 768px) {
+    .bottom-nav {
+      display: none;
+    }
+  }
+</style>

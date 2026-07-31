@@ -1,0 +1,125 @@
+---
+/**
+ * /p/1 – /p/65. A printed page number resolved to its tool.
+ *
+ * The first print run is already in readers' hands, so these paths are permanent: they
+ * must never 404 and they must never depend on JavaScript. Every one of them renders a
+ * real, visible link to the destination. Exact matches also redirect, because a reader
+ * who typed the number they are looking at has already told us where they want to be.
+ *
+ * Pages inside the book that carry no tool of their own do NOT redirect. Bouncing a
+ * reader who typed 6 into build 01 with no explanation would be a lie about where they
+ * are; they get the nearest tool, named, with the reason.
+ */
+import Page from "../../layouts/Page.astro";
+import ChapterFurniture from "../../components/ChapterFurniture.astro";
+import { allResolved, LAST_PAGE, LAST_PRINTED_PAGE } from "../../lib/page-routing";
+import type { PageTarget } from "../../lib/page-routing";
+import { PAGE_REDIRECT_SCRIPT } from "../../lib/inline-scripts.mjs";
+
+export async function getStaticPaths() {
+  const targets = await allResolved();
+  return targets.map((target) => ({
+    params: { page: String(target.page) },
+    props: { target },
+  }));
+}
+
+interface Props {
+  target: PageTarget;
+}
+
+const { target } = Astro.props;
+const isChapterSixteen = target.page === LAST_PAGE;
+
+const title = `Book page ${target.page}`;
+const description = target.exact
+  ? `Printed page ${target.page} of Teen & Grow Rich opens ${target.kind}: ${target.label}.`
+  : `Printed page ${target.page} of Teen & Grow Rich has no tool of its own. The nearest one is on page ${target.landsOn}.`;
+---
+
+<Page title={title} description={description} printedPage={target.page}>
+  <ChapterFurniture
+    eyebrow={isChapterSixteen ? "One page past the end of the book" : `Book page ${target.page}`}
+    title={target.label}
+    subtitle={target.kind}
+  />
+
+  <div class="wrap">
+    <p class="prose">
+      {
+        isChapterSixteen ? (
+          <>
+            The book ends on page {LAST_PRINTED_PAGE}. This is the chapter that came after
+            it, and it is open to everyone — nothing here is locked.
+          </>
+        ) : target.exact ? (
+          <>This is the tool printed on page {target.page} of the book.</>
+        ) : (
+          <>
+            Page {target.page} has no tool of its own — it is story, or a page reference.
+            The nearest tool is on book page {target.landsOn}.
+          </>
+        )
+      }
+    </p>
+
+    <p class="go-row">
+      <a class="go" href={target.href} data-page-go={target.exact ? "redirect" : undefined}>
+        Open {target.kind} · {target.label}
+      </a>
+    </p>
+
+    <p class="prose fallback">
+      Wrong page? <a class="link" href="/#page-number">Type another number</a>, or open
+      <a class="link" href="/p">the full page index</a>.
+    </p>
+  </div>
+
+  {/* Source lives in src/lib/inline-scripts.mjs so the CSP hash is derived from the same
+      string that is rendered — Astro does not hash is:inline scripts, and an unhashed one
+      is silently blocked in production. It stays inside the layout because is:inline
+      scripts are emitted where they are written. */}
+  <script is:inline set:html={PAGE_REDIRECT_SCRIPT} />
+</Page>
+
+<style>
+  .wrap {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding: 1.75rem clamp(1.25rem, 5vw, 3rem) 0;
+  }
+
+  .prose {
+    max-inline-size: var(--container-measure);
+  }
+
+  .go-row {
+    margin-block-start: 1.5rem;
+  }
+
+  .go {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 56px;
+    padding: 0.5rem 1.4rem;
+    font-weight: 700;
+    /* Orange fill takes navy text; white on orange is 2.05:1 and is forbidden. */
+    color: var(--cta-text);
+    background: var(--cta-fill);
+    text-decoration: none;
+  }
+
+  .fallback {
+    margin-block-start: 1.5rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .link {
+    font-weight: 700;
+    color: var(--text-strong);
+    text-underline-offset: 4px;
+    text-decoration-color: var(--accent-spine);
+  }
+</style>

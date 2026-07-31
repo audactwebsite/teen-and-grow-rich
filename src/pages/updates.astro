@@ -1,0 +1,203 @@
+---
+/**
+ * The changelog (docs/decisions.md D29, D31).
+ *
+ * Freshness is structural, not promised: a dated list of what actually changed, written
+ * by hand, with the things that are still missing named on the same page. A site that
+ * quietly stops being updated is worse than one that says what it has not done yet.
+ *
+ * Newest first. Entries are appended, never rewritten — the same rule as the decisions log.
+ */
+import Page from "../layouts/Page.astro";
+import ChapterFurniture from "../components/ChapterFurniture.astro";
+
+interface Entry {
+  date: string;
+  title: string;
+  items: string[];
+}
+
+const ENTRIES: Entry[] = [
+  {
+    date: "2026-07-30",
+    title: "First public build",
+    items: [
+      "All 231 items from the printed book extracted and typed, so every word of book copy on this site is the book's own wording rather than a paraphrase.",
+      "The Napoleon Hill audit published at /hill: what the record actually shows about Hill, with dates and two sources, and the two self-help statistics this site refuses to quote.",
+      "Ryan's karting record published at /proof. The Formula 4 claim is not on it, because it is not confirmed.",
+      "The book page published at /get: 64 pages, the word count, an honest reading time, what the book has that this site does not, and who it is not for.",
+      "Scam Check and Shrink My First Step published as shells. Neither is live; both say so on the page and show exactly what they will ask for and give back.",
+      "Privacy, terms and editions published. Privacy lists what is kept in your browser key by key.",
+      "No analytics, no cookies, no third-party requests. A step in the build reads every published file and fails the release if an external host appears in it.",
+    ],
+  },
+];
+
+const MISSING = [
+  "The retailer link on /get. The book is sold through an outside retailer and the link is not confirmed.",
+  "The free starter chapter, as a readable page and as a printable PDF. Neither file is in place.",
+  "The ISBNs on /editions.",
+  "The hosting provider's name, log contents and retention period on /privacy.",
+  "The serverless function behind the two AI tools. Until it exists, both tools are shells.",
+  "Chapter 16, which Ryan is writing about what he learned after the book went to print.",
+  "Per-result source links on /proof, so each karting result points at the timing sheet it comes from.",
+];
+
+const fmt = (iso: string) =>
+  new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+---
+
+<Page
+  title="Updates"
+  description="A dated changelog for teenandgrowrich.com — what changed, when, and what is still missing."
+>
+  <ChapterFurniture
+    eyebrow="Updates"
+    title="Updates"
+    subtitle="What changed on this site, and when. Newest first."
+  />
+
+  <div class="wrap">
+    <div class="prose">
+      <p class="lede">
+        This is a changelog for the website. The printed book does not change between print
+        runs — if you are holding one and a page number here does not match, that is what
+        <a href="/editions">editions</a> is for.
+      </p>
+    </div>
+  </div>
+
+  <section class="wrap section" aria-labelledby="log">
+    <h2 id="log">The log</h2>
+
+    {
+      ENTRIES.map((e) => (
+        <article class="entry">
+          <p class="entry__date">
+            <time datetime={e.date}>{fmt(e.date)}</time>
+          </p>
+          <h3 class="entry__title">{e.title}</h3>
+          <ul class="entry__items">
+            {e.items.map((i) => (
+              <li>{i}</li>
+            ))}
+          </ul>
+        </article>
+      ))
+    }
+  </section>
+
+  <section class="wrap section" aria-labelledby="missing">
+    <h2 id="missing">What is missing right now</h2>
+    <div class="prose">
+      <p>
+        Named here rather than left for you to discover. Each one becomes a dated entry
+        above when it lands.
+      </p>
+      <ul class="plain">{MISSING.map((m) => <li>{m}</li>)}</ul>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="how">
+    <h2 id="how">How this page works</h2>
+    <div class="prose">
+      <p>
+        Entries are written by hand and appended, never edited after the fact. If something
+        on this site turns out to be wrong, the correction gets its own dated entry saying
+        what was wrong — not a quiet fix.
+      </p>
+      <p>
+        There is no way to subscribe to this page, because there is no email address to
+        subscribe with. Bookmark it, or check it when you come back.
+      </p>
+    </div>
+  </section>
+</Page>
+
+<style>
+  .wrap {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .prose {
+    max-inline-size: var(--container-measure);
+  }
+
+  .prose p + p,
+  .prose ul {
+    margin-block-start: 0.9em;
+  }
+
+  .lede {
+    margin-block-start: 1.75rem;
+    font-size: var(--text-subtitle);
+    line-height: var(--text-subtitle--line-height);
+    color: var(--text-strong);
+  }
+
+  .section {
+    margin-block-start: 3rem;
+  }
+
+  .section > h2 {
+    font-size: var(--text-h2);
+    line-height: var(--text-h2--line-height);
+    color: var(--text-section);
+    max-inline-size: var(--container-measure);
+  }
+
+  .section > .prose {
+    margin-block-start: 0.75rem;
+  }
+
+  .entry {
+    max-inline-size: var(--container-measure);
+    margin-block-start: 1.5rem;
+    padding-block-start: 1.25rem;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .entry__date {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-muted);
+    /* A changelog is a column of dates; they line up. */
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+
+  .entry__title {
+    margin-block-start: 0.35rem;
+    font-size: var(--text-subtitle);
+    line-height: var(--text-subtitle--line-height);
+    color: var(--text-strong);
+  }
+
+  .entry__items,
+  .plain {
+    list-style: none;
+    padding: 0;
+  }
+
+  .entry__items {
+    margin-block-start: 0.75rem;
+  }
+
+  .entry__items li,
+  .plain li {
+    padding-block: 0.55rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  a {
+    text-decoration-color: currentColor;
+    text-underline-offset: 3px;
+  }
+
+  a:hover {
+    text-decoration-color: var(--accent-spine);
+  }
+</style>

@@ -1,0 +1,486 @@
+---
+/**
+ * Written for a school IT reviewer or a DPO, not for marketing.
+ *
+ * The moat is that every claim on this page can be checked from the page source in about
+ * two minutes (D33), so the page's job is to make checking easy rather than to reassure.
+ * Two rules follow from that and are easy to break by accident:
+ *
+ *  1. Never write "nothing is processed". Any hosted site receives IP and User-Agent in
+ *     access logs, and an IP is personal data under the GDPR. The honest claim is that we
+ *     collect nothing and the hosting provider processes connection metadata as our
+ *     processor. A DPO will puncture the stronger claim in seconds, and rightly.
+ *  2. No legal conclusions of our own ("no DPIA needed"). State the facts and invite
+ *     verification.
+ *
+ * Anything not yet true is marked as not yet true. An unfinished line is survivable on
+ * this page; a confident wrong one is not.
+ */
+import Page from "../../layouts/Page.astro";
+import ChapterFurniture from "../../components/ChapterFurniture.astro";
+import Box from "../../components/Box.astro";
+
+/** Claim → how a reviewer proves it, without taking our word for anything. */
+const CLAIMS = [
+  {
+    claim: "No accounts, no login, no registration.",
+    check:
+      "There is no sign-in route anywhere on the site. Nothing is behind a wall, so there is nothing to sign in to.",
+  },
+  {
+    claim: "No cookies are set.",
+    check:
+      "Application → Cookies in developer tools, on any page. The list is empty, including after completing a worksheet.",
+  },
+  {
+    claim: "No analytics, no tag manager, no advertising or social pixels.",
+    check:
+      "Search the page source for the usual script names. There is no third-party script of any kind, so there is nothing to search for.",
+  },
+  {
+    claim: "No third-party requests. Fonts and images are served from this domain.",
+    check:
+      "Network tab, filter by domain. Every request is same-origin. A build step (tools/verify-no-external-hosts.mjs) fails the release if any external host appears in the output.",
+  },
+  {
+    claim: "A Content Security Policy blocks external connections in the browser as well.",
+    check:
+      "Read it in the page source: it is a meta element with http-equiv=\"content-security-policy\", near the top of the head. The policy is deliberately not transcribed onto this page — a copy here would drift out of step with the real one, and the element itself is the authority. What it does is confine the page to this origin: scripts, styles, fonts and images all same-origin, forms unable to post anywhere else, no plugins, no rewritten base URL. One caveat we would rather state than have you find: the CSP specification tells browsers to ignore frame-ancestors when a policy arrives in a meta element, so protection against this site being framed needs a response header from the host, and this page does not claim to have one.",
+  },
+  {
+    claim: "One form, and it carries no personal data.",
+    check:
+      "Search the page source for <form>. There is one form on the whole site, and it appears on two pages — the homepage and the 404 page: a page-number field that GETs to /p/ on this same origin, so a reader holding the printed book can reach a tool without JavaScript. form-action 'self' means no form on this site can ever post to a third party. Nothing anywhere asks a pupil for their name, their email address or anything else about them.",
+  },
+  {
+    claim: "No comments, messaging, profiles or uploads — no user-generated content at all.",
+    check:
+      "There is no route to post anything. This is deliberate: it also keeps the site outside the Digital Services Act's definition of an online platform.",
+  },
+];
+
+/**
+ * The one section of this page that is not finished, itemised.
+ *
+ * A DPO asks for these six before anything else, and a page that answered them vaguely
+ * would be worse than a page that admits the gap. Written as a checklist rather than an
+ * apology so it can be read as the outstanding work it is — and so the reviewer can see
+ * exactly what will be there, and hold us to the list.
+ */
+const HOST_PENDING = [
+  "The hosting provider's name, and the country the site is served from.",
+  "The provider's own data-processing terms, linked — the document that makes it our processor rather than an independent controller.",
+  "Whether any personal data leaves the EEA, and on what transfer basis if it does.",
+  "What the access logs actually contain, field by field, rather than the phrase “standard server logs”.",
+  "How long those logs are kept before deletion, as a number of days.",
+  "Whether logging is switched off entirely, or IP addresses are truncated or hashed before they are written.",
+];
+
+/** What is written to the device, why, and what removes it. */
+const STORED = [
+  {
+    key: "tgr.theme.v1",
+    what: "Dark or light, when a pupil presses the theme button.",
+    why: "An explicit preference the pupil asked for.",
+  },
+  {
+    key: "tgr.log.v1",
+    what: "The pupil's own ticks and typed answers, written only when they act.",
+    why: "The work itself. It never leaves the browser, and there is no code path that sends it anywhere.",
+  },
+];
+---
+
+<Page
+  title="Privacy, for schools"
+  description="How teenandgrowrich.com handles data, for a school IT reviewer: no accounts, no cookies, no analytics, no third-party requests — and every claim checkable from the page source."
+>
+  <ChapterFurniture
+    eyebrow="For school IT and data protection"
+    title="What this site does with data"
+    subtitle="Every claim below can be checked from the page source. That is the point of writing it this way."
+  />
+
+  <div class="prose">
+    <p>
+      teenandgrowrich.com is a static companion site for a printed book aimed at readers
+      aged 13 and up. It supplies the book's worksheets, checklists and safety material as
+      web tools. It is not a learning platform, it holds no pupil records, and it has no
+      administrator view of anything.
+    </p>
+
+    <h2 class="section">Verify it yourself, in about two minutes</h2>
+    <p>
+      Open developer tools, reload any page, and work down this list. We would rather you
+      checked than believed us.
+    </p>
+  </div>
+
+  <section class="claims" aria-labelledby="claims-h">
+    <div class="claims__inner">
+      <h2 id="claims-h" class="visually-hidden">Claims and how to check them</h2>
+      <dl class="rows">
+        {
+          CLAIMS.map((row) => (
+            <div class="row">
+              <dt class="row__claim">{row.claim}</dt>
+              <dd class="row__check">{row.check}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </section>
+
+  <div class="prose">
+    <h2 class="section">What is written to the device</h2>
+    <p>
+      Two keys in localStorage, both written only in response to something the pupil does,
+      never on page load. Neither is transmitted. Both are visible in Application → Local
+      Storage.
+    </p>
+  </div>
+
+  <section class="claims" aria-labelledby="stored-h">
+    <div class="claims__inner">
+      <h2 id="stored-h" class="visually-hidden">Local storage keys</h2>
+      <dl class="rows">
+        {
+          STORED.map((row) => (
+            <div class="row">
+              <dt class="row__claim">
+                <code>{row.key}</code>
+              </dt>
+              <dd class="row__check">
+                {row.what} {row.why}
+              </dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </section>
+
+  <div class="prose">
+    <p>
+      Clearing site data removes both, and nothing is lost that exists anywhere else,
+      because nothing exists anywhere else. On a shared or managed device the data is gone
+      at sign-out, which is expected rather than a fault. We tell pupils their work is
+      <strong>kept in this browser</strong> — never that it is kept anywhere else — and
+      every tool can print or copy its output as plain text, so the durable record is the
+      one in the pupil's hand.
+    </p>
+
+    <h2 class="section">What the hosting provider processes</h2>
+    <p>
+      This is the part other privacy pages get wrong. Any hosted website receives the
+      visitor's IP address, User-Agent, the URL requested and a timestamp, and an IP
+      address is personal data under the GDPR. So the accurate statement is: <strong
+        >we collect nothing, and our hosting provider processes connection metadata as our
+        processor</strong
+      >. "Nothing is processed" would be false for any site on the internet.
+    </p>
+
+    <div class="pending">
+      <Box kind="build">
+        <p class="pending__label">To be completed before launch — six items, named</p>
+        <p>
+          The hosting provider is not chosen yet, so this section cannot be written
+          honestly today. Rather than leave you to guess what is missing, here is the exact
+          list that will fill it. If you are reviewing the site and any of these is still
+          unanswered, the page is not finished and you should treat it as such on this one
+          point.
+        </p>
+        <ul class="pending__list">
+          {HOST_PENDING.map((item) => <li>{item}</li>)}
+        </ul>
+        <p class="pending__note">
+          Nothing above changes what this site itself collects, which is nothing. It is the
+          provider's processing that is undocumented here, not ours.
+        </p>
+      </Box>
+    </div>
+
+    <h2 class="section">The two AI tools, which will be the only exception</h2>
+    <p>
+      Two tools are planned that would send anything off the device: Scam Check, where a
+      reader pastes an offer or message they have been sent, and Shrink My First Step,
+      where a reader types a goal. <strong>Neither is live.</strong> Both pages exist and
+      both say so on themselves; there is no serverless function behind either, and today
+      nothing on this site sends anything anywhere. When they are switched on:
+    </p>
+    <ul class="plain">
+      <li>They will be single-purpose — one input, one structured answer, never a chat window.</li>
+      <li>Nothing a reader types into them will be stored — not the input, not the output, and no log of either.</li>
+      <li>They will run only when a reader chooses to use them. No page will call them on load.</li>
+      <li>Every other page and tool on the site will work whether or not those two are available, exactly as it does now.</li>
+      <li>Each will carry a visible notice that it uses AI, and fixed referral wording for messages about self-harm, abuse, grooming or blackmail.</li>
+    </ul>
+    <p>
+      If your filtering policy is to block them, blocking those two routes does not affect
+      anything else here.
+    </p>
+
+    <h2 class="section">Crawlers</h2>
+    <p>
+      <a href="/robots.txt">The robots file</a> disallows nothing and blocks no crawler,
+      and it names the AI crawlers as allowed rather than leaving it implied — OAI-SearchBot,
+      GPTBot, ChatGPT-User, PerplexityBot, ClaudeBot, Claude-Web, Google-Extended,
+      Applebot-Extended and CCBot. Teachers increasingly find material through an assistant
+      rather than a search box, and since the site collects nothing, there is nothing for a
+      crawler to expose. It also carries a Sitemap line, and the sitemap is at
+      <a href="/sitemap.xml">/sitemap.xml</a>.
+    </p>
+
+    <h2 class="section">Age</h2>
+    <p>
+      The book is written for readers aged 13 and up. There is no age gate because there is
+      nothing to gate: no account, no profile, no personalization, and no processing that
+      depends on knowing who the reader is. Nothing on the site is locked behind a payment
+      or an email address either.
+    </p>
+
+    <h2 class="section">Contact</h2>
+    <p>
+      One adult-monitored mailbox, linked in the footer of every page. There is no contact
+      form anywhere on this site, and there will not be one — a form would be a way for a
+      13-year-old to send us personal data, which is the thing this site exists not to do.
+      Nobody reads that mailbox urgently, and it is not a crisis service.
+    </p>
+  </div>
+
+  <section class="classroom" aria-labelledby="classroom-h">
+    <div class="classroom__inner">
+      <p class="classroom__eyebrow">For the teacher rather than the reviewer</p>
+      <h2 id="classroom-h" class="section">Printing and photocopying</h2>
+
+      <p class="classroom__rule">
+        Yes — print or photocopy these worksheets for your class, free, no permission
+        needed.
+      </p>
+
+      <p>
+        That covers the worksheets, the 19 builds and the tools. It also covers running
+        them in a lesson, a club, a library session or at home. You do not need to ask, you
+        do not need to tell us, and there is nothing to buy first.
+      </p>
+      <p>
+        Two limits, and they are the only two. The material may not be sold or included in
+        any paid program. And the 19 Reality Checks — the safety paragraphs — may be
+        copied but not altered, because an edited safety warning that still carries the
+        book's name is the one thing here that could do real harm. The full wording is on
+        <a href="/terms">the terms page</a>.
+      </p>
+      <p class="classroom__note">
+        The print stylesheets are built for this. Every printable page reverts to the
+        book's own layout in black on white, and the three colored boxes stay
+        distinguishable on a monochrome photocopier by border weight and style as well as
+        by tint.
+      </p>
+    </div>
+  </section>
+</Page>
+
+<style>
+  .prose {
+    max-inline-size: var(--container-measure);
+    margin-inline: auto;
+    padding: 1.75rem clamp(1.25rem, 5vw, 3rem) 0;
+  }
+
+  .prose p + p,
+  .prose ul + p {
+    margin-block-start: 0.9em;
+  }
+
+  .section {
+    margin-block-start: 2.25rem;
+    margin-block-end: 0.75rem;
+    font-size: var(--text-h2);
+    line-height: var(--text-h2--line-height);
+    color: var(--text-section);
+  }
+
+  .visually-hidden {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .plain {
+    margin-block-start: 0.5rem;
+    padding-inline-start: 1.1rem;
+    list-style: none;
+  }
+
+  .plain li {
+    position: relative;
+    margin-block-start: 0.35rem;
+  }
+
+  .plain li::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: -1.1rem;
+    inset-block-start: 0.62em;
+    inline-size: 0.5rem;
+    block-size: 2px;
+    background: var(--accent-spine);
+  }
+
+  /* --- The verification rows -----------------------------------------------
+     Full-width hairline data rows against the 65ch prose column, which is the page
+     rhythm this site uses. Two columns only where there is room; stacked below that,
+     so nothing scrolls sideways at 320px. */
+
+  .claims {
+    margin-block-start: 1.5rem;
+  }
+
+  .claims__inner {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .rows {
+    margin: 0;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .row {
+    padding-block: 0.9rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  @media (min-width: 48rem) {
+    .row {
+      display: grid;
+      grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+      gap: 1.5rem;
+    }
+  }
+
+  .row__claim {
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  .row__check {
+    margin: 0.35rem 0 0;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  @media (min-width: 48rem) {
+    .row__check {
+      margin-block-start: 0;
+    }
+  }
+
+  .row__claim code {
+    /* No second typeface on this site, so a key name is marked by weight and tracking
+       rather than by a monospace font. */
+    font-family: inherit;
+    letter-spacing: 0.02em;
+  }
+
+  .pending {
+    margin-block-start: 1.5rem;
+  }
+
+  .pending__label {
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  .pending__list {
+    margin-block-start: 0.9em;
+    padding-inline-start: 1.1rem;
+    list-style: none;
+  }
+
+  .pending__list li {
+    position: relative;
+    margin-block-start: 0.45rem;
+  }
+
+  .pending__list li::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: -1.1rem;
+    inset-block-start: 0.62em;
+    inline-size: 0.5rem;
+    block-size: 2px;
+    background: var(--accent-spine);
+  }
+
+  .pending__note {
+    margin-block-start: 0.9em;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  /* --- Classroom permission ------------------------------------------------ */
+
+  .classroom {
+    margin-block-start: 3rem;
+    padding-block: 0.5rem 2rem;
+    background: var(--surface-card);
+    border-block: 1px solid var(--rule-hairline);
+  }
+
+  .classroom__inner {
+    max-inline-size: var(--container-measure);
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .classroom__inner p + p {
+    margin-block-start: 0.9em;
+  }
+
+  .classroom__eyebrow {
+    margin-block-start: 1.5rem;
+    font-size: var(--text-eyebrow);
+    font-weight: 700;
+    letter-spacing: var(--text-eyebrow--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-eyebrow-colour);
+  }
+
+  .classroom__rule {
+    font-size: var(--text-subtitle);
+    line-height: var(--text-subtitle--line-height);
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  .classroom__note {
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  @media print {
+    .prose,
+    .claims__inner,
+    .classroom__inner {
+      max-inline-size: none;
+      padding-inline: 0;
+    }
+
+    .classroom {
+      background: none;
+      border: 0;
+    }
+
+    .row {
+      break-inside: avoid;
+    }
+  }
+</style>

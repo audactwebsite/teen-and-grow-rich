@@ -1,0 +1,364 @@
+---
+/**
+ * Privacy (docs/decisions.md D1, D23, D33).
+ *
+ * Written to be checked, not believed. D33 is the constraint that shapes the wording: any
+ * hosted static site receives IP and User-Agent in access logs and an IP is personal data,
+ * so the claim is "we collect nothing, and our hosting provider processes connection
+ * metadata as our processor" — never "nothing is processed".
+ *
+ * The storage keys are listed exactly as src/lib/storage.ts writes them. If that file
+ * gains a key, this page is wrong, which is the intended pressure.
+ */
+import Page from "../layouts/Page.astro";
+import ChapterFurniture from "../components/ChapterFurniture.astro";
+
+/** Every key this site can write, and the only module allowed to write them. */
+const KEYS = [
+  {
+    key: "tgr.theme.v1",
+    holds: "The word “dark” or the word “light”.",
+    when: "Only when you press the theme button in the header. Never on page load.",
+  },
+  {
+    key: "tgr.log.v1",
+    holds:
+      "A list of the things you have ticked or typed on this site. Each entry is four fields: t, a timestamp in seconds; k, a kind (build, play, day, field or score); id, which thing it was; and v, the value — 0 or 1 for a tick, the text you typed for a worksheet field, a number for a score.",
+    when:
+      "Only when you tick something or type something. Every write comes from a tap or a keypress you made.",
+  },
+  /* There is no third key. A `tgr.probe` write used to exist, to test whether this
+     browser keeps anything; it was removed because it ran on page load with no gesture
+     behind it — see the note in src/lib/storage.ts. Listing a key the site never writes
+     is the same defect as failing to list one it does, and /schools/privacy states the
+     count, so the two pages have to enumerate the identical set. */
+];
+---
+
+<Page
+  title="Privacy"
+  description="No accounts, no login, no email capture, no analytics. What this site keeps in your browser, key by key, and what our host sees."
+>
+  <ChapterFurniture
+    eyebrow="Privacy"
+    title="Privacy"
+    subtitle="Written so you can check it from the page source, rather than take our word for it."
+  />
+
+  <div class="wrap">
+    <div class="prose">
+      <p class="lede">
+        There is no account here, no login, no newsletter, no email box, no comment field
+        and no analytics script. Nothing you type on this site is sent anywhere — with one
+        exception, the two AI tools, which have to send what you paste in order to answer
+        it, and which keep none of it.
+      </p>
+    </div>
+  </div>
+
+  <section class="wrap section" aria-labelledby="keys">
+    <h2 id="keys">What is kept in this browser, key by key</h2>
+    <div class="prose">
+      <p>
+        Your work is <b>kept in this browser</b>. That phrasing is deliberate, and it is
+        not a synonym for permanent — see the next section. This is the complete list of
+        what can be written, and one file,
+        <code>src/lib/storage.ts</code>, is the only place in the codebase allowed to write
+        any of it.
+      </p>
+    </div>
+
+    <div class="rows">
+      {
+        KEYS.map((k) => (
+          <div class="row">
+            <p class="row__key"><code>{k.key}</code></p>
+            <div class="row__value">
+              <p>{k.holds}</p>
+              <p class="row__when">{k.when}</p>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+
+    <div class="prose">
+      <p class="note">
+        That is the whole list. There is no device id, no visitor id, no session id, no
+        "last page you were on", and no A/B bucket. If there were, this site would owe you
+        a consent banner, and it does not have one.
+      </p>
+      <p>
+        You can read all of it and delete all of it from
+        <a href="/receipts">your receipts page</a>, or by clearing site data in your
+        browser. There is nothing held anywhere else to delete, because there is nowhere
+        else.
+      </p>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="kept">
+    <h2 id="kept">“Kept in this browser” does not mean permanent</h2>
+    <div class="prose">
+      <p>
+        Browser storage is a cache, and we treat it as one. Safari deletes everything a
+        site has written after seven days of Safari use in which you do not come back.
+        School Chromebooks wipe local data when you sign out. Private browsing keeps
+        nothing at all. A new phone starts empty.
+      </p>
+      <p>
+        So the durable record is the one you take with you: the printable receipt, and the
+        copy-as-text button on every worksheet, which puts your answers in your own notes
+        app in one tap. Use them. Losing what is in this browser should be annoying, never
+        expensive.
+      </p>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="banner">
+    <h2 id="banner">Why there is no cookie banner</h2>
+    <div class="prose">
+      <p>
+        Not because we found a loophole. The ePrivacy rules are about storing things on
+        your device, whatever the technology is called — swapping cookies for localStorage
+        does not escape them. The only exemption that applies is for storage that is
+        strictly necessary for something you explicitly asked for.
+      </p>
+      <p>
+        Choosing a theme and ticking a build you have done are both things you explicitly
+        asked for. So the rule the code enforces is: every write must originate in a
+        gesture you made, and in development a write without one throws an error rather
+        than shipping quietly.
+      </p>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="host">
+    <h2 id="host">What our host sees</h2>
+    <div class="prose">
+      <p>
+        We collect nothing. Our hosting provider processes connection metadata on our
+        behalf, as our processor — that is what serving a web page means. When your browser
+        asks for a page, the server sees your IP address and your browser's user-agent
+        string. An IP address is personal data under the GDPR, so we are not going to
+        pretend otherwise.
+      </p>
+      <div data-placeholder class="placeholder">
+        <p class="placeholder__label">Host details pending</p>
+        <p class="placeholder__note">
+          This section must name the hosting provider, say exactly what its access logs
+          contain, state the retention period, and say whether logging is disabled or IP
+          addresses are truncated. The host is not chosen yet. Publishing this page without
+          those specifics would be the vague version of privacy this site exists to avoid.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="ai">
+    <h2 id="ai">The two AI tools</h2>
+    <div class="prose">
+      <p>
+        <a href="/tools/scam-check">Scam Check</a> and
+        <a href="/tools/shrink">Shrink My First Step</a> are the only parts of this site
+        that send anything off your device, and neither is live yet. When they are:
+      </p>
+      <ul class="plain">
+        <li>What you paste goes to an AI model, is answered, and is dropped.</li>
+        <li>Nothing is stored — not the input, not the output, not a log of either.</li>
+        <li>There is no account, so nothing can be attached to you in the first place.</li>
+        <li>
+          Both tools tell you on the page that they are AI, and both say the same thing
+          about storage that this page does.
+        </li>
+        <li>
+          Take names, addresses, phone numbers and links out before you paste. The tools do
+          not need them and the answer is no better with them in.
+        </li>
+      </ul>
+      <p class="note">
+        The trade-off is stated openly in our decisions log: storing nothing also means we
+        have no record if the tools are misused. We chose that deliberately.
+      </p>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="third-party">
+    <h2 id="third-party">Third parties, and why the page source proves it</h2>
+    <div class="prose">
+      <p>
+        There are no third-party requests on this site. The fonts are self-hosted files
+        served from this domain, there is no CDN, no tag manager, no embedded video, no
+        social widget and no tracking pixel. A step in our build reads every file that gets
+        published and fails the release if any external host appears in it.
+      </p>
+      <p>
+        That is the part worth checking rather than trusting: open the network tab, load
+        any page, and count the domains. There is one.
+      </p>
+      <p>
+        There is no analytics on this site today. If that ever changes it will be
+        cookieless and aggregate — never anything that identifies a person — and it will be
+        listed on this page and in <a href="/updates">the changelog</a> before it ships.
+      </p>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="crawlers">
+    <h2 id="crawlers">AI crawlers are allowed in, on purpose</h2>
+    <div class="prose">
+      <p>
+        <a href="/robots.txt">The robots file</a> disallows nothing and blocks no crawler.
+        It names OAI-SearchBot, GPTBot, ChatGPT-User, PerplexityBot, ClaudeBot, Claude-Web,
+        Google-Extended, Applebot-Extended and CCBot as allowed, rather than leaving it
+        implied. Teachers, parents and librarians increasingly find material by asking an
+        assistant, and this site has nothing to protect from being read: it is a book's
+        worth of free tools and safety text with no user data behind it.
+      </p>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="contact">
+    <h2 id="contact">Questions, corrections, and schools</h2>
+    <div class="prose">
+      <p>
+        If you are reviewing this site for a school, there is a version written for you at
+        <a href="/schools/privacy">schools: privacy</a>, where every claim can be verified
+        from the page source in a couple of minutes.
+      </p>
+      <p>
+        Otherwise the mailbox at the bottom of this page is the route. It is read by an
+        adult, it is the only inbound channel on the whole domain, and there is no form
+        anywhere on this site that collects anything from a child.
+      </p>
+    </div>
+  </section>
+</Page>
+
+<style>
+  .wrap {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .prose {
+    max-inline-size: var(--container-measure);
+  }
+
+  .prose p + p,
+  .prose ul {
+    margin-block-start: 0.9em;
+  }
+
+  .lede {
+    margin-block-start: 1.75rem;
+    font-size: var(--text-subtitle);
+    line-height: var(--text-subtitle--line-height);
+    color: var(--text-strong);
+  }
+
+  .section {
+    margin-block-start: 3rem;
+  }
+
+  .section > h2 {
+    font-size: var(--text-h2);
+    line-height: var(--text-h2--line-height);
+    color: var(--text-section);
+    max-inline-size: var(--container-measure);
+  }
+
+  .section > .prose {
+    margin-block-start: 0.75rem;
+  }
+
+  .rows {
+    margin-block: 1.5rem;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .row {
+    display: grid;
+    gap: 0.35rem 2rem;
+    padding-block: 0.9rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .row__key {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+
+  .row__value {
+    max-inline-size: var(--container-measure);
+  }
+
+  .row__when {
+    margin-block-start: 0.4em;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  @media (min-width: 40rem) {
+    .row {
+      grid-template-columns: 11rem minmax(0, 1fr);
+      align-items: baseline;
+    }
+  }
+
+  code {
+    /* No second typeface on this site, so a key name is marked by weight and figures,
+       not by a monospace face. */
+    font-family: inherit;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums slashed-zero;
+    color: var(--text-strong);
+  }
+
+  .plain {
+    list-style: none;
+    padding: 0;
+  }
+
+  .plain li {
+    padding-block: 0.5rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .note {
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  [data-placeholder] {
+    margin-block-start: 1rem;
+    padding: 1rem;
+    background: var(--surface-card);
+    border: 1px dashed var(--rule-hairline);
+  }
+
+  .placeholder__label {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-strong);
+  }
+
+  .placeholder__note {
+    margin-block-start: 0.35rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  a {
+    text-decoration-color: currentColor;
+    text-underline-offset: 3px;
+  }
+
+  a:hover {
+    text-decoration-color: var(--accent-spine);
+  }
+</style>

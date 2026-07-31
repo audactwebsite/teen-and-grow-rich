@@ -1,0 +1,874 @@
+---
+/**
+ * The receipts dashboard. Everything on it is read out of this browser; nothing on it has
+ * ever left the device, and there is no copy of it anywhere else.
+ *
+ * Build 01 asks the reader to start a physical folder called REAL RICH RECEIPTS. This
+ * page feeds that folder — its job is not to look like progress, it is to get the work
+ * OFF this device, because the device is the least reliable place it could be (D17, D24).
+ * Copy-as-text is therefore the primary action: one tap, lands in Notes or WhatsApp, and
+ * costs a 13-year-old on an iPhone nothing. A JSON download and a file-input round trip is
+ * a hostile flow on that phone, so export and import exist but come second.
+ *
+ * Real counts only, and no comparison of any kind: "4 of 19 builds" is a fact, a badge is
+ * a claim about the reader. The book argues against the second one.
+ *
+ * The label index below is rendered into two inert <template> elements rather than
+ * inlined as JSON, so the client can turn a stored id back into "Chapter 4 · Find the
+ * pull" without another network request and without an inline script that CSP would have
+ * to allow. Anything the index does not know still appears, under its raw id — a receipt
+ * this page cannot name is still the reader's, and dropping it silently would be the
+ * worst failure this page has.
+ */
+import Page from "../layouts/Page.astro";
+import ChapterFurniture from "../components/ChapterFurniture.astro";
+import { allBuilds, allChapters, allWorksheets, allSequences, totals } from "../lib/content";
+
+const builds = await allBuilds();
+const chapters = await allChapters();
+const worksheets = await allWorksheets();
+const sequences = await allSequences();
+const t = await totals();
+
+const pad = (n: number) => String(n).padStart(2, "0");
+
+interface Row {
+  /** "<kind>:<id>", exactly as storage.ts folds it. */
+  key: string;
+  label: string;
+  note: string;
+  href: string;
+}
+
+const index: Row[] = [];
+
+for (const b of builds) {
+  const nn = pad(b.data.n);
+  const chapter = chapters.find((c) => c.data.n === b.data.chapter);
+  const name = chapter ? chapter.data.title : b.data.source;
+  const href = `/build/${nn}`;
+  const note = `Build ${nn} · book page ${b.data.printedPage}`;
+
+  index.push({ key: `build:${b.id}`, label: name, note, href });
+  /* The proof field on each build page. Its id scheme is set by src/pages/build/[n].astro
+     and must stay in step with it. */
+  index.push({ key: `field:proof:${b.id}`, label: `Proof · ${name}`, note, href });
+}
+
+for (const c of chapters) {
+  for (const step of c.data.play) {
+    index.push({
+      key: `play:${c.data.slug}:${step.n}`,
+      label: `${c.data.title} · ${step.title}`,
+      note: `Chapter ${c.data.n} · book page ${c.data.printedPage}`,
+      href: `/c/${pad(c.data.n)}`,
+    });
+  }
+}
+
+for (const w of worksheets) {
+  for (const f of w.data.fields) {
+    /* Both kinds: the Real Rich Scoreboard's six fields are 1-10 scores and will be
+       stored as `score`, the rest as `field`, and this page should not care which. */
+    for (const kind of ["field", "score"]) {
+      index.push({
+        key: `${kind}:${w.id}:${f.id}`,
+        label: `${w.data.title} · ${f.label}`,
+        note: `Book page ${w.data.printedPage}`,
+        href: `/worksheet/${w.id}`,
+      });
+    }
+  }
+}
+
+/* Fallback lookup. The sequences store one event per dated day and the chapter pages may
+   store debrief answers, and neither id is derivable from the YAML here — so a namespace
+   table turns "day:tiny-launch:w1d2" into "The 30-Day Tiny Launch · w1d2" rather than
+   nothing. Better a slightly technical row than a disappeared one. */
+const spaces: { prefix: string; label: string; href: string }[] = [
+  ...sequences.map((s) => ({ prefix: s.id, label: s.data.title, href: `/path/${s.id}` })),
+  ...worksheets.map((w) => ({ prefix: w.id, label: w.data.title, href: `/worksheet/${w.id}` })),
+  ...chapters.map((c) => ({
+    prefix: c.data.slug,
+    label: `Chapter ${c.data.n} · ${c.data.title}`,
+    href: `/c/${pad(c.data.n)}`,
+  })),
+];
+
+const GROUPS = [
+  { kind: "build", heading: "Builds you marked done" },
+  { kind: "play", heading: "Play steps you ticked" },
+  { kind: "field", heading: "Answers you wrote" },
+  { kind: "day", heading: "Days you marked done" },
+  { kind: "score", heading: "Scores" },
+];
+---
+
+<Page
+  title="Your receipts"
+  description="Everything you have ticked, timed and written, kept in this browser only. Copy it as text, export it, import it, or print the whole folder."
+>
+  <ChapterFurniture
+    eyebrow="Kept in this browser"
+    title="Your receipts"
+    subtitle="Proof beats promises — but only if it still exists tomorrow. Get it off this device."
+  />
+
+  <div class="wrap print-sheet">
+    {/* Without scripting there is nothing to read: this page has no server to ask. */}
+    <section class="nojs prose">
+      <h2>This page needs JavaScript</h2>
+      <p>
+        Your receipts are kept in this browser, and reading them takes a few lines of
+        script. There is no server holding a copy, which is the point — but it does mean
+        this page has nothing to show you with scripting turned off.
+      </p>
+      <p>
+        Everything you ticked is still on the pages you ticked it on.
+        <a href="/builds">The nineteen builds are here.</a>
+      </p>
+    </section>
+
+    <div class="js">
+      <section
+        class="summary"
+        data-full
+        hidden
+        aria-labelledby="count-h"
+        data-total-builds={t.builds}
+        data-total-play={t.playSteps}
+      >
+        <h2 id="count-h" class="visually-hidden">What is kept</h2>
+        <p class="summary__counts" data-counts></p>
+        <p class="summary__totals">
+          out of <span class="num">{t.builds}</span> builds and{" "}
+          <span class="num">{t.playSteps}</span> Play steps in the book
+        </p>
+      </section>
+
+      <section class="empty prose" data-empty hidden aria-labelledby="empty-h">
+        <h2 id="empty-h">Nothing here yet</h2>
+        <p>
+          This browser is not holding any receipts. That is the normal state on a first
+          visit, and it is also what you will see on a school laptop that has signed you
+          out since.
+        </p>
+        <p>
+          A receipt is small on purpose: one build done, one line about what now exists.{" "}
+          <a href="/build/01">Build 01 is starting the folder</a> — it takes about ten
+          minutes and needs nobody's permission.
+        </p>
+        <p><a href="/builds">See all nineteen builds</a></p>
+      </section>
+
+      <section class="actions" data-full hidden aria-labelledby="actions-h" data-print="hide">
+        <h2 id="actions-h">Get it off this device</h2>
+
+        <button type="button" class="btn btn--primary" data-copy>
+          Copy everything as text
+        </button>
+        <p class="actions__hint">
+          One tap, then paste it into your own notes or send it to yourself. This is the
+          copy that lasts.
+        </p>
+
+        <div class="actions__row">
+          <button type="button" class="btn" data-export>Export a file</button>
+          <button type="button" class="btn" data-print-btn>Print the whole folder</button>
+        </div>
+
+        <p class="actions__status" role="status" data-status></p>
+
+        {/* A textarea is the fallback for browsers with no clipboard permission — select
+            all, copy, done. Hidden until it is needed. */}
+        <div class="fallback" data-fallback hidden>
+          <label class="fallback__label" for="fallback-text">
+            Copying automatically did not work here. Select this and copy it yourself.
+          </label>
+          <textarea id="fallback-text" class="fallback__field" rows="10" readonly data-fallback-field
+          ></textarea>
+        </div>
+      </section>
+
+      <section class="import prose" aria-labelledby="import-h" data-print="hide">
+        <h2 id="import-h">Bring receipts in from another device</h2>
+        <p>
+          If you exported a file on a phone, open it here on a laptop and the two sets
+          join up. Nothing is uploaded — the file is read in this browser.
+        </p>
+        <label class="btn btn--file">
+          <span>Import a file</span>
+          <input type="file" accept="application/json,.json" data-import />
+        </label>
+        <p class="import__status" role="status" data-import-status></p>
+      </section>
+
+      <div class="list" data-full hidden>
+        {
+          GROUPS.map((g) => (
+            <section class="group" data-group={g.kind} hidden>
+              <h2>{g.heading}</h2>
+              <ol class="rows" data-rows={g.kind} />
+            </section>
+          ))
+        }
+      </div>
+    </div>
+
+    <section class="truth prose" aria-labelledby="truth-h">
+      <h2 id="truth-h">What “kept in this browser” actually means</h2>
+      <p>
+        This page reads one thing: a list of ticks and answers stored by this browser, on
+        this device. It has never been sent anywhere. There is no account, no server copy
+        and no way for anyone — including us — to look at it.
+      </p>
+      <p>
+        That also means nobody is looking after it. Browsers clear storage like this on
+        their own when you stop visiting a site for a while. A shared school laptop usually
+        clears it the moment you sign out. Private browsing keeps nothing at all. A new
+        phone starts empty.
+      </p>
+      <p>
+        So treat this page as a working copy, never the record. The record is the version
+        you copied into your own notes, or the one you printed and put in the folder.
+        <a href="/privacy">How this works, in detail.</a>
+      </p>
+    </section>
+
+    <section class="danger js" data-full hidden aria-labelledby="danger-h" data-print="hide">
+      <h2 id="danger-h">Delete everything kept here</h2>
+      <p class="danger__note">
+        Clears this browser's copy, immediately and for good. Anything you copied or
+        printed is unaffected.
+      </p>
+      <button type="button" class="btn btn--danger" data-clear>Delete everything</button>
+      <p class="danger__status" role="status" data-clear-status></p>
+    </section>
+
+    {/* One receipt row, rendered by Astro so it carries this component's scoped-style
+        attribute. Building the rows with document.createElement instead would produce
+        elements the scoped CSS cannot reach, and they would come out unstyled. */}
+    <template data-row>
+      <li class="row">
+        <p class="row__label"><a data-row-link></a></p>
+        <p class="row__note"></p>
+        <p class="row__value"></p>
+      </li>
+    </template>
+
+    {/* Inert data. <template> content is not rendered, not read by assistive technology
+        and not printed; it is only here so the script can name what it finds. */}
+    <template data-index>
+      {
+        index.map((r) => (
+          <span data-key={r.key} data-label={r.label} data-note={r.note} data-href={r.href} />
+        ))
+      }
+    </template>
+    <template data-spaces>
+      {spaces.map((s) => <span data-prefix={s.prefix} data-label={s.label} data-href={s.href} />)}
+    </template>
+  </div>
+</Page>
+
+<script>
+  import { state, exportJson, importJson, clearAll, canKeep } from "../lib/storage";
+
+  const root = document.querySelector<HTMLElement>(".js");
+  if (root) {
+    /* --- The label index ---------------------------------------------------- */
+
+    type Label = { label: string; note: string; href: string };
+
+    const index = new Map<string, Label>();
+    /* Insertion order is the book's order — build 01 first, chapter 1 before chapter 2 —
+       so it doubles as the sort key for the lists below. */
+    const order = new Map<string, number>();
+    for (const el of document
+      .querySelector<HTMLTemplateElement>("[data-index]")!
+      .content.querySelectorAll<HTMLElement>("span")) {
+      index.set(el.dataset.key!, {
+        label: el.dataset.label!,
+        note: el.dataset.note!,
+        href: el.dataset.href!,
+      });
+      order.set(el.dataset.key!, order.size);
+    }
+
+    const spaces = new Map<string, { label: string; href: string }>();
+    for (const el of document
+      .querySelector<HTMLTemplateElement>("[data-spaces]")!
+      .content.querySelectorAll<HTMLElement>("span")) {
+      spaces.set(el.dataset.prefix!, { label: el.dataset.label!, href: el.dataset.href! });
+    }
+
+    /** Never returns nothing. An unnamed receipt still belongs to the reader. */
+    const describe = (kind: string, id: string): Label => {
+      const exact = index.get(`${kind}:${id}`);
+      if (exact) return exact;
+
+      const [prefix, ...rest] = id.split(":");
+      const space = prefix ? spaces.get(prefix) : undefined;
+      if (space && rest.length) {
+        return { label: `${space.label} · ${rest.join(":")}`, note: "", href: space.href };
+      }
+      return { label: id, note: "", href: "" };
+    };
+
+    /* --- Reading what is kept ------------------------------------------------ */
+
+    type Entry = { kind: string; id: string; value: string | number; when?: number } & Label;
+
+    const DATE = new Intl.DateTimeFormat(undefined, {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
+
+    const read = (): Entry[] => {
+      // exportJson() is the only public route to the raw log, and the log is the only
+      // place the timestamps are. state() is still the source of truth for values,
+      // because it also folds in writes that have not flushed yet.
+      let times = new Map<string, number>();
+      try {
+        const log = (JSON.parse(exportJson()) as { log?: { t: number; k: string; id: string }[] }).log;
+        for (const e of log ?? []) times.set(`${e.k}:${e.id}`, e.t);
+      } catch {
+        times = new Map();
+      }
+
+      const out: Entry[] = [];
+      for (const [key, value] of state()) {
+        const cut = key.indexOf(":");
+        if (cut < 0) continue;
+        const kind = key.slice(0, cut);
+        const id = key.slice(cut + 1);
+
+        const kept =
+          typeof value === "string" ? value.trim().length > 0 : typeof value === "number" ? value !== 0 : false;
+        if (!kept) continue;
+
+        out.push({ kind, id, value: value as string | number, when: times.get(key), ...describe(kind, id) });
+      }
+      // Book order where we know it; anything unrecognised falls to the end of its group
+      // rather than being lost among the named rows.
+      return out.sort(
+        (a, b) =>
+          (order.get(`${a.kind}:${a.id}`) ?? Number.MAX_SAFE_INTEGER) -
+            (order.get(`${b.kind}:${b.id}`) ?? Number.MAX_SAFE_INTEGER) ||
+          a.label.localeCompare(b.label),
+      );
+    };
+
+    /* --- Painting ------------------------------------------------------------ */
+
+    const rowTemplate = document.querySelector<HTMLTemplateElement>("[data-row]")!;
+    const summary = root.querySelector<HTMLElement>(".summary")!;
+    const counts = root.querySelector<HTMLElement>("[data-counts]")!;
+    const status = root.querySelector<HTMLElement>("[data-status]")!;
+    const fulls = [...document.querySelectorAll<HTMLElement>("[data-full]")];
+    const empty = root.querySelector<HTMLElement>("[data-empty]")!;
+
+    // The denominators are counted from the YAML at build time, never typed in here.
+    const TOTAL_BUILDS = summary.dataset.totalBuilds;
+    const TOTAL_PLAY = summary.dataset.totalPlay;
+
+    let entries: Entry[] = [];
+
+    const summarise = (): string => {
+      const n = (kind: string) => entries.filter((e) => e.kind === kind).length;
+      const parts = [
+        `${n("build")} of ${TOTAL_BUILDS} builds`,
+        `${n("play")} of ${TOTAL_PLAY} Play steps`,
+        `${n("field")} written answers`,
+      ];
+      const days = n("day");
+      if (days) parts.push(`${days} ${days === 1 ? "day" : "days"}`);
+      return parts.join(" · ");
+    };
+
+    const paint = () => {
+      entries = read();
+
+      const has = entries.length > 0;
+      for (const el of fulls) el.hidden = !has;
+      empty.hidden = has;
+      counts.textContent = summarise();
+
+      for (const list of root.querySelectorAll<HTMLElement>("[data-rows]")) {
+        const kind = list.dataset.rows!;
+        const section = list.closest<HTMLElement>("[data-group]")!;
+        const rows = entries.filter((e) => e.kind === kind);
+        section.hidden = rows.length === 0;
+        list.replaceChildren();
+
+        for (const e of rows) {
+          const li = rowTemplate.content.firstElementChild!.cloneNode(true) as HTMLElement;
+          const label = li.querySelector<HTMLElement>(".row__label")!;
+          const link = li.querySelector<HTMLAnchorElement>("[data-row-link]")!;
+          const note = li.querySelector<HTMLElement>(".row__note")!;
+          const value = li.querySelector<HTMLElement>(".row__value")!;
+
+          // textContent throughout: book copy contains quotes and brackets, and an
+          // imported file is by definition text this page did not write.
+          if (e.href) {
+            link.href = e.href;
+            link.textContent = e.label;
+          } else {
+            link.remove();
+            label.textContent = e.label;
+          }
+
+          const meta = [e.note, e.when ? DATE.format(e.when * 1000) : ""].filter(Boolean).join(" · ");
+          if (meta) note.textContent = meta;
+          else note.remove();
+
+          if (typeof e.value === "string" || kind === "score") value.textContent = String(e.value);
+          else value.remove();
+
+          list.append(li);
+        }
+      }
+    };
+
+    /* --- Copy as text: the primary action ------------------------------------ */
+
+    const HEADINGS: Record<string, string> = {
+      build: "BUILDS DONE",
+      play: "PLAY STEPS TICKED",
+      field: "ANSWERS I WROTE",
+      day: "DAYS DONE",
+      score: "SCORES",
+    };
+
+    const asText = (): string => {
+      const lines = [
+        "TEEN & GROW RICH — MY RECEIPTS",
+        `Copied ${DATE.format(new Date())}`,
+        "",
+        summarise(),
+      ];
+
+      for (const kind of ["build", "play", "field", "day", "score"]) {
+        const rows = entries.filter((e) => e.kind === kind);
+        if (!rows.length) continue;
+        lines.push("", HEADINGS[kind]!);
+        for (const e of rows) {
+          lines.push(`- ${e.label}${e.note ? ` (${e.note})` : ""}`);
+          if (typeof e.value === "string") lines.push(`  ${e.value}`);
+          else if (kind === "score") lines.push(`  ${e.value}`);
+        }
+      }
+
+      lines.push(
+        "",
+        "Kept in one browser only, which will eventually clear it.",
+        "This copy is the one that lasts. teenandgrowrich.com/receipts",
+      );
+      return lines.join("\n");
+    };
+
+    const fallback = root.querySelector<HTMLElement>("[data-fallback]")!;
+    const fallbackField = root.querySelector<HTMLTextAreaElement>("[data-fallback-field]")!;
+
+    root.querySelector<HTMLButtonElement>("[data-copy]")!.addEventListener("click", async () => {
+      const text = asText();
+      try {
+        await navigator.clipboard.writeText(text);
+        status.textContent = "Copied. Paste it somewhere of your own.";
+        fallback.hidden = true;
+      } catch {
+        // Older browsers, and any browser that refuses the permission. Show the text.
+        fallbackField.value = text;
+        fallback.hidden = false;
+        fallbackField.focus();
+        fallbackField.select();
+        status.textContent = "";
+      }
+    });
+
+    /* --- Export, print, import ----------------------------------------------- */
+
+    root.querySelector<HTMLButtonElement>("[data-export]")!.addEventListener("click", () => {
+      const blob = new Blob([exportJson()], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `teen-and-grow-rich-receipts-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      status.textContent = "File made. Keep it somewhere you will find it again.";
+    });
+
+    root.querySelector<HTMLButtonElement>("[data-print-btn]")!.addEventListener("click", () => {
+      window.print();
+    });
+
+    const importStatus = root.querySelector<HTMLElement>("[data-import-status]")!;
+    root.querySelector<HTMLInputElement>("[data-import]")!.addEventListener("change", async (event) => {
+      const input = event.currentTarget as HTMLInputElement;
+      const file = input.files?.[0];
+      if (!file) return;
+
+      const result = importJson(await file.text());
+      if (result.ok) {
+        importStatus.textContent = `${result.added} entries brought in. Anything you already had is still here.`;
+        paint();
+      } else {
+        importStatus.textContent = result.error;
+      }
+      // So the same file can be chosen twice if the first attempt failed.
+      input.value = "";
+    });
+
+    /* --- Delete -------------------------------------------------------------- */
+
+    // Queried from the document, not from root: the delete block sits outside the main
+    // .js wrapper so that it reads last on the page and last in the tab order.
+    const clearBtn = document.querySelector<HTMLButtonElement>("[data-clear]")!;
+    const clearStatus = document.querySelector<HTMLElement>("[data-clear-status]")!;
+    let armed = false;
+
+    clearBtn.addEventListener("click", () => {
+      // Two presses rather than a dialog: a confirm() box is the one piece of UI on this
+      // site a reader cannot read at their own pace.
+      if (!armed) {
+        armed = true;
+        clearBtn.textContent = "Press again to delete everything";
+        clearStatus.textContent = "This cannot be undone. Press anything else to leave it alone.";
+        return;
+      }
+      clearAll();
+      armed = false;
+      clearBtn.textContent = "Delete everything";
+      clearStatus.textContent = "Deleted from this browser.";
+      paint();
+    });
+
+    document.addEventListener("click", (event) => {
+      if (armed && event.target !== clearBtn) {
+        armed = false;
+        clearBtn.textContent = "Delete everything";
+        clearStatus.textContent = "";
+      }
+    });
+
+    /* --- Keeping the page honest --------------------------------------------- */
+
+    paint();
+
+    if (!canKeep()) {
+      status.textContent =
+        "This browser is not keeping anything — private mode, or a policy on this device. Nothing you tick here will still be here later.";
+    }
+
+    // A second tab, and coming back via the back button, must not show a stale page.
+    window.addEventListener("storage", paint);
+    window.addEventListener("pageshow", (event) => {
+      if ((event as PageTransitionEvent).persisted) paint();
+    });
+  }
+</script>
+
+<style>
+  .wrap {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .prose {
+    max-inline-size: var(--container-measure);
+  }
+
+  /* The reset drops the underline from every <a>, so a link in running prose has to be
+     given one back. Weight plus a currentColor underline, never colour alone. */
+  .prose a {
+    font-weight: 700;
+    color: var(--text-strong);
+    text-decoration: underline;
+    text-decoration-color: currentColor;
+    text-underline-offset: 3px;
+  }
+
+  .num {
+    font-variant-numeric: tabular-nums slashed-zero;
+    font-weight: 700;
+  }
+
+  h2 {
+    font-size: var(--text-h2);
+    line-height: var(--text-h2--line-height);
+    color: var(--text-section);
+    margin-block-end: 0.9rem;
+  }
+
+  p + p {
+    margin-block-start: 0.8em;
+  }
+
+  a {
+    text-underline-offset: 3px;
+  }
+
+  .visually-hidden {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* Scripting is required to read local storage; say so instead of showing an empty page. */
+  .js {
+    display: none;
+  }
+
+  :global(:root[data-js]) .js {
+    display: block;
+  }
+
+  :global(:root[data-js]) .nojs {
+    display: none;
+  }
+
+  .nojs,
+  .summary,
+  .empty,
+  .actions,
+  .import,
+  .truth,
+  .danger,
+  .list {
+    margin-block-start: 2.5rem;
+  }
+
+  /* --- Counts -------------------------------------------------------------- */
+
+  .summary__counts {
+    font-size: clamp(1.5rem, 6vw, var(--text-h2));
+    line-height: 1.25;
+    font-weight: 700;
+    color: var(--text-strong);
+    font-variant-numeric: tabular-nums slashed-zero;
+    max-inline-size: var(--container-measure);
+  }
+
+  .summary__totals {
+    margin-block-start: 0.35rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  /* --- Buttons ------------------------------------------------------------- */
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-block-size: 44px;
+    padding: 0.6rem 1.1rem;
+    font: inherit;
+    font-size: var(--text-label);
+    font-weight: 700;
+    text-align: center;
+    color: var(--text-default);
+    background: transparent;
+    /* --control-edge, not --rule-hairline: the hairline token is for rules between
+       blocks and lands near 1.3:1 on a control, failing WCAG 2.2 1.4.11. Matches the
+       shared .btn in global.css. */
+    border: 2px solid var(--control-edge);
+    cursor: pointer;
+  }
+
+  .btn:hover {
+    border-color: var(--accent-spine);
+  }
+
+  /* Orange fill takes navy text. White on orange is 2.05:1 and is forbidden. */
+  .btn--primary {
+    inline-size: 100%;
+    color: var(--cta-text);
+    background: var(--cta-fill);
+    border-color: var(--cta-fill);
+  }
+
+  .btn--primary:hover {
+    border-color: var(--cta-text);
+  }
+
+  .btn--danger {
+    border-color: var(--flag-red);
+    color: var(--flag-red);
+  }
+
+  .btn--danger:hover {
+    border-color: var(--flag-red);
+  }
+
+  .btn--file input {
+    /* Not display:none — that removes it from the tab order in some browsers, and the
+       label is the visible control. */
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    opacity: 0;
+  }
+
+  .btn--file {
+    position: relative;
+  }
+
+  /* The file input inside the label is what actually takes focus. */
+  .btn--file:focus-within {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  .actions__hint,
+  .actions__status,
+  .import__status,
+  .danger__note,
+  .danger__status {
+    margin-block-start: 0.6rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+    max-inline-size: var(--container-measure);
+  }
+
+  .actions__status,
+  .import__status,
+  .danger__status {
+    min-block-size: 1.45em;
+  }
+
+  .actions__row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-block-start: 1rem;
+  }
+
+  .actions__row .btn {
+    flex: 1 1 12rem;
+  }
+
+  .fallback {
+    margin-block-start: 1rem;
+    max-inline-size: var(--container-measure);
+  }
+
+  .fallback__label {
+    display: block;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+    margin-block-end: 0.4rem;
+  }
+
+  .fallback__field {
+    inline-size: 100%;
+    padding: 0.7rem 0.8rem;
+    font: inherit;
+    font-size: var(--text-meta);
+    color: var(--text-default);
+    background: var(--surface-card);
+    border: 1px solid var(--control-edge);
+  }
+
+  /* --- The list ------------------------------------------------------------ */
+
+  .group {
+    margin-block-start: 2.5rem;
+  }
+
+  .rows {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .row {
+    padding-block: 0.85rem;
+    border-block-end: 1px solid var(--rule-hairline);
+    max-inline-size: var(--container-measure);
+    break-inside: avoid;
+  }
+
+  .row__label {
+    font-weight: 700;
+    color: var(--text-strong);
+    /* describe() can fall back to a raw imported id, so this takes arbitrary text too. */
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .row__label a {
+    color: inherit;
+    text-decoration-color: currentColor;
+  }
+
+  .row__label a:hover {
+    text-decoration-color: var(--accent-spine);
+  }
+
+  .row__note {
+    margin-block-start: 0.15rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+
+  .row__value {
+    margin-block-start: 0.45rem;
+    padding-inline-start: 0.8rem;
+    border-inline-start: 3px solid var(--accent-spine);
+    color: var(--text-default);
+    /* The reader's own free text. One pasted URL in a worksheet field used to widen the
+       initial containing block past the viewport — body { overflow-x: hidden } does not
+       stop that, and the fixed bottom nav grew with it and pushed Receipts off-screen. */
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  /* --- The honest bit ------------------------------------------------------ */
+
+  .truth {
+    padding-block-start: 2rem;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .danger {
+    padding-block-start: 2rem;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  @media (min-width: 48rem) {
+    .btn--primary {
+      inline-size: auto;
+      min-inline-size: 18rem;
+    }
+  }
+
+  /* --- Print: this is the folder ------------------------------------------- */
+
+  @media print {
+    .summary__totals {
+      display: none;
+    }
+
+    .group {
+      margin-block-start: 1.25rem;
+    }
+
+    .row__value {
+      border-inline-start: 3px solid var(--text-default);
+    }
+
+    .truth {
+      margin-block-start: 1.5rem;
+      padding-block-start: 1rem;
+    }
+  }
+</style>

@@ -1,0 +1,182 @@
+---
+/**
+ * Chapter 16 — the chapter that is not in the book, reachable at /c/16 and by typing 65.
+ *
+ * Ryan has not written it yet (docs/decisions.md, "Open, needs Ryan"). So this page ships
+ * the real furniture and a status that says exactly that. Nothing on it is written in his
+ * voice, and nothing here previews content that does not exist: the list below is the
+ * structure the other 15 chapters use, which is a fact about the book, not an invention.
+ *
+ * It is not gated and it is not hidden (D19). Typing 65 is the pleasant way to find it;
+ * the homepage chapter index links it plainly, because a secret that is the only route
+ * excludes every reader who uses a screen reader or simply never tries.
+ */
+import Page from "../../layouts/Page.astro";
+import ChapterFurniture from "../../components/ChapterFurniture.astro";
+import { allChapters, totals } from "../../lib/content";
+import { LAST_PRINTED_PAGE } from "../../lib/page-routing";
+
+const chapters = await allChapters();
+const last = chapters[chapters.length - 1]!;
+const t = await totals();
+
+/* The five things every chapter page carries. Stated from the schema, not imagined. */
+const STRUCTURE = [
+  ["Hill's Original Idea", "The principle this chapter remixes, in one paragraph."],
+  ["The Play", "Five numbered steps."],
+  ["Your 24-Hour Build", "One thing to make, with a timer and a place to log the proof."],
+  ["Reality Check", "The safety note, in full, always visible."],
+  ["Debrief", "Three questions to answer afterwards."],
+];
+---
+
+<Page
+  title="Chapter 16"
+  description="Chapter 16 of Teen & Grow Rich: what Ryan learned after the book went to print. He is writing it now."
+>
+  {/* No printedPage: this chapter is not in the printed book, and claiming a page number
+      for it would be the one kind of lie this project cannot afford. */}
+  <ChapterFurniture
+    eyebrow="Chapter 16 / one page past the end"
+    title="Chapter 16"
+    subtitle="What Ryan learned after the book went to print."
+  />
+
+  <div class="wrap">
+    <p class="status">
+      <span class="status__tag">Not written yet</span>
+      Ryan is writing this chapter. It is not finished, and this page will stay honest about
+      that until it is.
+    </p>
+
+    <div class="prose">
+      <p>
+        The printed book ends on page {LAST_PRINTED_PAGE}, on "End of the condensed
+        edition". Everything Ryan worked out after that point had nowhere to go — a printed
+        book cannot be added to. This page is where it goes instead.
+      </p>
+
+      <p>
+        It is free, like everything else here. There is nothing to buy, unlock or complete
+        first.
+      </p>
+
+      <h2 class="h2">What will be on this page</h2>
+      <p>
+        The same five parts every other chapter has, so it works the same way as the
+        fifteen you already know:
+      </p>
+
+      <dl class="structure">
+        {
+          STRUCTURE.map(([term, detail]) => (
+            <div class="structure__row">
+              <dt>{term}</dt>
+              <dd>{detail}</dd>
+            </div>
+          ))
+        }
+      </dl>
+
+      <h2 class="h2">While you wait</h2>
+      <p>
+        Chapter 15, <a class="link" href={`/c/${String(last.data.n).padStart(2, "0")}`}>{last.data.title}</a>,
+        is the one this chapter continues from — it is the full system, on book page {
+          last.data.printedPage
+        }. The <a class="link" href="/builds">{t.builds} builds</a> and
+        the <a class="link" href="/reality-check">{t.realityChecks} Reality Checks</a> are
+        all open.
+      </p>
+    </div>
+  </div>
+</Page>
+
+<style>
+  .wrap {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding: 1.75rem clamp(1.25rem, 5vw, 3rem) 0;
+  }
+
+  .prose {
+    max-inline-size: var(--container-measure);
+  }
+
+  .prose p + p,
+  .prose p + dl {
+    margin-block-start: 1rem;
+  }
+
+  /* Not one of the three semantic boxes — this is a status, and inventing a fourth box
+     variant for it would break the system that carries the book's meaning. A rule and a
+     tag are enough.
+     3px, not 6px: 6px solid orange is the printed 24-Hour Build's exact signature, and
+     border weight plus border style is the pair the three boxes rely on to stay apart in
+     greyscale (design-system §3). A status must not wear the build's edge. */
+  .status {
+    max-inline-size: var(--container-measure);
+    margin-block-end: 1.75rem;
+    padding-inline-start: 1rem;
+    border-inline-start: 3px solid var(--accent-dot);
+    color: var(--text-default);
+  }
+
+  .status__tag {
+    display: block;
+    font-size: var(--text-label);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-strong);
+  }
+
+  .h2 {
+    margin-block-start: 2rem;
+    font-size: var(--text-h2);
+    line-height: var(--text-h2--line-height);
+    color: var(--text-section);
+  }
+
+  .h2 + p {
+    margin-block-start: 0.7rem;
+  }
+
+  .structure {
+    margin: 1rem 0 0;
+    padding: 0;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .structure__row {
+    display: grid;
+    gap: 0.1rem;
+    padding-block: 0.7rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .structure dt {
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  .structure dd {
+    margin: 0;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  @media (min-width: 46rem) {
+    .structure__row {
+      grid-template-columns: minmax(0, 20ch) minmax(0, 1fr);
+      column-gap: 1.5rem;
+      align-items: baseline;
+    }
+  }
+
+  .link {
+    font-weight: 700;
+    color: var(--text-strong);
+    text-underline-offset: 4px;
+    text-decoration-color: var(--accent-spine);
+  }
+</style>

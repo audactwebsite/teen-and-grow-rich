@@ -1,0 +1,51 @@
+---
+/**
+ * "Book page 42". Every tool page states the printed page it came from — that is what
+ * makes the site usable by someone holding the open book, and it is the same fact the
+ * /p/[n] routing runs on.
+ *
+ * Deliberately not a link. On a tool page it would point back at the page you are
+ * already on, and printed page numbers are edition-specific in a way a link would hide.
+ */
+interface Props {
+  page: number;
+  /** What lives on that page, e.g. "Reality Check" or "Chapter 4". */
+  kind?: string;
+  class?: string;
+}
+
+const { page, kind, class: className } = Astro.props;
+---
+
+<span class:list={["page-ref", className]}>
+  {kind && <span class="page-ref__kind">{kind}</span>}
+  <span class="page-ref__page">Book page <span class="page-ref__n">{page}</span></span>
+</span>
+
+<style>
+  .page-ref {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 0.5em;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .page-ref__kind {
+    font-weight: 700;
+  }
+
+  .page-ref__kind::after {
+    /* No leading space: the flex `gap: 0 0.5em` above already sets both sides of the
+       middot, and the extra space made it read as "Reality Check ·  Book page 56". */
+    content: "·";
+  }
+
+  .page-ref__n {
+    /* Slashed zero and fixed-width digits: page numbers are data, not prose. */
+    font-variant-numeric: tabular-nums slashed-zero;
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+</style>

@@ -1,0 +1,440 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   Teen & Grow Rich — design tokens
+   Every value is measured from the printed book. See docs/design-system.md.
+   Do not add a colour or a typeface that is not in this file.
+   ========================================================================== */
+
+@theme {
+  /* --- Raw brand palette, from the print PDFs ------------------------------ */
+  --color-tgr-navy: #06264d;
+  --color-tgr-ink: #10233a;
+  --color-tgr-ink-strong: #031a35;
+  --color-tgr-teal: #087a69;
+  --color-tgr-teal-bright: #00ddb3;
+  --color-tgr-orange: #ff9f1c;
+  --color-tgr-muted: #637386;
+  --color-tgr-page: #ffffff;
+  --color-tgr-hairline: #d9e3ea;
+
+  --color-tgr-tint-mint: #edf6f4;
+  --color-tgr-tint-cream: #fff6e8;
+  --color-tgr-tint-blue: #edf2f9;
+
+  /* Dark base sampled from the book's own blue-hour artwork. */
+  --color-tgr-dark-base: #08131f;
+  --color-tgr-dark-surface: #0f233a;
+  --color-tgr-dark-surface-2: #163051;
+  --color-tgr-dark-text: #e8eef4;
+  --color-tgr-dark-muted: #9baabb;
+  --color-tgr-navy-lift: #8fb6e0;
+
+  /* Race red. Used ONLY for red-flag items — never as decoration. */
+  --color-tgr-red: #d1344b;
+  --color-tgr-red-lift: #ff8b9c;
+
+  /* --- Type --------------------------------------------------------------- */
+  --font-sans: var(--font-noto-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-noto-display), var(--font-noto-sans), ui-sans-serif, sans-serif;
+
+  /* Ratios measured from the print book at a 17px web body. */
+  --text-eyebrow: 0.8125rem;
+  --text-eyebrow--line-height: 1.2;
+  --text-eyebrow--letter-spacing: 0.08em;
+  --text-meta: 0.875rem;
+  --text-meta--line-height: 1.45;
+  --text-body: 1.0625rem;
+  --text-body--line-height: 1.65;
+  --text-label: 0.9375rem;
+  --text-label--letter-spacing: 0.04em;
+  --text-h2: 1.625rem;
+  --text-h2--line-height: 1.25;
+  --text-subtitle: 1.375rem;
+  --text-subtitle--line-height: 1.35;
+  --text-h1: 3.125rem;
+  --text-h1--line-height: 1.05;
+  --text-h1--letter-spacing: -0.015em;
+
+  /* The book's text column is ~68 characters. */
+  --container-measure: 65ch;
+}
+
+/* Dark is the default theme; light is the print / show-an-adult mode (D7).
+   The variant below lets utilities target the light theme explicitly. */
+@custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));
+
+/* ==========================================================================
+   Semantic layer. Components use ONLY these, never the raw palette, so that
+   one theme switch flips the whole site correctly.
+   ========================================================================== */
+
+:root {
+  color-scheme: dark;
+
+  --surface-page: var(--color-tgr-dark-base);
+  --surface-card: var(--color-tgr-dark-surface);
+  --surface-raised: var(--color-tgr-dark-surface-2);
+
+  --text-strong: var(--color-tgr-dark-text);
+  --text-default: var(--color-tgr-dark-text);
+  --text-muted: var(--color-tgr-dark-muted);
+  --text-heading: var(--color-tgr-dark-text);
+  --text-section: var(--color-tgr-teal-bright);
+  --text-eyebrow-colour: var(--color-tgr-teal-bright);
+
+  --rule-hairline: color-mix(in oklab, var(--color-tgr-dark-text) 14%, transparent);
+  /* Hairline is a decorative rule and is deliberately faint. A control edge has to say
+     "this is pressable", so it gets its own token at text contrast: 7.89:1 here, 4.85:1
+     in light. Never use --rule-hairline for a button or an input border. */
+  --control-edge: var(--color-tgr-dark-muted);
+  --focus-ring: var(--color-tgr-teal-bright);
+
+  /* The three semantic boxes. Fill, border colour, border width, border style —
+     four signals, because colour alone dies on a monochrome photocopier. */
+  /* design-system.md: in dark the tint washes are "translucent accent over SURFACE".
+     Mixed with transparent they composited over the page base instead, and 10% orange over
+     #08131F lands on a near-neutral #212320 — the build box, the one that carries the
+     instruction, ended up the flattest of the three against the page while the Reality
+     Check beside it read as a proper raised panel. Mixing into the surface colour is the
+     same wash the spec asks for, and it survives on any background. */
+  --box-hill-fill: color-mix(in oklab, var(--color-tgr-teal-bright) 8%, var(--color-tgr-dark-surface));
+  --box-hill-edge: var(--color-tgr-teal-bright);
+  --box-build-fill: color-mix(in oklab, var(--color-tgr-orange) 10%, var(--color-tgr-dark-surface));
+  --box-build-edge: var(--color-tgr-orange);
+  --box-check-fill: var(--color-tgr-dark-surface-2);
+  --box-check-edge: var(--color-tgr-navy-lift);
+
+  /* Flags */
+  --flag-green: var(--color-tgr-teal-bright);
+  --flag-yellow: var(--color-tgr-orange);
+  --flag-red: var(--color-tgr-red-lift);
+
+  /* Accents that may carry text in dark mode. */
+  --accent-spine: var(--color-tgr-teal-bright);
+  --accent-dot: var(--color-tgr-orange);
+  --cta-fill: var(--color-tgr-orange);
+  --cta-text: var(--color-tgr-navy);
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+
+  --surface-page: var(--color-tgr-page);
+  --surface-card: var(--color-tgr-page);
+  --surface-raised: var(--color-tgr-tint-mint);
+
+  --text-strong: var(--color-tgr-navy);
+  --text-default: var(--color-tgr-ink);
+  --text-muted: var(--color-tgr-muted);
+  --text-heading: var(--color-tgr-navy);
+  --text-section: var(--color-tgr-teal);
+  --text-eyebrow-colour: var(--color-tgr-teal);
+
+  --rule-hairline: var(--color-tgr-hairline);
+  --control-edge: var(--color-tgr-muted);
+  --focus-ring: var(--color-tgr-teal);
+
+  --box-hill-fill: var(--color-tgr-tint-mint);
+  --box-hill-edge: var(--color-tgr-teal);
+  --box-build-fill: var(--color-tgr-tint-cream);
+  --box-build-edge: var(--color-tgr-orange);
+  --box-check-fill: var(--color-tgr-tint-blue);
+  --box-check-edge: var(--color-tgr-navy);
+
+  --flag-green: var(--color-tgr-teal);
+  --flag-yellow: var(--color-tgr-orange);
+  --flag-red: var(--color-tgr-red);
+
+  --accent-spine: var(--color-tgr-teal-bright);
+  --accent-dot: var(--color-tgr-orange);
+  --cta-fill: var(--color-tgr-orange);
+  --cta-text: var(--color-tgr-navy);
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
+
+@layer base {
+  html {
+    /* Never let a browser silently inflate type on rotate. */
+    -webkit-text-size-adjust: 100%;
+    scrollbar-gutter: stable;
+  }
+
+  /* BottomNav is fixed to the bottom of the viewport below 768px. Without a scroll
+     reserve the browser brings a focused control to rest flush with the bottom of the
+     layout viewport and the nav paints straight over it — a textarea you cannot see
+     while typing, and a WCAG 2.2 2.4.11 Focus Not Obscured (Minimum) failure.
+     53px is the bar itself: 52px min-block-size plus its 1px top border. The extra 24px
+     covers the 3px focus ring at its 2px offset and the rounding Chromium applies when
+     it brings a control to rest — measured by tabbing every control on
+     /worksheet/first-offer-canvas and /c/01 at 390 × 844: at 53+8 the tallest textareas
+     still clipped by 14px, at 53+24 nothing overlaps the bar at all.
+     Above 768px the bar is display:none, so nothing is reserved. */
+  @media (max-width: 767.98px) {
+    html {
+      scroll-padding-block-end: calc(53px + env(safe-area-inset-bottom, 0px) + 24px);
+    }
+  }
+
+  body {
+    background-color: var(--surface-page);
+    color: var(--text-default);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: 1.65;
+    /* No horizontal page scroll, ever. Wide content scrolls inside its own box. */
+    overflow-x: hidden;
+  }
+
+  h1,
+  h2,
+  h3 {
+    color: var(--text-heading);
+    font-weight: 700;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  a {
+    color: inherit;
+  }
+
+  /* WCAG 1.4.1 Use of Colour. Links inherit their colour and weight from the paragraph
+     around them, so the underline is the only thing that marks them as links — and
+     Tailwind's preflight resets every anchor to `text-decoration: inherit`, which
+     resolves to none. The site's own link rules only ever set text-decoration-color and
+     text-underline-offset, both of which are inert without a line, so the line is
+     declared once, here.
+     Block and card links (.ch, .door, .card, .row, .go, .cta, .pager__link,
+     .chapter-nav__link, .wordmark, and the two navs) already opt out with
+     `text-decoration: none` in their own component styles; Astro scoped styles are
+     unlayered and therefore beat anything in @layer base. */
+  a[href] {
+    text-decoration-line: underline;
+    text-decoration-color: var(--rule-hairline);
+    text-underline-offset: 3px;
+  }
+
+  /* The skip link is a filled orange bar, not prose — it carries its own affordance and
+     lives in Page.astro, which has no rule of its own to opt out with. */
+  a[href].skip-link {
+    text-decoration-line: none;
+  }
+
+  /* WCAG 2.2 — 2.4.13 Focus Appearance. Visible in both themes, never removed. */
+  :focus-visible {
+    outline: 3px solid var(--focus-ring);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* WCAG 2.2 — 2.5.8 Target Size (Minimum). The build checkboxes are the risk. */
+  button,
+  [role="button"],
+  input[type="checkbox"],
+  label:has(> input[type="checkbox"]),
+  summary {
+    min-block-size: 24px;
+    min-inline-size: 24px;
+  }
+
+  @media (pointer: coarse) {
+    button,
+    [role="button"],
+    label:has(> input[type="checkbox"]),
+    a[data-tap] {
+      min-block-size: 44px;
+    }
+  }
+}
+
+/* ==========================================================================
+   The one button.
+
+   Four places had each grown their own near-identical copy of this — Timer,
+   /path/[id], /receipts, /worksheet/[id] — and the copies had already drifted: 44px
+   against 48px, a hover state on two of them and not the others, and, worst, three of
+   them bordering with --rule-hairline. Hairline is a decorative rule at ~1.3:1; on a
+   transparent button it is the entire affordance and it is invisible. The shared rule
+   takes --control-edge, which is the button/input edge token and is at text contrast.
+
+   Width is deliberately not set here. A button is full-width in the thumb zone on one
+   page and inline on the next, and that is a layout decision belonging to the page.
+   ========================================================================== */
+
+@layer components {
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    /* WCAG 2.2 2.5.8 Target Size (Minimum) with room to spare. */
+    min-block-size: 44px;
+    padding: 0.5rem 1.1rem;
+    font: inherit;
+    font-size: var(--text-label);
+    font-weight: 700;
+    text-align: center;
+    color: var(--text-default);
+    background: transparent;
+    border: 2px solid var(--control-edge);
+    cursor: pointer;
+  }
+
+  .btn:hover {
+    border-color: var(--accent-spine);
+  }
+
+  .btn:disabled {
+    color: var(--text-muted);
+    background: transparent;
+    border-color: var(--rule-hairline);
+    cursor: not-allowed;
+  }
+
+  /* Orange fill takes navy text — white on orange is 2.05:1 and is forbidden. */
+  .btn--primary {
+    color: var(--cta-text);
+    background: var(--cta-fill);
+    border-color: var(--cta-fill);
+  }
+
+  .btn--primary:hover {
+    border-color: var(--cta-text);
+  }
+
+  /* Destructive only — deleting the reader's own kept work. Not a fourth flag colour. */
+  .btn--danger {
+    color: var(--flag-red);
+    border-color: var(--flag-red);
+  }
+}
+
+/* ==========================================================================
+   Motion — the book is calm, the site agrees with it.
+   ========================================================================== */
+
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+
+  /* The default is object-fit: fill, which visibly stretches the harbour
+     illustrations mid-transition. */
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    object-fit: cover;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ==========================================================================
+   Print. A first-class output, not an afterthought — several features exist
+   specifically to be printed and handed to an adult.
+   ========================================================================== */
+
+@media print {
+  /* Print is always the book page.
+     This has to restate EVERY semantic token a component might paint with, not just the
+     surfaces. The default theme is dark, so any token left un-flipped keeps its dark
+     value and prints dark-on-white — or, for the three boxes, dark-on-dark. A Reality
+     Check that prints unreadable is a Reality Check that was not shown, which is the one
+     failure this site is not allowed to have. */
+  :root {
+    color-scheme: light;
+    --surface-page: #ffffff;
+    --surface-card: #ffffff;
+    --surface-raised: #ffffff;
+    --text-strong: #06264d;
+    --text-default: #10233a;
+    --text-muted: #444444;
+    --text-heading: #06264d;
+    --text-section: #087a69;
+    --text-eyebrow-colour: #087a69;
+    --rule-hairline: #999999;
+    --control-edge: #444444;
+    --focus-ring: #087a69;
+
+    /* The three boxes, in their light/book values. Tints survive a mono photocopier as
+       pale greys, and the edge colour plus border style still separates them. */
+    --box-hill-fill: #edf6f4;
+    --box-hill-edge: #087a69;
+    --box-build-fill: #fff6e8;
+    --box-build-edge: #ff9f1c;
+    --box-check-fill: #edf2f9;
+    --box-check-edge: #06264d;
+
+    --flag-green: #087a69;
+    --flag-yellow: #ff9f1c;
+    --flag-red: #d1344b;
+
+    --accent-spine: #087a69;
+    --accent-dot: #ff9f1c;
+    --cta-fill: #ff9f1c;
+    --cta-text: #06264d;
+  }
+
+  body {
+    background: #fff !important;
+    color: #10233a !important;
+    font-size: 11pt;
+    line-height: 1.45;
+  }
+
+  /* Explicit mm rather than relying on @page size, which is Safari 18.2+. */
+  .print-sheet {
+    inline-size: 190mm;
+    margin: 0 auto;
+    padding: 0;
+  }
+
+  [data-print="hide"],
+  nav,
+  footer {
+    display: none !important;
+  }
+
+  /* One exception to the rule above. The Napoleon Hill non-affiliation line lives in the
+     footer, and hiding the footer meant it never reached paper — on exactly the sheets
+     that exist to be printed and handed to an adult, which is where an unattributed
+     Hill-derived worksheet does the actual damage. A child of a display:none parent
+     cannot be shown, so the footer element has to come back first; its nav goes on being
+     hidden by the `nav` rule above, and the two remaining paragraphs are hidden here.
+     Layout for what is left is in SiteFooter.astro. */
+  footer.site-footer,
+  .site-footer__disclaimer {
+    display: block !important;
+  }
+
+  .site-footer__contact-note,
+  .site-footer__meta {
+    display: none !important;
+  }
+
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 9pt;
+    color: #444;
+  }
+
+  /* Never break a Reality Check or a worksheet row across pages. */
+  .box,
+  .worksheet-row {
+    break-inside: avoid;
+  }
+}

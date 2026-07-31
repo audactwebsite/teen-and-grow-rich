@@ -1,0 +1,114 @@
+---
+/**
+ * /p — the whole printed book, page by page.
+ *
+ * Two jobs. It is the honest no-JavaScript destination of the homepage page-number form:
+ * a static host cannot read `?page=12`, so instead of failing, the reader gets every page
+ * listed and taps their own. And it is a crawlable directory of all 65 routes, which is
+ * what keeps the printed page numbers findable at all.
+ *
+ * NOT in the original brief. Added because the form's no-JS fallback has to land
+ * somewhere real — see the return notes.
+ */
+import Page from "../../layouts/Page.astro";
+import ChapterFurniture from "../../components/ChapterFurniture.astro";
+import { allResolved, LAST_PAGE, LAST_PRINTED_PAGE } from "../../lib/page-routing";
+import { PAGE_INDEX_SCRIPT } from "../../lib/inline-scripts.mjs";
+
+const targets = await allResolved();
+---
+
+<Page
+  title="Every page in the book"
+  description={`All ${LAST_PAGE} printed page numbers of Teen & Grow Rich, each resolved to the tool it opens.`}
+>
+  <ChapterFurniture
+    eyebrow="Page index"
+    title="Every page in the book"
+    subtitle="Find the page you are on, then tap it."
+  />
+
+  <div class="wrap">
+    <p class="prose">
+      Pages 1–{LAST_PRINTED_PAGE} are the printed book. Page {LAST_PAGE} is one past the
+      end. Rows marked <i>nearest</i> are pages that carry story rather than a tool, so
+      they point at the closest tool instead.
+    </p>
+
+    <ol class="pages">
+      {
+        targets.map((t) => (
+          <li>
+            <a class="row" href={t.href} data-page={t.page}>
+              <span class="row__n">{t.page}</span>
+              <span class="row__label">
+                {t.kind} · {t.label}
+              </span>
+              {!t.exact && <span class="row__note">nearest · book page {t.landsOn}</span>}
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+
+  {/* Source lives in src/lib/inline-scripts.mjs so the CSP hash is derived from the same
+      string that is rendered; an unhashed is:inline script is silently blocked in
+      production. The full list below is the no-JS answer. */}
+  <script is:inline set:html={PAGE_INDEX_SCRIPT} />
+</Page>
+
+<style>
+  .wrap {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding: 1.75rem clamp(1.25rem, 5vw, 3rem) 0;
+  }
+
+  .prose {
+    max-inline-size: var(--container-measure);
+  }
+
+  .pages {
+    margin-block-start: 1.5rem;
+    padding: 0;
+    list-style: none;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 3rem minmax(0, 1fr);
+    column-gap: 1rem;
+    align-items: baseline;
+    min-block-size: 44px;
+    padding-block: 0.6rem;
+    border-block-end: 1px solid var(--rule-hairline);
+    text-decoration: none;
+  }
+
+  .row:hover .row__label {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-color: var(--accent-spine);
+  }
+
+  .row__n {
+    font-variant-numeric: tabular-nums slashed-zero;
+    font-weight: 700;
+    text-align: end;
+    color: var(--text-section);
+  }
+
+  .row__label {
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  .row__note {
+    grid-column: 2;
+    font-size: var(--text-meta);
+    font-weight: 400;
+    color: var(--text-muted);
+  }
+</style>

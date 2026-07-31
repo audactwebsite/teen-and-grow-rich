@@ -1,0 +1,982 @@
+---
+/**
+ * The homepage, which is really a landing page for someone holding a printed book on a
+ * phone. Both QR codes in the book encode the bare root, so the first thing on screen is
+ * the page-number field — not a pitch, not a hero, not a value proposition.
+ *
+ * The order is a priority list, not a layout: page number, then where you got to, then
+ * the chapters, then the adult doors, then the book. The book is last because a reader
+ * who is here already owns it.
+ *
+ * The hero is hand-rolled rather than reusing ChapterFurniture because the one hard
+ * constraint on this page is that the Go button is visible at 390 x 844 without
+ * scrolling, and that is a vertical budget, not a style choice. Same vocabulary: navy
+ * bar, teal spine, orange dot, teal rule then a short orange rule.
+ */
+import { Image } from "astro:assets";
+import Page from "../layouts/Page.astro";
+import Flag from "../components/Flag.astro";
+import harbour from "../assets/photos/monaco-harbour-01.jpg";
+import cover from "../assets/photos/book-cover.jpg";
+import {
+  allChapters,
+  allBuilds,
+  allWorksheets,
+  allSequences,
+  buildForChapter,
+  totals,
+} from "../lib/content";
+import { buildMeta, FLAG_RULE_PAGE } from "../lib/build-meta";
+import { allResolved, LAST_PAGE, LAST_PRINTED_PAGE } from "../lib/page-routing";
+
+const chapters = await allChapters();
+const builds = await allBuilds();
+const worksheets = await allWorksheets();
+const sequences = await allSequences();
+const t = await totals();
+
+const pad = (n: number) => String(n).padStart(2, "0");
+
+/** Scannable labels for the chapter index; the rule itself is stated once above it. */
+const FLAG_SHORT = { green: "Green", yellow: "Yellow", red: "Red" } as const;
+
+/* The flag on each row is the chapter's own 24-Hour Build flag, from build-meta.ts. It
+   is the book's page-60 rule applied to the printed build, not a mark the book prints
+   per chapter — which is why the index says so in words directly above it. */
+const chapterRows = await Promise.all(
+  chapters.map(async (c) => ({
+    chapter: c,
+    flag: buildMeta((await buildForChapter(c.data.n))!.id).flag,
+  })),
+);
+
+/* The field resolves the destination in the browser so the reader lands on the tool in
+   one navigation rather than bouncing through /p/[n]. That costs a table in the markup;
+   it is ~4 KB of highly compressible text and it is the site's most-used interaction. */
+const routes = Object.fromEntries(
+  (await allResolved()).map((r) => [
+    r.page,
+    { h: r.href, l: `${r.kind} · ${r.label}`, x: r.exact ? 1 : 0, p: r.landsOn },
+  ]),
+);
+
+/* Labels for the "where you got to" block. Keyed by the first segment of a stored event
+   id, because ids are namespaced ("dream-big:3", "first-offer-canvas:the-problem"). */
+const kept = {
+  build: Object.fromEntries(
+    builds.map((b) => [b.id, { h: `/build/${pad(b.data.n)}`, l: `24-Hour Build · ${b.data.source}` }]),
+  ),
+  play: Object.fromEntries(
+    chapters.map((c) => [
+      c.data.slug,
+      { h: `/c/${pad(c.data.n)}`, l: `Chapter ${pad(c.data.n)} · ${c.data.title}` },
+    ]),
+  ),
+  field: Object.fromEntries(
+    worksheets.map((w) => [w.id, { h: `/worksheet/${w.id}`, l: `Worksheet · ${w.data.title}` }]),
+  ),
+  day: Object.fromEntries(
+    sequences.map((s) => [s.id, { h: `/path/${s.id}`, l: `Plan · ${s.data.title}` }]),
+  ),
+};
+
+const description =
+  "The companion site for the book Teen & Grow Rich. Type the page number you are on and it opens the tool for that page.";
+---
+
+<Page title="Teen & Grow Rich" description={description}>
+  {/* ---------------------------------------------------------------- 1. Page number */}
+  <section id="page-number" class="hero" aria-labelledby="hero-title">
+    <div class="hero__bar" aria-hidden="true"></div>
+    <div class="hero__spine" aria-hidden="true"></div>
+
+    {/* The real harbour the book's illustrations were painted from, shot from behind.
+        Decorative: the page says everything this photograph says, and a screen-reader
+        user gains nothing from being told a boy is looking at boats. It sits BEHIND the
+        solid base with a scrim over it, so the page-number field keeps its contrast even
+        while the image is still loading — or if it never loads at all. */}
+    <div class="hero__photo" aria-hidden="true">
+      <Image src={harbour} alt="" widths={[640, 1024, 1600, 2560]} sizes="100vw" loading="eager" />
+    </div>
+
+    <div class="wrap hero__inner">
+      <span class="hero__dot" aria-hidden="true"></span>
+
+      <p class="eyebrow">Holding the book?</p>
+      <h1 id="hero-title" class="hero__title">Teen &amp; Grow Rich</h1>
+
+      <div class="rules" aria-hidden="true">
+        <span class="rule rule--teal"></span>
+        <span class="rule rule--orange"></span>
+      </div>
+
+      <p class="hero__lede">
+        Type the page you are on. It opens the tool for that page — no account, nothing to
+        sign up for.
+      </p>
+
+      {/* action="/p/" is the no-JS path: that page lists all 65 destinations and reads
+          ?page= itself. With JS the submit is intercepted and resolved here. */}
+      <form
+        class="pn"
+        action="/p/"
+        method="get"
+        data-page-form
+        data-routes={JSON.stringify(routes)}
+      >
+        <label class="pn__label" for="pn-input">Book page number</label>
+
+        <div class="pn__row">
+          <input
+            class="pn__input"
+            id="pn-input"
+            name="page"
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            maxlength="3"
+            autocomplete="off"
+            enterkeyhint="go"
+            placeholder="12"
+            aria-describedby="pn-hint pn-out"
+          />
+          <button class="pn__go" type="submit">Go</button>
+        </div>
+
+        <p class="pn__hint" id="pn-hint">
+          Pages 1–{LAST_PRINTED_PAGE}. Type {LAST_PAGE} for the chapter that is not in the book.
+        </p>
+
+        {/* Ships empty. The lede and the hint already say what to do, and a third
+            instruction set in the loudest style on the page outranked the field's own
+            label. It is aria-live="polite", so it speaks from the first keystroke; the
+            reserved height keeps the Go button from moving under a reaching thumb. */}
+        <p class="pn__out" id="pn-out" aria-live="polite" data-page-out></p>
+      </form>
+    </div>
+  </section>
+
+  {/* ------------------------------------------------- 2. Where you got to (JS + state) */}
+  <section
+    class="kept"
+    hidden
+    data-kept
+    data-labels={JSON.stringify(kept)}
+    data-total-builds={t.builds}
+    aria-labelledby="kept-title"
+  >
+    <div class="wrap">
+      <h2 id="kept-title" class="h2">Where you got to</h2>
+      <p class="kept__counts" data-kept-counts></p>
+      <ul class="kept__list" data-kept-list></ul>
+      <p class="kept__note">
+        This is kept in this browser only, and browsers throw it away. Print or copy your
+        receipts to keep them for good.
+      </p>
+      <p><a class="link" href="/receipts">Open your receipts</a></p>
+    </div>
+  </section>
+
+  {/* --------------------------------------------------------------- 3. The 15 chapters */}
+  <section id="chapters" class="chapters" aria-labelledby="chapters-title">
+    <div class="wrap">
+      <p class="eyebrow">The book, chapter by chapter</p>
+      <h2 id="chapters-title" class="h2">15 chapters, {t.builds} builds, {t.realityChecks} Reality Checks</h2>
+      <p class="prose lede">
+        Every chapter page carries the same five things: Hill's Original Idea, The Play as
+        five steps, the 24-Hour Build with a timer, the Reality Check in full, and three
+        debrief questions. The story stays in the book.
+      </p>
+
+      <p class="prose note">
+        The flag on each row is this site applying the book's own traffic-light rule from
+        page {FLAG_RULE_PAGE} to that chapter's 24-Hour Build. The book does not print a
+        flag beside each chapter.
+      </p>
+
+      <ol class="chlist">
+        {
+          chapterRows.map(({ chapter: c, flag }) => (
+            <li>
+              <a class="ch" href={`/c/${pad(c.data.n)}`}>
+                <span class="ch__n">{pad(c.data.n)}</span>
+                <span class="ch__title">{c.data.title}</span>
+                <span class="ch__hill">Hill remix: {c.data.hillPrinciple}</span>
+                {/* Wrapped rather than passing `class` to Flag: Astro does not carry this
+                    page's scope onto a child component's root, so a grid-area set on the
+                    Flag itself would silently not apply. */}
+                <span class="ch__flag">
+                  {/* Short label here only. The full rule is stated once above the list;
+                      repeating "check in with an adult first" on all fifteen rows turns
+                      an index you scan into a paragraph you read. */}
+                  <Flag level={flag} size="sm" label={FLAG_SHORT[flag]} />
+                </span>
+                <span class="ch__page">
+                  Book page <b>{c.data.printedPage}</b>
+                </span>
+              </a>
+            </li>
+          ))
+        }
+        <li>
+          <a class="ch ch--extra" href="/c/16">
+            <span class="ch__n">16</span>
+            <span class="ch__title">Chapter 16</span>
+            <span class="ch__hill">What Ryan learned after the book went to print</span>
+            <span class="ch__flag ch__flag--none">No build yet</span>
+            <span class="ch__page">Not in the book</span>
+          </a>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  {/* ------------------------------------------------------------- 4. The adult doors */}
+  <section class="doors" aria-labelledby="doors-title">
+    <div class="wrap">
+      {/* Eyebrow then H2, the same opening the chapter index and the book section use.
+          The book's own chapter furniture puts one above every title. */}
+      <p class="eyebrow">Race control</p>
+      <h2 id="doors-title" class="h2">For the adults</h2>
+
+      <p class="prose lede">
+        The book sets out one traffic-light rule on page {FLAG_RULE_PAGE}, and this site
+        applies it to every build, every worksheet field and every offer that touches
+        money, people or data.
+      </p>
+
+      <ul class="flaglist">
+        <li><Flag level="green" /></li>
+        <li><Flag level="yellow" /></li>
+        <li><Flag level="red" /></li>
+      </ul>
+
+      <p class="prose note">
+        An adult does not only mean a parent. A teacher, coach, librarian, youth worker or
+        a sibling over 18 all count.
+      </p>
+
+      <ul class="doorlist">
+        <li>
+          <a class="door" href="/parents">
+            <b>For parents and teachers</b>
+            <span>Race Control: the traffic-light rule, the family agreement, what to ask.</span>
+          </a>
+        </li>
+        <li>
+          <a class="door" href="/schools/privacy">
+            <b>For schools: privacy</b>
+            <span>Written for an IT reviewer. Every claim checkable from the page source.</span>
+          </a>
+        </li>
+        <li>
+          <a class="door" href="/hill">
+            <b>The Napoleon Hill audit</b>
+            <span>What is checkable about Hill's own story, and what is not.</span>
+          </a>
+        </li>
+        <li>
+          <a class="door" href="/proof">
+            <b>About Ryan</b>
+            <span>The karting record, the date it was checked, and the claim we are not making.</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  {/* ----------------------------------------------------------------- 5. The book, last */}
+  <section class="book" aria-labelledby="book-title">
+    <div class="wrap book__inner">
+      {/* The scarce thing, shown. Everything above this point is free, so the closing
+          section is the one place the printed object should be visible rather than
+          described (design-system.md §7). */}
+      <Image
+        class="book__cover"
+        src={cover}
+        alt="The cover of Teen &amp; Grow Rich: the title in heavy condensed capitals over a
+             photograph of the harbour at Monaco, with the line Think bigger. Build real
+             skills. Start now."
+        widths={[240, 400, 640]}
+        sizes="(min-width: 46rem) 15rem, 40vw"
+        loading="lazy"
+      />
+
+      <div class="book__body">
+        <p class="eyebrow">The book</p>
+        <h2 id="book-title" class="h2">Teen &amp; Grow Rich</h2>
+        <p class="prose lede">
+          {LAST_PRINTED_PAGE} pages. Everything on this site is free and open on your first
+          visit — every build, every Reality Check, every worksheet. What the book has that
+          this site does not is the 15 stories, the Hill Remix essays and What It Means Now.
+        </p>
+        <p><a class="link" href="/get">About the book</a></p>
+      </div>
+    </div>
+  </section>
+</Page>
+
+<script>
+  import { counts, exportJson, type LogEvent } from "../lib/storage";
+
+  /* ---- The page-number field ------------------------------------------------------ */
+
+  type Route = { h: string; l: string; x: 0 | 1; p: number };
+
+  const form = document.querySelector<HTMLFormElement>("[data-page-form]");
+  const out = document.querySelector<HTMLElement>("[data-page-out]");
+
+  if (form && out) {
+    const input = form.querySelector<HTMLInputElement>("#pn-input")!;
+    const routes = JSON.parse(form.dataset.routes ?? "{}") as Record<string, Route>;
+
+    const lookup = (raw: string): Route | null => {
+      const trimmed = raw.trim();
+      if (!/^\d+$/.test(trimmed)) return null;
+      return routes[String(Number(trimmed))] ?? null;
+    };
+
+    const describe = () => {
+      const raw = input.value.trim();
+      if (!raw) return "Type a page number, then press Go.";
+
+      const route = lookup(raw);
+      if (!route) return "This book has 64 pages. Try 1 to 64 — or 65.";
+      if (route.x) return `Page ${Number(raw)} → ${route.l}`;
+      return `Page ${Number(raw)} has no tool of its own. Nearest: ${route.l}, book page ${route.p}.`;
+    };
+
+    input.addEventListener("input", () => {
+      out.textContent = describe();
+    });
+
+    form.addEventListener("submit", (event) => {
+      const route = lookup(input.value);
+      if (!route) {
+        // Let it submit to /p/, which explains itself and lists every page.
+        out.textContent = describe();
+        return;
+      }
+      event.preventDefault();
+      window.location.assign(route.h);
+    });
+  }
+
+  /* ---- Where you got to ------------------------------------------------------------
+     Reads only. Nothing here writes, so it stays outside the gesture rule in storage.ts. */
+
+  type Label = { h: string; l: string };
+
+  const kept = document.querySelector<HTMLElement>("[data-kept]");
+
+  if (kept) {
+    const labels = JSON.parse(kept.dataset.labels ?? "{}") as Record<string, Record<string, Label>>;
+    const totalBuilds = Number(kept.dataset.totalBuilds ?? "0");
+    const log = (JSON.parse(exportJson()).log ?? []) as LogEvent[];
+
+    const done = (e: LogEvent) =>
+      e.v === 1 || (typeof e.v === "string" && e.v.trim().length > 0);
+
+    /* Newest first, one entry per thing. The log is append-only, so walking it backwards
+       is the only way to get real recency — folding it loses the order. */
+    const recent: Label[] = [];
+    const seen = new Set<string>();
+    for (let i = log.length - 1; i >= 0 && recent.length < 3; i -= 1) {
+      const e = log[i]!;
+      if (!done(e)) continue;
+      const base = String(e.id).split(":")[0]!;
+      const key = `${e.k}:${base}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      const hit = labels[e.k]?.[base];
+      if (hit) recent.push(hit);
+    }
+
+    const c = counts();
+    if (c.builds || c.playSteps || c.fields || recent.length) {
+      const parts = [
+        `${c.builds} of ${totalBuilds} builds`,
+        `${c.playSteps} Play steps`,
+        `${c.fields} worksheet fields`,
+      ];
+      kept.querySelector<HTMLElement>("[data-kept-counts]")!.textContent = parts.join(" · ");
+
+      const list = kept.querySelector<HTMLElement>("[data-kept-list]")!;
+      for (const item of recent) {
+        const li = document.createElement("li");
+        const a = document.createElement("a");
+        a.href = item.h;
+        a.textContent = item.l;
+        li.append(a);
+        list.append(li);
+      }
+
+      kept.hidden = false;
+    }
+  }
+</script>
+
+<style>
+  /* Container contract, shared with Page.astro and ChapterFurniture. */
+  .wrap {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .prose {
+    max-inline-size: var(--container-measure);
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+
+  .eyebrow {
+    font-size: var(--text-eyebrow);
+    font-weight: 700;
+    letter-spacing: var(--text-eyebrow--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-eyebrow-colour);
+  }
+
+  .h2 {
+    margin-block-start: 0.5rem;
+    font-size: var(--text-h2);
+    line-height: var(--text-h2--line-height);
+    color: var(--text-section);
+  }
+
+  .lede {
+    margin-block-start: 0.9rem;
+    color: var(--text-default);
+  }
+
+  .note {
+    margin-block-start: 0.8rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .link {
+    display: inline-flex;
+    align-items: center;
+    font-weight: 700;
+    color: var(--text-strong);
+    text-underline-offset: 4px;
+    text-decoration-color: var(--accent-spine);
+  }
+
+  /* --- 1. Hero + page-number field -------------------------------------------------
+     Vertical budget at 390 x 844: header ~44, hero ~185, field ~190. The Go button sits
+     around 420px down, which is the requirement this whole block is shaped by. */
+
+  .hero {
+    position: relative;
+    /* Solid base first: a slow blue-hour photograph must never leave a dark rectangle
+       with a form on it. Any image goes behind this, never instead of it. */
+    background: var(--surface-page);
+    padding-block: 1.4rem 2rem;
+    print-color-adjust: exact;
+    isolation: isolate;
+  }
+
+  .hero__photo {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+  }
+
+  .hero__photo :global(img) {
+    inline-size: 100%;
+    block-size: 100%;
+    object-fit: cover;
+    /* Narrow viewports get a slice, not the composition. Bias it onto the lit harbour
+       and the horizon; centring here lands on flat dark water and the photograph reads
+       as noise. */
+    object-position: 30% 32%;
+  }
+
+  @media (min-width: 48rem) {
+    .hero__photo :global(img) {
+      /* Room for the whole frame: subject right of centre, harbour behind the type. */
+      object-position: 62% 40%;
+    }
+  }
+
+  /* The scrim, not the opacity, is what protects the text. Two stops: a flat wash so no
+     part of the photograph is ever fully exposed, and a stronger vertical fade behind the
+     type and the input. Measured on the darkest and lightest points of the photograph. */
+  .hero__photo::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(
+        to bottom,
+        color-mix(in oklab, var(--surface-page) 45%, transparent) 0%,
+        color-mix(in oklab, var(--surface-page) 80%, transparent) 58%,
+        var(--surface-page) 100%
+      ),
+      color-mix(in oklab, var(--surface-page) 18%, transparent);
+  }
+
+  /* Light mode is the book page. A photograph washed out to near-white behind navy text
+     reads as a printing fault, so the hero simply has no image there. */
+  :global(:root[data-theme="light"]) .hero__photo {
+    display: none;
+  }
+
+  @media print {
+    .hero__photo {
+      display: none;
+    }
+  }
+
+  .hero__bar {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline: 0;
+    block-size: 8px;
+    /* Navy drops to 1.2:1 on the dark base; navy-lift is the palette's stand-in. */
+    background: var(--color-tgr-navy-lift);
+  }
+
+  :global(:root[data-theme="light"]) .hero__bar {
+    background: var(--color-tgr-navy);
+  }
+
+  .hero__spine {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    inline-size: 6px;
+    background: var(--accent-spine);
+  }
+
+  .hero__inner {
+    position: relative;
+  }
+
+  .hero__dot {
+    position: absolute;
+    inset-block-start: 0.3rem;
+    inset-inline-end: clamp(1.25rem, 5vw, 3rem);
+    inline-size: 14px;
+    block-size: 14px;
+    border-radius: 50%;
+    background: var(--accent-dot);
+  }
+
+  .hero .eyebrow {
+    /* Room for the dot at 320px. */
+    padding-inline-end: 1.75rem;
+  }
+
+  .hero__title {
+    margin-block-start: 0.4rem;
+    font-family: var(--font-display);
+    font-weight: 900;
+    text-transform: uppercase;
+    font-size: clamp(1.9rem, 8vw, 3.25rem);
+    line-height: 1.02;
+    letter-spacing: var(--text-h1--letter-spacing);
+  }
+
+  .rules {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-block-start: 0.8rem;
+  }
+
+  .rule {
+    block-size: 3px;
+  }
+
+  .rule--teal {
+    inline-size: 70%;
+    max-inline-size: 22rem;
+    background: var(--accent-spine);
+  }
+
+  .rule--orange {
+    inline-size: 3.5rem;
+    background: var(--accent-dot);
+  }
+
+  .hero__lede {
+    margin-block-start: 0.9rem;
+    max-inline-size: var(--container-measure);
+    color: var(--text-default);
+  }
+
+  .pn {
+    margin-block-start: 1.25rem;
+    max-inline-size: 32rem;
+  }
+
+  .pn__label {
+    display: block;
+    font-size: var(--text-label);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-strong);
+  }
+
+  .pn__row {
+    display: flex;
+    align-items: stretch;
+    gap: 0.6rem;
+    margin-block-start: 0.5rem;
+  }
+
+  .pn__input {
+    inline-size: 4.5ch;
+    flex: 0 0 auto;
+    padding: 0.35rem 0.6rem;
+    font: inherit;
+    font-family: var(--font-sans);
+    font-size: 2.25rem;
+    font-weight: 700;
+    line-height: 1.2;
+    /* Page numbers are data, not prose. */
+    font-variant-numeric: tabular-nums slashed-zero;
+    text-align: center;
+    color: var(--text-strong);
+    background: var(--surface-card);
+    /* --control-edge, not --rule-hairline: the field's only visual boundary has to
+       clear 3:1 (SC 1.4.11), and in light mode the fill is the same white as the hero
+       behind it. */
+    border: 2px solid var(--control-edge);
+    border-radius: 0;
+  }
+
+  .pn__input::placeholder {
+    color: var(--text-muted);
+    opacity: 1;
+  }
+
+  .pn__input:focus-visible {
+    border-color: var(--accent-spine);
+  }
+
+  .pn__go {
+    flex: 0 0 auto;
+    min-block-size: 56px;
+    padding-inline: 1.6rem;
+    font: inherit;
+    font-weight: 700;
+    font-size: 1.125rem;
+    letter-spacing: 0.02em;
+    /* Orange fill takes navy text. White on orange is 2.05:1 and is forbidden. */
+    color: var(--cta-text);
+    background: var(--cta-fill);
+    border: 2px solid var(--cta-fill);
+    cursor: pointer;
+  }
+
+  .pn__hint,
+  .pn__out {
+    margin-block-start: 0.6rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .pn__out {
+    /* Reserve two lines so a resolved destination never reflows the page under a thumb
+       that is already reaching for Go. */
+    min-block-size: 2.9em;
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  /* --- 2. Where you got to --------------------------------------------------------- */
+
+  .kept {
+    margin-block-start: 2.5rem;
+    padding-block: 1.5rem;
+    border-block: 1px solid var(--rule-hairline);
+  }
+
+  .kept__counts {
+    margin-block-start: 0.7rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums slashed-zero;
+    color: var(--text-strong);
+  }
+
+  .kept__list {
+    margin-block-start: 0.7rem;
+    padding: 0;
+    list-style: none;
+    max-inline-size: var(--container-measure);
+  }
+
+  .kept__list li + li {
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .kept__list a {
+    display: flex;
+    align-items: center;
+    min-block-size: 44px;
+    font-weight: 700;
+    color: var(--text-strong);
+    text-decoration-color: var(--accent-spine);
+    text-underline-offset: 4px;
+  }
+
+  .kept__note {
+    margin-block-start: 0.8rem;
+    max-inline-size: var(--container-measure);
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .kept p + p {
+    margin-block-start: 0.8rem;
+  }
+
+  /* --- 3. The chapter index --------------------------------------------------------
+     A typographic index, not cards: 15 rows of the same shape read faster than 15 boxes,
+     and it is what the book's own contents page does. */
+
+  .chapters {
+    margin-block-start: 3rem;
+  }
+
+  .chlist {
+    margin-block-start: 1.5rem;
+    padding: 0;
+    list-style: none;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .ch {
+    display: grid;
+    grid-template-columns: 2.75rem minmax(0, 1fr);
+    grid-template-areas:
+      "n title"
+      ". hill"
+      ". flag"
+      ". page";
+    column-gap: 0.9rem;
+    row-gap: 0.1rem;
+    padding-block: 0.8rem;
+    border-block-end: 1px solid var(--rule-hairline);
+    text-decoration: none;
+  }
+
+  .ch:hover .ch__title {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-color: var(--accent-spine);
+  }
+
+  .ch__n {
+    grid-area: n;
+    font-variant-numeric: tabular-nums slashed-zero;
+    font-weight: 700;
+    font-size: 1.25rem;
+    line-height: 1.3;
+    color: var(--text-section);
+  }
+
+  .ch__title {
+    grid-area: title;
+    font-weight: 700;
+    font-size: 1.25rem;
+    line-height: 1.3;
+    color: var(--text-strong);
+  }
+
+  .ch__hill {
+    grid-area: hill;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .ch__flag {
+    grid-area: flag;
+    margin-block-start: 0.2rem;
+  }
+
+  .ch__flag--none {
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .ch__page {
+    grid-area: page;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .ch__page b {
+    font-variant-numeric: tabular-nums slashed-zero;
+    color: var(--text-strong);
+  }
+
+  /* Chapter 16 is linked plainly here as well as reachable by typing 65 — a secret that
+     is the only route excludes screen-reader users and anyone who never tries (D19).
+     The orange marks the row as the one that is not in the book. It may carry the glyph
+     in dark mode (9.11:1) and must not in light or print: --tgr-orange on white is
+     2.05:1, and in light mode orange is bars, borders, dots and fills only. */
+  .ch--extra .ch__n {
+    color: var(--accent-dot);
+  }
+
+  :global(:root[data-theme="light"]) .ch--extra .ch__n {
+    color: var(--text-strong);
+  }
+
+  @media print {
+    .ch--extra .ch__n {
+      color: var(--text-strong);
+    }
+  }
+
+  @media (min-width: 46rem) {
+    /* The book's contents page: title left, page number right, nothing floating in
+       between. The title/hill column takes the slack — a 1fr flag column left a ~600px
+       hole down the middle of sixteen rows while the hill line wrapped inside 20ch.
+       6.5rem holds "Yellow" and "No build yet" on one line. */
+    .ch {
+      grid-template-columns: 3rem minmax(0, 1fr) 6.5rem auto;
+      grid-template-areas:
+        "n title flag page"
+        ". hill  flag page";
+      align-items: baseline;
+      column-gap: 1.5rem;
+    }
+
+    .ch__title,
+    .ch__hill {
+      max-inline-size: var(--container-measure);
+    }
+
+    /* On the title's own line. Centred across both rows, the flag floated 10–21px below
+       the title it belongs to depending on whether the hill line wrapped, and the column
+       zig-zagged down sixteen rows. A single-row item also baseline-aligns, which a
+       row-spanning one cannot. */
+    .ch__flag,
+    .ch__page {
+      grid-row: 1;
+      margin-block-start: 0;
+    }
+  }
+
+  /* --- 4. The adult doors ---------------------------------------------------------- */
+
+  .doors {
+    margin-block-start: 3rem;
+  }
+
+  .flaglist {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem 1.5rem;
+    margin-block-start: 1rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  .doorlist {
+    margin-block-start: 1.25rem;
+    padding: 0;
+    list-style: none;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .door {
+    display: grid;
+    gap: 0.15rem;
+    padding-block: 0.85rem;
+    border-block-end: 1px solid var(--rule-hairline);
+    text-decoration: none;
+  }
+
+  .door b {
+    color: var(--text-strong);
+  }
+
+  .door span {
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .door:hover b {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-color: var(--accent-spine);
+  }
+
+  @media (min-width: 46rem) {
+    .door {
+      grid-template-columns: minmax(0, 24ch) minmax(0, 1fr);
+      column-gap: 1.5rem;
+      align-items: baseline;
+    }
+  }
+
+  /* --- 5. The book ----------------------------------------------------------------- */
+
+  /* --surface-raised, not --surface-card: in light mode --surface-card IS the page white,
+     so the closing panel existed only in dark and the page's last three sections ran
+     together as one white field separated by hairlines. */
+  .book {
+    margin-block-start: 3rem;
+    padding-block: 1.75rem;
+    border-block-start: 1px solid var(--rule-hairline);
+    background: var(--surface-raised);
+  }
+
+  .book p + p {
+    margin-block-start: 1rem;
+  }
+
+  .book__inner {
+    display: grid;
+    gap: 1.25rem 2rem;
+    /* Cover above the copy on a phone; beside it once there is room. */
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: start;
+  }
+
+  .book__cover {
+    inline-size: min(40vw, 9rem);
+    block-size: auto;
+    border-radius: 2px;
+    /* The book is an object. A shadow is the cheapest way to say so, and it is the only
+       one on the page. */
+    box-shadow: 0 10px 30px rgb(0 0 0 / 0.4);
+  }
+
+  :global(:root[data-theme="light"]) .book__cover {
+    box-shadow: 0 6px 20px rgb(6 38 77 / 0.18);
+  }
+
+  .book__body {
+    min-inline-size: 0;
+  }
+
+  @media (min-width: 46rem) {
+    .book__inner {
+      grid-template-columns: 15rem minmax(0, 1fr);
+      align-items: center;
+    }
+
+    .book__cover {
+      inline-size: 100%;
+    }
+  }
+
+  @media print {
+    .book__cover {
+      box-shadow: none;
+    }
+  }
+</style>

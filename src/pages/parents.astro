@@ -1,0 +1,429 @@
+---
+/**
+ * Race Control — the parents, guardians, teachers and mentors page (printed page 61).
+ *
+ * Two audiences, and the page says which paragraph is for whom rather than pretending
+ * there is one reader. The adult sections are the book's page 61 quoted in full; the last
+ * section is written to the teenager, because the safety system's real failure mode (D25)
+ * is a reader with nobody to ask, and that reader is reading this page too.
+ *
+ * The traffic-light system is the site's primary UI atom (D12) rendered with the same
+ * Flag component the builds and Reality Checks use, with the book's own definitions —
+ * so what an adult reads here is literally what a reader sees on a build card.
+ */
+import Page from "../layouts/Page.astro";
+import ChapterFurniture from "../components/ChapterFurniture.astro";
+import Box from "../components/Box.astro";
+import Flag from "../components/Flag.astro";
+import PageRef from "../components/PageRef.astro";
+import { allRealityChecks } from "../lib/content";
+import { WHO_COUNTS, FAMILY_RULE } from "./reality-check/_checks";
+
+const checks = await allRealityChecks();
+
+/* Book page 61, verbatim, including the book's own punctuation. The tiers are the
+   author's definitions; the "in practice" line is ours, and is labelled as ours. */
+const TIERS = [
+  {
+    level: "green" as const,
+    book: "Green decisions are low-cost and reversible.",
+    practice:
+      "Go. No check-in needed. Most of the 19 builds live here: writing something down, making a first version, practicing a skill, sorting last week's spending.",
+  },
+  {
+    level: "yellow" as const,
+    book: "Yellow decisions involve public posting, small spending, or contact with new people and require a check-in.",
+    practice:
+      "A conversation before it happens, not a veto. This is where the site expects the most friction, and where a two-minute look at the post or the message does most of the work.",
+  },
+  {
+    level: "red" as const,
+    book: "Red decisions involve contracts, financial products, travel, identity documents, large payments, or in-person meetings and require direct adult involvement.",
+    practice:
+      "You are in the room. The account, the signature and the payment route are yours, not theirs — including where a platform's own terms require it.",
+  },
+];
+
+/* Printed page 61, verbatim. Six questions, in the book's order and wording. */
+const QUESTIONS = [
+  "What problem are you solving?",
+  "What proof do you have?",
+  "Who could be harmed?",
+  "What does the platform allow?",
+  "What happens if the client is unhappy?",
+  "How will school, sleep, and family time be protected?",
+];
+---
+
+<Page
+  title="Race Control — for parents and guardians"
+  description="The green, yellow and red approval system from Teen & Grow Rich, the six questions worth asking, and what a reader does when there is no adult available."
+  printedPage={61}
+>
+  <ChapterFurniture
+    eyebrow="For parents, guardians, teachers and mentors"
+    title="Race Control"
+    subtitle="The goal is supported independence — not unsupervised risk."
+  />
+
+  <div class="prose">
+    <p class="lead">
+      <PageRef page={61} kind="For Parents & Guardians" />
+    </p>
+
+    <p>
+      A motivated teen can build real skills, useful projects, and even early income. The
+      adult role is not to take over the project. It is to create guardrails around money,
+      contracts, privacy, travel, online contact, intellectual property, taxes, and
+      wellbeing.
+    </p>
+
+    <p class="quoted">Book page 61, word for word.</p>
+
+    <p>
+      This site is the tools half of that book. It keeps no accounts, asks for no email
+      address, and sends nothing anywhere — a reader's work is kept in their own browser
+      and printed, not stored by us. The verifiable version of that claim, written for a
+      school IT reviewer, is on <a href="/schools/privacy">the schools privacy page</a>.
+    </p>
+  </div>
+
+  <section class="tiers" aria-labelledby="tiers-h">
+    <div class="tiers__inner">
+      <h2 id="tiers-h" class="section">The family approval system</h2>
+      <p class="tiers__intro">
+        Three levels, no fourth. The book suggests it on page 61; this site uses it as its
+        main piece of interface, so the flag on a build card and the flag in this table
+        mean exactly the same thing.
+      </p>
+
+      <ul class="tier-list">
+        {
+          TIERS.map((tier) => (
+            <li class={`tier tier--${tier.level}`}>
+              <div class="tier__flag">
+                <Flag level={tier.level} />
+              </div>
+              <p class="tier__book">{tier.book}</p>
+              <p class="tier__practice">{tier.practice}</p>
+            </li>
+          ))
+        }
+      </ul>
+
+      <p class="tiers__note">
+        There is no chequered flag on this site. Chequered means the session is over, which
+        is the wrong idea for a plan measured in months.
+      </p>
+    </div>
+  </section>
+
+  <div class="prose">
+    <h2 class="section">Useful questions are more powerful than instant answers</h2>
+    <p>
+      That sentence is the book's, and so are the six questions under it. They are worth
+      more than a yes or a no, because they are answerable by the person doing the work.
+    </p>
+
+    <ol class="questions">
+      {QUESTIONS.map((q) => <li>{q}</li>)}
+    </ol>
+
+    <p class="attribution">Printed page 61, in the book's order and wording.</p>
+
+    <h2 class="section">Praise the evidence</h2>
+    <p>
+      Praise evidence and learning, not only money or attention. The healthiest outcome is
+      a young person who can think clearly, ask for help, recover from mistakes, and build
+      without tying their worth to results.
+    </p>
+    <p class="quoted">Book page 61, word for word.</p>
+
+    <div class="rule-box">
+      <Box kind="check">
+        <p class="rule-box__label">A simple family rule</p>
+        <p>{FAMILY_RULE}</p>
+      </Box>
+    </div>
+
+    <h2 class="section">The safety layer, in one place</h2>
+    <p>
+      There are {checks.length} Reality Checks in the book — the paragraphs that say what
+      could actually go wrong. All {checks.length} are on this site in full, grouped by
+      risk, and printable for a class or a kitchen wall.
+    </p>
+    <p>
+      <a class="cta" href="/reality-check" data-tap>Read all {checks.length} Reality Checks</a>
+    </p>
+  </div>
+
+  <section class="no-adult" aria-labelledby="no-adult-h">
+    <div class="no-adult__inner">
+      <p class="no-adult__eyebrow">This part is for the reader, not the adult</p>
+      <h2 id="no-adult-h" class="section">If there is nobody to ask</h2>
+
+      <p>
+        The whole system above assumes an adult who is around, awake, and willing. That is
+        not everyone's house. If it is not yours, the honest answer is not "do it anyway"
+        and it is not "stop".
+      </p>
+
+      <p class="no-adult__lead">An adult here means any of these:</p>
+      <ul class="who">
+        {WHO_COUNTS.map((who) => <li>{who}</li>)}
+      </ul>
+
+      <p>
+        A teacher, a coach, a librarian or a youth worker is not a second-best version of a
+        parent for this. For questions about platform rules, contracts or whether an offer
+        is real, several of them are better placed than most parents are.
+      </p>
+
+      <p>
+        If a build needs an adult and there is nobody yet, do the part that does not need
+        one and write down the part you could not do. That note is the receipt. Nothing on
+        this site is locked, timed, or waiting for permission — the only thing that waits
+        for an adult is a yellow or red decision, and those genuinely need one.
+      </p>
+
+      <p>
+        And going around the gate is the failure, not the clever move. If the adult you ask
+        says no, that is information about timing — about this offer, this week, this
+        amount of money. It is not information about you.
+      </p>
+    </div>
+  </section>
+</Page>
+
+<style>
+  .prose {
+    max-inline-size: var(--container-measure);
+    margin-inline: auto;
+    padding: 1.75rem clamp(1.25rem, 5vw, 3rem) 0;
+  }
+
+  .prose p + p {
+    margin-block-start: 0.9em;
+  }
+
+  .lead {
+    margin-block-end: 1.25rem;
+  }
+
+  .section {
+    margin-block-start: 2.25rem;
+    font-size: var(--text-h2);
+    line-height: var(--text-h2--line-height);
+    color: var(--text-section);
+  }
+
+  .prose .section {
+    margin-block-end: 0.75rem;
+  }
+
+  .quoted,
+  .attribution {
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  /* --- The three tiers ----------------------------------------------------- */
+
+  .tiers {
+    margin-block-start: 2.5rem;
+    padding-block: 0.5rem 2rem;
+    background: var(--surface-card);
+    border-block: 1px solid var(--rule-hairline);
+  }
+
+  .tiers__inner {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .tiers__intro,
+  .tiers__note {
+    max-inline-size: var(--container-measure);
+  }
+
+  .tiers__note {
+    margin-block-start: 1.25rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .tier-list {
+    display: grid;
+    gap: 1px;
+    margin-block-start: 1.5rem;
+    padding: 0;
+    list-style: none;
+    background: var(--rule-hairline);
+    border: 1px solid var(--rule-hairline);
+  }
+
+  /* Stacked cards on a phone, three columns when there is genuinely room. The book's
+     own tables collapse the same way; the page body never scrolls sideways. */
+  @media (min-width: 52rem) {
+    .tier-list {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  .tier {
+    padding: 1rem 1.1rem;
+    background: var(--surface-page);
+    /* Weight as well as colour: on a monochrome photocopy the three tints are one grey,
+       so the left edge has to carry the distinction too. */
+    border-inline-start: 6px solid var(--tier-edge);
+  }
+
+  .tier--green {
+    --tier-edge: var(--flag-green);
+  }
+  .tier--yellow {
+    --tier-edge: var(--flag-yellow);
+  }
+  .tier--red {
+    --tier-edge: var(--flag-red);
+  }
+
+  .tier__book {
+    margin-block-start: 0.6rem;
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  .tier__practice {
+    margin-block-start: 0.5rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  /* --- The six questions --------------------------------------------------- */
+
+  .questions {
+    margin-block: 1rem;
+    padding-inline-start: 0;
+    list-style: none;
+    counter-reset: q;
+  }
+
+  .questions li {
+    position: relative;
+    padding-inline-start: 2.4rem;
+    padding-block: 0.5rem;
+    border-block-start: 1px solid var(--rule-hairline);
+    counter-increment: q;
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  .questions li::before {
+    content: counter(q);
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block-start: 0.5rem;
+    font-variant-numeric: tabular-nums slashed-zero;
+    color: var(--text-muted);
+  }
+
+  .rule-box {
+    margin-block-start: 2rem;
+  }
+
+  .rule-box__label {
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  .cta {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 44px;
+    padding: 0.7rem 1.1rem;
+    /* Orange fill, navy text. White on orange is 2.05:1 and is forbidden. */
+    background: var(--cta-fill);
+    color: var(--cta-text);
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  /* --- No adult available -------------------------------------------------- */
+
+  .no-adult {
+    margin-block-start: 3rem;
+    padding-block: 0.5rem 2rem;
+    background: var(--surface-card);
+    border-block: 1px solid var(--rule-hairline);
+  }
+
+  .no-adult__inner {
+    max-inline-size: var(--container-measure);
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .no-adult__inner p + p {
+    margin-block-start: 0.9em;
+  }
+
+  .no-adult__eyebrow {
+    margin-block-start: 1.5rem;
+    font-size: var(--text-eyebrow);
+    font-weight: 700;
+    letter-spacing: var(--text-eyebrow--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-eyebrow-colour);
+  }
+
+  .no-adult__lead {
+    font-weight: 700;
+  }
+
+  .who {
+    margin-block-start: 0.5rem;
+    padding-inline-start: 1.1rem;
+    list-style: none;
+  }
+
+  .who li {
+    position: relative;
+    margin-block-start: 0.2rem;
+  }
+
+  .who li::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: -1.1rem;
+    inset-block-start: 0.62em;
+    inline-size: 0.5rem;
+    block-size: 2px;
+    background: var(--accent-spine);
+  }
+
+  @media print {
+    .prose,
+    .tiers__inner,
+    .no-adult__inner {
+      max-inline-size: none;
+      padding-inline: 0;
+    }
+
+    .tiers,
+    .no-adult {
+      background: none;
+      border: 0;
+    }
+
+    .tier,
+    .rule-box {
+      break-inside: avoid;
+    }
+
+    .cta {
+      display: none;
+    }
+  }
+</style>

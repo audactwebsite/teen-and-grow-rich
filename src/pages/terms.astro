@@ -1,0 +1,306 @@
+---
+/**
+ * Terms (docs/decisions.md D27, D28).
+ *
+ * The load-bearing part is not ours: it is the book's own Publishing Note from printed
+ * page 2, quoted verbatim. Paraphrasing it would weaken a disclaimer whose wording has
+ * already been settled in print, and the Napoleon Hill non-affiliation sentence is the
+ * single most legally sensitive line on the site.
+ *
+ * The Publishing Note's Reality Check is rendered in full from the content collection,
+ * like every other Reality Check on this site — never collapsed, never truncated.
+ */
+import Page from "../layouts/Page.astro";
+import ChapterFurniture from "../components/ChapterFurniture.astro";
+import Box from "../components/Box.astro";
+import PageRef from "../components/PageRef.astro";
+import { allRealityChecks } from "../lib/content";
+
+const note = (await allRealityChecks()).find((c) => c.id === "publishing-note")!;
+
+/** D27: licence by content type. Safety text is no-derivatives so an altered warning
+ *  cannot legally circulate; everything a teacher needs to remix is share-alike. */
+const LICENCES = [
+  {
+    what: "Worksheets, builds, tools and templates",
+    licence: "CC BY-NC-SA 4.0",
+    means:
+      "Copy them, print them, photocopy them for a class, remix them. Credit the book, do not resell them, and keep anything you make from them just as open.",
+  },
+  {
+    what: "The 19 Reality Checks and all safety text",
+    licence: "CC BY-NC-ND 4.0",
+    means:
+      "Copy and share them freely, unchanged. No derivatives — an edited safety warning is a dangerous object, and this is how we stop one circulating with our name on it.",
+  },
+  {
+    what: "The book's stories, essays and illustrations",
+    licence: "All rights reserved",
+    means: "They are the book. They are not published here and they are not licensed.",
+  },
+];
+---
+
+<Page
+  title="Terms"
+  description="The book's own educational-content-only disclaimer, verbatim from printed page 2, plus how this site may be used, copied and printed."
+  printedPage={note.data.printedPage}
+>
+  <ChapterFurniture
+    eyebrow="Terms"
+    title="Terms"
+    subtitle="Short, because there is not much to agree to. Nothing here is locked and nothing here collects anything from you."
+  />
+
+  <section class="wrap section" aria-labelledby="publishing-note">
+    <h2 id="publishing-note">The book's Publishing Note, verbatim</h2>
+    <div class="prose">
+      <p class="meta"><PageRef page={note.data.printedPage} kind="Publishing Note" /></p>
+      <p>
+        This is reproduced exactly as it is printed in the book, and it applies to this
+        website as well.
+      </p>
+
+      <blockquote>
+        <p>
+          This is an independent, original work inspired by widely discussed success
+          principles associated with Napoleon Hill. It is not a translation or reproduction
+          of Think and Grow Rich, and it is not affiliated with, authorized by, or endorsed
+          by the Napoleon Hill Foundation.
+        </p>
+        <p>
+          The stories in this edition are fictional composites. They are designed to make
+          the principles easy to understand; they are not presented as verified case
+          studies. Examples of income, audience growth, or opportunity are not promises or
+          typical results.
+        </p>
+        <p>
+          Educational content only. This book is not medical, legal, tax, investment, or
+          financial advice. Laws, platform rules, payments, accounts, and work permissions
+          vary by country. Readers under 18 should involve a parent or guardian for
+          decisions involving money, contracts, personal data, travel, meetings, or safety.
+        </p>
+      </blockquote>
+    </div>
+
+    <Box kind="check" class="check">
+      <p>{note.data.text}</p>
+    </Box>
+
+    <div class="prose">
+      <p class="note">
+        Created in English for readers aged 13 and up. Copyright © 2026 Ryan Rijvers /
+        Bright Kids. All rights reserved. Why the site publishes an audit of Napoleon Hill
+        himself: <a href="/hill">the Napoleon Hill audit</a>.
+      </p>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="using">
+    <h2 id="using">Using this site</h2>
+    <div class="rows">
+      <div class="row">
+        <p class="row__key">It is free</p>
+        <p class="row__value">
+          Every build, Reality Check, worksheet, template and chapter tool is open on your
+          first visit. No account, no email address, no paywall, no earned unlock, no
+          progress gate. The book is the only thing you can buy.
+        </p>
+      </div>
+      <div class="row">
+        <p class="row__key">Nothing is collected</p>
+        <p class="row__value">
+          There is no form on this site that sends anything anywhere, and no account to
+          make. What you type is kept in your browser. See <a href="/privacy">privacy</a>.
+        </p>
+      </div>
+      <div class="row">
+        <p class="row__key">Nowhere to post</p>
+        <p class="row__value">
+          No comments, no forum, no profiles, no messages, no uploads. There is one
+          adult-monitored mailbox, at the bottom of every page, and it is the only inbound
+          route on the whole domain.
+        </p>
+      </div>
+      <div class="row">
+        <p class="row__key">The AI tools</p>
+        <p class="row__value">
+          <a href="/tools/scam-check">Scam Check</a> and
+          <a href="/tools/shrink">Shrink My First Step</a> are aids, not advice, and not a
+          verdict. They can be wrong. An adult is still the gate, and every warning they
+          give ends by telling you to show one.
+        </p>
+      </div>
+      <div class="row">
+        <p class="row__key">No promises about money</p>
+        <p class="row__value">
+          There are no income figures on this site and none in the book. Nothing here is a
+          prediction of what you will earn, and the fact that something worked in an
+          example is not a claim that it is typical.
+        </p>
+      </div>
+      <div class="row">
+        <p class="row__key">Under 18</p>
+        <p class="row__value">
+          Bring in a parent, guardian or another trusted adult before anything involving
+          money, contracts, personal data, travel, meetings or safety. Several builds say
+          this on their own page, in the flag at the top.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="licence">
+    <h2 id="licence">Copying, printing and teaching</h2>
+    <div class="prose">
+      <p>
+        Yes — print or photocopy any worksheet for your class, free, no permission needed.
+        The pack is free to any teacher, parent, club or youth worker, and it may not be
+        included in any paid programme.
+      </p>
+    </div>
+
+    <div class="rows">
+      {
+        LICENCES.map((l) => (
+          <div class="row">
+            <p class="row__key">{l.what}</p>
+            <div class="row__value">
+              <p class="row__licence">{l.licence}</p>
+              <p>{l.means}</p>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+
+    <p class="prose note">
+      Licence texts:
+      <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="external noreferrer">CC BY-NC-SA 4.0</a>
+      and
+      <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" rel="external noreferrer">CC BY-NC-ND 4.0</a>.
+    </p>
+  </section>
+
+  <section class="wrap section" aria-labelledby="changes">
+    <h2 id="changes">Changes and contact</h2>
+    <div class="prose">
+      <p>
+        Changes to this site are dated and listed on <a href="/updates">the changelog</a>,
+        including changes to this page. Printed page numbers refer to a specific print run;
+        which one, and how the page-number routing survives a second, is on
+        <a href="/editions">editions</a>.
+      </p>
+      <p>
+        For anything else, use the mailbox at the bottom of this page. An adult reads it,
+        nobody reads it urgently, and it is not a crisis service.
+      </p>
+    </div>
+  </section>
+</Page>
+
+<style>
+  .wrap {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .prose {
+    max-inline-size: var(--container-measure);
+  }
+
+  .prose p + p,
+  .prose blockquote {
+    margin-block-start: 0.9em;
+  }
+
+  .section {
+    margin-block-start: 3rem;
+  }
+
+  .section:first-of-type {
+    margin-block-start: 2rem;
+  }
+
+  .section > h2 {
+    font-size: var(--text-h2);
+    line-height: var(--text-h2--line-height);
+    color: var(--text-section);
+    max-inline-size: var(--container-measure);
+  }
+
+  .section > .prose {
+    margin-block-start: 0.75rem;
+  }
+
+  .meta {
+    color: var(--text-muted);
+  }
+
+  blockquote {
+    margin: 0;
+    padding-inline-start: 1rem;
+    border-inline-start: 3px solid var(--accent-spine);
+  }
+
+  blockquote p + p {
+    margin-block-start: 0.9em;
+  }
+
+  .check {
+    margin-block-start: 1.5rem;
+  }
+
+  .rows {
+    margin-block-start: 1.5rem;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .row {
+    display: grid;
+    gap: 0.25rem 2rem;
+    padding-block: 0.9rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .row__key {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .row__value {
+    max-inline-size: var(--container-measure);
+  }
+
+  .row__licence {
+    font-weight: 700;
+    color: var(--text-strong);
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+
+  @media (min-width: 40rem) {
+    .row {
+      grid-template-columns: 13rem minmax(0, 1fr);
+      align-items: baseline;
+    }
+  }
+
+  .note {
+    margin-block-start: 1.25rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  a {
+    text-decoration-color: currentColor;
+    text-underline-offset: 3px;
+  }
+
+  a:hover {
+    text-decoration-color: var(--accent-spine);
+  }
+</style>

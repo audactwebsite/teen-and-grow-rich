@@ -1,0 +1,212 @@
+---
+/**
+ * 404.
+ *
+ * The likely visitor is not a lost web browser — it is someone holding the printed book
+ * who mistyped a URL, or who followed a link from a first-run edition. So the page number
+ * comes first here too, and every route the book can point at is one tap away.
+ *
+ * No JavaScript: the form submits to /p/, which lists all 65 pages and resolves ?page=
+ * itself. Duplicating the homepage's client-side resolver here would double the routes
+ * table for a page nobody should ever reach.
+ */
+import Page from "../layouts/Page.astro";
+import ChapterFurniture from "../components/ChapterFurniture.astro";
+import { LAST_PAGE, LAST_PRINTED_PAGE } from "../lib/page-routing";
+
+const DOORS = [
+  ["/builds", "All the builds", "Every 24-Hour Build, filterable."],
+  ["/reality-check", "Reality Checks", "All of them, in full, one URL each."],
+  ["/p", "The page index", "Every printed page number and where it goes."],
+  ["/parents", "For parents and teachers", "Race Control: the traffic-light rule."],
+];
+---
+
+{/* noindex, and no canonical: an error page that advertises itself as a canonical
+    destination is an error page that can be returned as a search result. */}
+<Page
+  title="Page not found"
+  description="That address does not exist on teenandgrowrich.com. Type the book page number you are on instead."
+  noindex
+>
+  <ChapterFurniture
+    eyebrow="404"
+    title="That page does not exist"
+    subtitle="Nothing here is locked, so this is a wrong address rather than a closed door."
+  />
+
+  <div class="wrap">
+    <form class="pn" action="/p/" method="get">
+      <label class="pn__label" for="pn-input">Book page number</label>
+
+      <div class="pn__row">
+        <input
+          class="pn__input"
+          id="pn-input"
+          name="page"
+          type="text"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          maxlength="3"
+          autocomplete="off"
+          enterkeyhint="go"
+          placeholder="12"
+          aria-describedby="pn-hint"
+        />
+        <button class="pn__go" type="submit">Go</button>
+      </div>
+
+      <p class="pn__hint" id="pn-hint">
+        Pages 1–{LAST_PRINTED_PAGE}. Type {LAST_PAGE} for the chapter that is not in the
+        book.
+      </p>
+    </form>
+
+    <ul class="doors">
+      {
+        DOORS.map(([href, label, detail]) => (
+          <li>
+            <a class="door" href={href}>
+              <b>{label}</b>
+              <span>{detail}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+
+    <p class="prose fallback">
+      If a printed link brought you here, it is our mistake and not yours. The address on
+      the page is still valid — <a class="link" href="/">start from the homepage</a>.
+    </p>
+  </div>
+</Page>
+
+<style>
+  .wrap {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding: 1.75rem clamp(1.25rem, 5vw, 3rem) 0;
+  }
+
+  .prose {
+    max-inline-size: var(--container-measure);
+  }
+
+  .pn {
+    max-inline-size: 32rem;
+  }
+
+  .pn__label {
+    display: block;
+    font-size: var(--text-label);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-strong);
+  }
+
+  .pn__row {
+    display: flex;
+    align-items: stretch;
+    gap: 0.6rem;
+    margin-block-start: 0.5rem;
+  }
+
+  .pn__input {
+    inline-size: 4.5ch;
+    flex: 0 0 auto;
+    padding: 0.35rem 0.6rem;
+    font: inherit;
+    font-family: var(--font-sans);
+    font-size: 2.25rem;
+    font-weight: 700;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums slashed-zero;
+    text-align: center;
+    color: var(--text-strong);
+    background: var(--surface-card);
+    border: 2px solid var(--control-edge);
+    border-radius: 0;
+  }
+
+  .pn__input::placeholder {
+    color: var(--text-muted);
+    opacity: 1;
+  }
+
+  .pn__input:focus-visible {
+    border-color: var(--accent-spine);
+  }
+
+  .pn__go {
+    flex: 0 0 auto;
+    min-block-size: 56px;
+    padding-inline: 1.6rem;
+    font: inherit;
+    font-weight: 700;
+    font-size: 1.125rem;
+    /* Orange fill takes navy text. White on orange is 2.05:1 and is forbidden. */
+    color: var(--cta-text);
+    background: var(--cta-fill);
+    border: 2px solid var(--cta-fill);
+    cursor: pointer;
+  }
+
+  .pn__hint {
+    margin-block-start: 0.6rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .doors {
+    margin-block-start: 2.25rem;
+    padding: 0;
+    list-style: none;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .door {
+    display: grid;
+    gap: 0.15rem;
+    padding-block: 0.85rem;
+    border-block-end: 1px solid var(--rule-hairline);
+    text-decoration: none;
+  }
+
+  .door b {
+    color: var(--text-strong);
+  }
+
+  .door span {
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .door:hover b {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-color: var(--accent-spine);
+  }
+
+  @media (min-width: 46rem) {
+    .door {
+      grid-template-columns: minmax(0, 24ch) minmax(0, 1fr);
+      column-gap: 1.5rem;
+      align-items: baseline;
+    }
+  }
+
+  .fallback {
+    margin-block-start: 1.75rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .link {
+    font-weight: 700;
+    color: var(--text-strong);
+    text-underline-offset: 4px;
+    text-decoration-color: var(--accent-spine);
+  }
+</style>

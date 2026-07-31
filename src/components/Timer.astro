@@ -1,0 +1,274 @@
+---
+/**
+ * The build timer. The book's unit of work is one 24-hour build made of a short, timed
+ * first step, so the timer is the site doing the thing the book asks for.
+ *
+ * What it deliberately is not: no sound, no confetti, no "hurry", no streak, nothing
+ * that turns finishing into a score. It counts down and it stops.
+ *
+ * Reaching 00:00 records nothing. Completion is a claim about the world — did you
+ * actually make the thing — and only the reader can make it, with an explicit press.
+ * That also keeps every write inside the ePrivacy 5(3) user-gesture rule (D23).
+ */
+interface Props {
+  minutes: number;
+  buildId: string;
+  /**
+   * Renders the "Mark this build done" control inside the timer. Default true, which is
+   * the whole-page case: timer, then done.
+   *
+   * Set false where the page has something the reader must fill in between the two —
+   * a proof field, a receipt line — because the done press is a claim about the world
+   * and it has to come after the evidence, not before it. The page then owns the done
+   * control and its wiring; the timer itself keeps working either way.
+   */
+  showDone?: boolean;
+  class?: string;
+}
+
+const { minutes, buildId, showDone = true, class: className } = Astro.props;
+const initial = `${String(minutes).padStart(2, "0")}:00`;
+---
+
+<div class:list={["timer", className]} data-timer data-minutes={minutes} data-build={buildId}>
+  <p class="timer__fallback">
+    This build is meant to take {minutes} minutes. The timer on this page needs
+    JavaScript — any clock does the same job.
+  </p>
+
+  <div class="timer__js">
+    <p class="timer__display" data-timer-display>{initial}</p>
+
+    <div class="timer__track" aria-hidden="true">
+      <span class="timer__fill" data-timer-fill></span>
+    </div>
+
+    <div class="timer__controls">
+      <button type="button" class="btn" data-timer-start>Start</button>
+      <button type="button" class="btn" data-timer-reset>Reset</button>
+    </div>
+
+    <p class="timer__status" role="status" data-timer-status></p>
+
+    {
+      showDone && (
+        <Fragment>
+          <button
+            type="button"
+            class="btn btn--primary timer__done"
+            data-timer-done
+            aria-pressed="false"
+          >
+            Mark this build done
+          </button>
+
+          <p class="timer__note" data-timer-note>
+            Marking a build done is kept in this browser, never sent anywhere. Print or
+            copy your receipt to keep it for good.
+          </p>
+        </Fragment>
+      )
+    }
+  </div>
+</div>
+
+<script>
+  import { record, isDone } from "../lib/storage";
+
+  type State = "idle" | "running" | "paused" | "done";
+
+  for (const root of document.querySelectorAll<HTMLElement>("[data-timer]")) {
+    const minutes = Number(root.dataset.minutes ?? 0);
+    const buildId = root.dataset.build ?? "";
+    const totalMs = minutes * 60_000;
+
+    const display = root.querySelector<HTMLElement>("[data-timer-display]");
+    const fill = root.querySelector<HTMLElement>("[data-timer-fill]");
+    const startBtn = root.querySelector<HTMLButtonElement>("[data-timer-start]");
+    const resetBtn = root.querySelector<HTMLButtonElement>("[data-timer-reset]");
+    const doneBtn = root.querySelector<HTMLButtonElement>("[data-timer-done]");
+    const status = root.querySelector<HTMLElement>("[data-timer-status]");
+    const note = root.querySelector<HTMLElement>("[data-timer-note]");
+    // doneBtn and note are absent when the page passed showDone={false} and owns the done
+    // control itself. The clock is not allowed to stop working because of that, so they
+    // are checked where they are used rather than here.
+    if (!display || !fill || !startBtn || !resetBtn || !status) continue;
+
+    let state: State = "idle";
+    let remaining = totalMs;
+    let deadline = 0;
+    let ticker: number | undefined;
+
+    const clock = (ms: number) => {
+      const s = Math.max(0, Math.ceil(ms / 1000));
+      return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
+    };
+
+    const paint = () => {
+      display.textContent = clock(remaining);
+      // scaleX rather than width: a per-second width change relayouts the page, a
+      // transform does not.
+      fill.style.transform = `scaleX(${totalMs ? 1 - remaining / totalMs : 0})`;
+      startBtn.textContent =
+        state === "running" ? "Pause" : state === "paused" ? "Resume" : state === "done" ? "Start again" : "Start";
+    };
+
+    const stopTicking = () => {
+      if (ticker !== undefined) window.clearInterval(ticker);
+      ticker = undefined;
+    };
+
+    const tick = () => {
+      remaining = deadline - Date.now();
+      if (remaining <= 0) {
+        remaining = 0;
+        state = "done";
+        stopTicking();
+        // Neutral, not congratulatory: the minutes are over, the build may not be.
+        status.textContent = `${minutes} minutes done.`;
+      }
+      paint();
+    };
+
+    const start = () => {
+      if (state === "done") remaining = totalMs;
+      deadline = Date.now() + remaining;
+      state = "running";
+      // 250ms, and derived from a deadline rather than counted: background tabs throttle
+      // timers, so counting intervals drifts badly on a phone that locks mid-build.
+      ticker = window.setInterval(tick, 250);
+      status.textContent = "Timer running.";
+      paint();
+    };
+
+    const pause = () => {
+      remaining = deadline - Date.now();
+      state = "paused";
+      stopTicking();
+      status.textContent = `Paused at ${clock(remaining)}.`;
+      paint();
+    };
+
+    startBtn.addEventListener("click", () => (state === "running" ? pause() : start()));
+
+    resetBtn.addEventListener("click", () => {
+      stopTicking();
+      state = "idle";
+      remaining = totalMs;
+      status.textContent = "Timer reset.";
+      paint();
+    });
+
+    if (doneBtn && note) {
+      doneBtn.addEventListener("click", () => {
+        const next = doneBtn.getAttribute("aria-pressed") !== "true";
+        // Paint first, persist second (D22): storage.ts yields before touching
+        // localStorage, so the press must never wait on it.
+        doneBtn.setAttribute("aria-pressed", String(next));
+        doneBtn.textContent = next ? "Marked done — press to undo" : "Mark this build done";
+        const kept = record("build", buildId, next ? 1 : 0);
+        note.textContent = kept
+          ? "Kept in this browser, never sent anywhere. Print or copy your receipt to keep it for good."
+          : "This browser is not keeping anything, so nothing was kept here. Print or copy your receipt instead.";
+      });
+
+      if (isDone("build", buildId)) {
+        doneBtn.setAttribute("aria-pressed", "true");
+        doneBtn.textContent = "Marked done — press to undo";
+      }
+    }
+
+    // A phone that locks mid-build comes back with the wrong time on screen otherwise.
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible" && state === "running") tick();
+    });
+
+    paint();
+  }
+</script>
+
+<style>
+  .timer {
+    max-inline-size: var(--container-measure);
+  }
+
+  /* Nothing here works without scripting, so the honest fallback is the default and
+     the controls appear only once ThemeScript has proved JS ran. */
+  .timer__js {
+    display: none;
+  }
+
+  :global(:root[data-js]) .timer__js {
+    display: block;
+  }
+
+  :global(:root[data-js]) .timer__fallback {
+    display: none;
+  }
+
+  .timer__fallback {
+    color: var(--text-muted);
+  }
+
+  .timer__display {
+    font-size: clamp(3.25rem, 17vw, 4.5rem);
+    line-height: 1;
+    font-weight: 700;
+    color: var(--text-strong);
+    /* The seconds column must not shove the minutes column as digits change. */
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+
+  .timer__track {
+    margin-block-start: 0.9rem;
+    block-size: 6px;
+    background: var(--surface-raised);
+    overflow: hidden;
+  }
+
+  .timer__fill {
+    display: block;
+    block-size: 100%;
+    inline-size: 100%;
+    transform: scaleX(0);
+    transform-origin: left center;
+    background: var(--accent-spine);
+  }
+
+  .timer__controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-block-start: 1.1rem;
+  }
+
+  /* Appearance comes from the shared .btn in global.css. All this adds is the width,
+     which is a layout decision: full-bleed in the thumb zone on a phone, inline once
+     there is a mouse. */
+  .timer__done {
+    inline-size: 100%;
+    /* The status line above already reserves a blank line plus its own 0.75rem, so a full
+       1rem here stacked into a ~48px void and orphaned the primary action from the
+       controls. 0.5rem keeps the button clear of the status text once it speaks. */
+    margin-block-start: 0.5rem;
+  }
+
+  .timer__status {
+    margin-block-start: 0.75rem;
+    min-block-size: 1.45em;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .timer__note {
+    margin-block-start: 0.6rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  @media (min-width: 768px) {
+    .timer__done {
+      inline-size: auto;
+    }
+  }
+</style>

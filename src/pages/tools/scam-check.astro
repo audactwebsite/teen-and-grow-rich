@@ -1,0 +1,543 @@
+---
+/**
+ * Scam Check — AI tool 1 (docs/decisions.md D9, D10, D11).
+ *
+ * This is the SHELL. The serverless function does not exist yet, so the page's job is to
+ * degrade honestly: say what the tool does, show the input it will ask for, show the shape
+ * of the answer it will give back, and state in plain words that it is not live. The rest
+ * of the site never depends on it.
+ *
+ * There is no <form> element on purpose — not because the CSP would stop one (the shipped
+ * policy is form-action 'self', which permits a same-origin submission and exists for the
+ * page-number field on / and /404), but because the tool is not live and a control that
+ * looks live and silently does nothing is the dishonest version of this page. The input is
+ * present and disabled.
+ *
+ * The result design is fixed by D9: a flag, which specific red flags matched, the chapter
+ * and page that covers it, and one action ending in "show one adult".
+ */
+import Page from "../../layouts/Page.astro";
+import ChapterFurniture from "../../components/ChapterFurniture.astro";
+import Box from "../../components/Box.astro";
+import Flag from "../../components/Flag.astro";
+import PageRef from "../../components/PageRef.astro";
+import { allChapters, allRealityChecks } from "../../lib/content";
+import { metaFor } from "../reality-check/_checks";
+
+const chapter = (await allChapters()).find((c) => c.data.slug === "boss-decisions")!;
+const check = (await allRealityChecks()).find((c) => c.id === "boss-decisions")!;
+const checkMeta = metaFor(check.id);
+
+/* Every line here is one of the things the book's own Chapter 7 Reality Check names —
+   urgency, sending money, signing terms, sharing ID, meeting strangers, promoting
+   financial products — so the sample output cannot drift away from what the book actually
+   warns about. Nothing from the site's editorial layer belongs in this list. */
+const EXAMPLE_MATCHES = [
+  "Urgency — “today only”, “last spot”, “reply in the next hour”",
+  "Asks you to send money before anything is delivered",
+  "Asks for ID, a bank card, or a photo of a document",
+  "Asks you to sign terms, or to promote a financial product",
+];
+---
+
+<Page
+  title="Scam Check"
+  description="Paste an offer, a DM or a 'job' and have it run through the Reality Check protocol from Chapter 7 of Teen & Grow Rich. Nothing you paste is stored."
+  printedPage={check.data.printedPage}
+>
+  <ChapterFurniture
+    eyebrow={`AI tool · ${chapter.data.eyebrow.split(" / ")[0]}`}
+    title="Scam Check"
+    subtitle="Paste the offer. Get it run through the book's Reality Check protocol, with the page it comes from."
+  />
+
+  <div class="wrap">
+    <p class="status" role="note">
+      <span class="status__badge">Not live yet</span>
+      The tool has not been switched on. Everything below shows exactly what it will ask
+      for and exactly what it will give back — nothing you type here goes anywhere today.
+    </p>
+
+    <div class="prose">
+      <p class="lede">
+        Someone has offered you something. Money for a “simple task”, a brand deal, a
+        crypto tip, a modelling contract, a job that starts with buying your own equipment.
+        This tool reads it against the specific pressure tactics Chapter 7 names, and tells
+        you which ones are in the message in front of you.
+      </p>
+      <p class="meta"><PageRef page={check.data.printedPage} kind="Reality Check" /></p>
+    </div>
+  </div>
+
+  <section class="wrap section" aria-labelledby="input">
+    <h2 id="input">What it asks for</h2>
+    <div class="prose">
+      <div class="field">
+        <label class="field__label" for="offer">Paste the message, offer or DM</label>
+        <p class="field__hint" id="offer-hint">
+          <b class="field__ai">An AI model reads what you paste. Nothing is stored.</b>
+          Paste it as it arrived. Take the person's name, your name, phone numbers and
+          links out first — the tool does not need them and it works fine without them.
+        </p>
+        <textarea
+          id="offer"
+          name="offer"
+          rows="5"
+          disabled
+          aria-describedby="offer-hint offer-status"
+          placeholder="The tool is not live yet."></textarea>
+        <p class="field__status" id="offer-status">
+          Disabled until the tool is live. It is disabled rather than hidden so you can see
+          the whole thing before you decide whether you would ever use it.
+        </p>
+      </div>
+      <button type="button" class="cta" disabled>Check it — not live yet</button>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="output">
+    <h2 id="output">What it gives back</h2>
+    <div class="prose">
+      <p>
+        One answer, in four parts, every time. It is not a chat: there is one input and one
+        structured result, and there is no way to keep talking to it.
+      </p>
+    </div>
+
+    {/* A section rather than a div: an aria-label on a generic element is dropped by
+        several screen readers, and this block needs to announce itself as an example. */}
+    <section class="result" aria-label="Example of the output. Not a verdict on anything you have.">
+      <p class="result__tag">Example output — not a verdict on anything you have</p>
+
+      <div class="result__flag">
+        <Flag level="red" />
+      </div>
+
+      <h3 class="result__h">What matched</h3>
+      <ul class="result__list">{EXAMPLE_MATCHES.map((m) => <li>{m}</li>)}</ul>
+
+      <h3 class="result__h">Where the book covers this</h3>
+      <p>
+        <a href="/c/07">Chapter 7 — {chapter.data.title}</a>. <PageRef
+          page={check.data.printedPage}
+          kind="Reality Check"
+        />
+      </p>
+
+      <h3 class="result__h">Do this next</h3>
+      <p class="result__action">
+        Do not reply. Do not send money, a document, a photo of ID, or anything signed.
+        Screenshot the message, then show one adult.
+      </p>
+    </section>
+
+    <p class="prose note">
+      Every red and yellow answer ends the same way, on purpose. The tool is not the
+      decision — it is the thing you take to the person who makes it.
+    </p>
+  </section>
+
+  <section class="wrap section" aria-labelledby="check">
+    <h2 id="check">The Reality Check this runs on</h2>
+    <div class="prose">
+      <p>
+        Straight from printed page {check.data.printedPage}, in full and unedited. If the
+        tool is down, this is the tool.
+      </p>
+    </div>
+    <Box kind="check" class="check">
+      {/* Every Reality Check carries its own flag, on every surface that shows one (D12). */}
+      {checkMeta && (
+        <p class="check__flag">
+          <Flag level={checkMeta.flag} size="sm" />
+        </p>
+      )}
+      <p>{check.data.text}</p>
+    </Box>
+  </section>
+
+  {/* The refusal path has to have a destination that exists whether or not the function
+      is ever switched on. Every route below is one the book's own Reality Check for
+      threats, sexual messages and blackmail already names.
+
+      There is deliberately NO helpline number or finder link here yet. Inventing one for a
+      13-year-old in a bad hour is worse than admitting the gap, so the gap is stated in
+      the block below and the routes that do exist are given plainly. See docs/for-ryan.md
+      §7 — a verified international finder plus a Dutch one, checked by someone who does
+      safeguarding professionally, is pre-launch work. */}
+  <section class="wrap section" aria-labelledby="help">
+    <h2 id="help">If it is worse than a scam</h2>
+    <div class="prose">
+      <p>
+        Threats, sexual messages, someone asking you to keep a friendship secret, or
+        someone threatening to share something about you: that is not a scam-detection
+        problem, and no tool on this page is the right answer to it.
+      </p>
+
+      <div class="pending" aria-labelledby="helpline-h">
+        <p class="pending__label" id="helpline-h">Helpline finder — not in place yet</p>
+        <p class="pending__note">
+          This site does not yet list a helpline you can call or message. One verified
+          finder — international, plus one for the Netherlands — is being checked with
+          someone who does safeguarding professionally, and it will be added here before
+          this site goes live. Making one up in the meantime would be the worse mistake, so
+          the routes below are the ones this page can stand behind today. Nothing here is a
+          crisis service, including the mailbox in the footer: nobody reads that urgently.
+        </p>
+      </div>
+
+      <ul class="help">
+        <li>
+          Tell one adult today — a parent or guardian, a teacher, or your school's
+          safeguarding lead. If the first adult does not act, tell a second one.
+        </li>
+        <li>
+          The police, or your local emergency number, if you have been threatened or you
+          are frightened for your safety.
+        </li>
+        <li>
+          Report the account through the platform's own report function, as well as —
+          never instead of — a person.
+        </li>
+        <li>
+          <a href="/reality-check/mindful-tech">
+            What to do about threats, sexual messages or blackmail
+          </a>, in full. It does not need this tool to be running.
+        </li>
+      </ul>
+      <p class="note">
+        Do not reply, do not pay, and do not delete the evidence. Nothing you did makes
+        this your fault, including anything you sent. You do not have to work out what
+        happened before you tell someone, and you are not in trouble for saying it out
+        loud.
+      </p>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="ai">
+    <h2 id="ai">About the AI, plainly</h2>
+    <div class="rows">
+      <div class="row">
+        <p class="row__key">It is AI</p>
+        <p class="row__value">
+          What you paste is read by an AI model. That model can be wrong, and it can be
+          confidently wrong. Treat the answer as a second opinion, never as the verdict.
+        </p>
+      </div>
+      <div class="row">
+        <p class="row__key">Nothing is stored</p>
+        <p class="row__value">
+          Not what you paste, not the answer, and not a log of either. It is sent, answered
+          and dropped. There is no account here and nowhere for it to be kept.
+        </p>
+      </div>
+      <div class="row">
+        <p class="row__key">It is not a chat</p>
+        <p class="row__value">
+          One input, one answer. It cannot be talked into doing something else, it never
+          writes in Ryan's voice, and it never generates content from the book.
+        </p>
+      </div>
+      <div class="row">
+        <p class="row__key">Some things it will not answer</p>
+        <p class="row__value">
+          If a message involves self-harm, abuse, grooming or blackmail, the tool stops
+          checking and gives one fixed response instead: tell a trusted adult today, and
+          the routes set out under <a href="#help">If it is worse than a scam</a> above.
+          Those situations are not a scam-detection problem and it will not pretend
+          otherwise.
+        </p>
+      </div>
+      <div class="row">
+        <p class="row__key">If it is down</p>
+        <p class="row__value">
+          Nothing else on this site stops working. Read the Reality Check above, then run{" "}
+          <a href="/c/07">Chapter 7's Play</a> by hand — it is five steps and it is the
+          same method the tool automates.
+        </p>
+      </div>
+    </div>
+  </section>
+</Page>
+
+<style>
+  .wrap {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .prose {
+    max-inline-size: var(--container-measure);
+  }
+
+  .prose p + p {
+    margin-block-start: 0.9em;
+  }
+
+  .status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem 0.75rem;
+    max-inline-size: var(--container-measure);
+    margin-block-start: 1.75rem;
+    padding: 0.85rem 1rem;
+    font-size: var(--text-meta);
+    color: var(--text-default);
+    background: var(--surface-card);
+    /* 3px, not 6px: 6px solid orange is the Your 24-Hour Build signature (design-system
+       §3) and this is a page-status note, not a box from the book. The hairline gives it
+       an edge in light mode, where --surface-card is the page white. */
+    border: 1px solid var(--rule-hairline);
+    border-inline-start: 3px solid var(--accent-dot);
+  }
+
+  .status__badge {
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-strong);
+  }
+
+  .lede {
+    margin-block-start: 1.5rem;
+    font-size: var(--text-subtitle);
+    line-height: var(--text-subtitle--line-height);
+    color: var(--text-strong);
+  }
+
+  .meta {
+    margin-block-start: 0.9rem;
+  }
+
+  .section {
+    margin-block-start: 3rem;
+  }
+
+  .section > h2 {
+    font-size: var(--text-h2);
+    line-height: var(--text-h2--line-height);
+    color: var(--text-section);
+    max-inline-size: var(--container-measure);
+  }
+
+  .field {
+    margin-block-start: 1.25rem;
+  }
+
+  .field__label {
+    display: block;
+    font-size: var(--text-label);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-strong);
+  }
+
+  .field__hint,
+  .field__status {
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .field__hint {
+    margin-block: 0.35rem 0.6rem;
+  }
+
+  textarea {
+    inline-size: 100%;
+    padding: 0.75rem;
+    font: inherit;
+    font-size: var(--text-body);
+    color: var(--text-default);
+    background: var(--surface-card);
+    border: 1px solid var(--control-edge);
+    border-radius: 0;
+  }
+
+  textarea:disabled {
+    /* Still legible, so a disabled control is readable rather than a grey smear. */
+    opacity: 1;
+    color: var(--text-muted);
+    border-style: dashed;
+  }
+
+  .field__status {
+    margin-block-start: 0.5rem;
+  }
+
+  .cta {
+    margin-block-start: 1.25rem;
+    padding: 0.8rem 1.2rem;
+    font: inherit;
+    font-weight: 700;
+    /* Orange fill takes navy text. White on orange is 2.05:1 and is forbidden. */
+    color: var(--cta-text);
+    background: var(--cta-fill);
+    border: none;
+  }
+
+  .cta:disabled {
+    color: var(--text-muted);
+    background: transparent;
+    border: 1px dashed var(--rule-hairline);
+  }
+
+  .result {
+    max-inline-size: var(--container-measure);
+    margin-block-start: 1.5rem;
+    padding: 1rem 1.1rem;
+    background: var(--surface-card);
+    /* Not --rule-hairline: in light mode --surface-card is the page white, so the border
+       is the only thing saying "this is a specimen, not your verdict". A decorative
+       hairline at ~1.3:1 cannot carry that. */
+    border: 1px solid var(--control-edge);
+  }
+
+  .result__tag {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .result__flag {
+    margin-block-start: 0.75rem;
+  }
+
+  .result__h {
+    margin-block-start: 1.25rem;
+    font-size: var(--text-label);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-strong);
+  }
+
+  .result__list {
+    margin-block-start: 0.5rem;
+    padding: 0;
+    list-style: none;
+    /* Bracketed top and bottom, the same as .steps on /tools/shrink. */
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .result__list li {
+    padding-block: 0.45rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .result__h + p {
+    margin-block-start: 0.5rem;
+  }
+
+  .result__action {
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  .check {
+    margin-block-start: 1.25rem;
+  }
+
+  .check__flag {
+    margin-block-end: 0.6rem;
+  }
+
+  .field__ai {
+    display: block;
+    color: var(--text-strong);
+  }
+
+  /* Dashed, the same shape /get uses for a thing that is genuinely not built yet. A solid
+     card would read as an answer; this has to read as a missing one. */
+  .pending {
+    margin-block-start: 1.1rem;
+    padding: 0.9rem 1rem;
+    background: var(--surface-card);
+    border: 1px dashed var(--rule-hairline);
+  }
+
+  .pending__label {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-strong);
+  }
+
+  .pending__note {
+    margin-block-start: 0.35rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .help {
+    margin-block-start: 0.9rem;
+    padding-inline-start: 1.1rem;
+    list-style: none;
+  }
+
+  .help li {
+    position: relative;
+    margin-block-start: 0.45rem;
+  }
+
+  .help li::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: -1.1rem;
+    inset-block-start: 0.62em;
+    inline-size: 0.5rem;
+    block-size: 2px;
+    background: var(--accent-spine);
+  }
+
+  .rows {
+    margin-block-start: 1.5rem;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .row {
+    display: grid;
+    gap: 0.2rem 2rem;
+    padding-block: 0.9rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .row__key {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .row__value {
+    max-inline-size: var(--container-measure);
+  }
+
+  @media (min-width: 40rem) {
+    .row {
+      grid-template-columns: 12rem minmax(0, 1fr);
+      align-items: baseline;
+    }
+  }
+
+  .note {
+    margin-block-start: 1rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  a {
+    text-decoration-color: currentColor;
+    text-underline-offset: 3px;
+  }
+
+  a:hover {
+    text-decoration-color: var(--accent-spine);
+  }
+</style>

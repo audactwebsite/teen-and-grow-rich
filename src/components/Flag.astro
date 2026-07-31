@@ -1,0 +1,135 @@
+---
+/**
+ * The primary UI atom (D12). Green / yellow / red is simultaneously the book's family
+ * approval system and race control — the author's actual world.
+ *
+ * The label is always rendered as text, never implied by colour, for three separate
+ * reasons that each make it mandatory: WCAG 1.4.1; a monochrome photocopier, which is
+ * how a teacher will reproduce a worksheet and which renders all three tints as the
+ * same grey; and a reader who has not yet learned the code.
+ *
+ * There is no fourth level and there is no chequered flag — chequered means the session
+ * is over, which is the wrong idea for a 90-day path.
+ */
+export type FlagLevel = "green" | "yellow" | "red";
+
+interface Props {
+  level: FlagLevel;
+  /** Overrides the default. Keep it short and keep it meaningful — never just a colour. */
+  label?: string;
+  size?: "sm" | "md";
+  class?: string;
+}
+
+/* Defaults state the rule rather than naming the colour, because the colour name is
+   exactly the part a reader may not be able to see. */
+const MEANING: Record<FlagLevel, string> = {
+  green: "Green · go",
+  yellow: "Yellow · check in with an adult first",
+  red: "Red · an adult must be involved",
+};
+
+const { level, label, size = "md", class: className } = Astro.props;
+const text = label ?? MEANING[level];
+---
+
+<span class:list={["flag", `flag--${level}`, `flag--${size}`, className]}>
+  <svg class="flag__mark" viewBox="0 0 16 14" aria-hidden="true" focusable="false">
+    <rect class="flag__pole" x="0" y="0" width="1.5" height="14" rx="0.4"></rect>
+    <rect class="flag__cloth" x="1.5" y="0.6" width="13.4" height="9" rx="0.4"></rect>
+  </svg>
+  <span class="flag__label">{text}</span>
+</span>
+
+<style>
+  .flag {
+    /* Race red splits by role so both halves clear AA (spec §3). Kept local rather than
+       in global.css: these two values exist only for the flag, and putting them in the
+       semantic layer would invite their use as general-purpose reds. */
+    --flag-red-bar: #ff4438;
+    --flag-red-text: #ff6a5e;
+
+    /* A hairline round the cloth so the mark is still a shape when the fill has no
+       contrast — orange on the white light-mode page is 2.05:1 and would otherwise
+       disappear for a low-vision reader and on a photocopy. */
+    --flag-mark-edge: color-mix(in oklab, var(--text-strong) 55%, transparent);
+
+    display: inline-flex;
+    /* Top, not centre. At 390px "Yellow · check in with an adult first" wraps to two lines
+       inside every box, and centring floated the mark into the gutter between them instead
+       of sitting on the line it labels. The mark's own margin below restores the optical
+       centring on line one, so a single-line flag is unchanged. */
+    align-items: flex-start;
+    gap: 0.45em;
+    font-weight: 700;
+    line-height: 1.3;
+    /* A flag next to running text must not stretch the line box it sits in. */
+    vertical-align: baseline;
+  }
+
+  .flag--sm {
+    font-size: var(--text-meta);
+  }
+  .flag--md {
+    font-size: var(--text-label);
+    letter-spacing: var(--text-label--letter-spacing);
+  }
+
+  .flag__mark {
+    flex: none;
+    inline-size: 1.15em;
+    block-size: 1em;
+    /* (line-height 1.3em − mark 1em) / 2 — centres the mark on the first line only. */
+    margin-block-start: 0.15em;
+    print-color-adjust: exact;
+  }
+
+  .flag__pole {
+    fill: var(--text-muted);
+  }
+
+  .flag__cloth {
+    fill: var(--flag-bar);
+    stroke: var(--flag-mark-edge);
+    stroke-width: 0.7;
+  }
+
+  .flag__label {
+    color: var(--flag-text);
+  }
+
+  .flag--green {
+    --flag-bar: var(--flag-green);
+    --flag-text: var(--flag-green);
+  }
+  .flag--yellow {
+    --flag-bar: var(--flag-yellow);
+    --flag-text: var(--flag-yellow);
+  }
+  .flag--red {
+    --flag-bar: var(--flag-red-bar);
+    --flag-text: var(--flag-red-text);
+  }
+
+  /* Light mode is the book page: teal-bright and orange are bars, borders and fills
+     only — they never carry text there. */
+  :global(:root[data-theme="light"]) .flag--yellow {
+    --flag-text: var(--text-strong);
+  }
+  :global(:root[data-theme="light"]) .flag--red {
+    /* The label is 15px bold — under the 18.66px large-text threshold, so the floor is
+       4.5:1, and it has to hold on every surface a red flag actually lands on, not just
+       white. --color-tgr-red (#D1344B) is 4.34:1 on --tgr-tint-blue, which is the
+       Reality Check box on every chapter page, and 4.44:1 on --tgr-tint-mint. This value
+       clears all four: white 5.86, tint-blue 5.21, tint-mint 5.33, tint-cream 5.47.
+       Only the text moves; --flag-red-bar still paints the cloth. */
+    --flag-text: #bd2b40;
+  }
+
+  @media print {
+    /* Print is always the book page, and #ff6a5e on white is 2.5:1. */
+    .flag__label {
+      color: #10233a;
+    }
+  }
+</style>

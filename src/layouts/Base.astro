@@ -1,0 +1,86 @@
+---
+import { Font } from "astro:assets";
+import ThemeScript from "../components/ThemeScript.astro";
+import { SPECULATION_RULES } from "../lib/inline-scripts.mjs";
+import "../styles/global.css";
+
+interface Props {
+  title: string;
+  description: string;
+  /** Printed page in the book this page corresponds to, if any. */
+  printedPage?: number;
+  /** "article" for Reality Checks and chapter pages; "website" elsewhere. */
+  ogType?: "website" | "article";
+  /** Keep an error page out of the index, and stop it advertising a canonical. */
+  noindex?: boolean;
+}
+
+const { title, description, printedPage, ogType = "website", noindex = false } = Astro.props;
+const fullTitle = title === "Teen & Grow Rich" ? title : `${title} — Teen & Grow Rich`;
+
+/* Strip any index.html and normalise to a single canonical form, so the same page is
+   never advertised under two URLs. */
+const canonicalPath = Astro.url.pathname.replace(/index\.html$/, "").replace(/\/+$/, "") || "/";
+const canonical = new URL(canonicalPath, Astro.site);
+
+/* The sharing path here is real and specific: a teen sends a Reality Check to a parent,
+   or a teacher pastes /schools/privacy into a staff chat. Without these every one of
+   those unfurls as a bare URL. Self-hosted, because a share card fetched from someone
+   else's CDN would falsify the "no third-party requests" claim on /schools/privacy. */
+const ogImage = new URL("/og-default.jpg", Astro.site);
+---
+
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    {/* Before the stylesheet, so the theme is settled before anything can paint. */}
+    <ThemeScript />
+
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    {!noindex && <link rel="canonical" href={canonical} />}
+    {noindex && <meta name="robots" content="noindex, follow" />}
+
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content="Teen & Grow Rich" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content="en" />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="The cover of Teen & Grow Rich by Ryan Rijvers, on a dark blue field."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    {/* Every page was 404ing on /favicon.ico. SVG so one file covers every density. */}
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+
+    <Font cssVariable="--font-noto-sans" preload />
+    <Font cssVariable="--font-noto-display" />
+
+    {printedPage && <meta name="tgr:printed-page" content={String(printedPage)} />}
+
+    {/* Prerender the pages a reader is most likely to open next. Zero routing JS:
+        native cross-document view transitions do the animation (see global.css). */}
+    {/* set:html, not an interpolated child. Astro treats a <script> carrying an
+        attribute as inline and does not evaluate an expression inside it, so the block
+        shipped empty and every page logged "While parsing speculation rules: Syntax
+        error" — prerendering was dead site-wide. The rules and their CSP hash come from
+        one module so the two cannot drift; see src/lib/inline-scripts.mjs. */}
+    <script type="speculationrules" is:inline set:html={SPECULATION_RULES} />
+  </head>
+
+  <body>
+    <slot />
+  </body>
+</html>

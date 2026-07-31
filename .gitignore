@@ -1,0 +1,47 @@
+# --- The book itself. Never commit these. --------------------------------------
+# The repository is public. 04_..._Full_Book_Digital_Mobile.pdf is the complete
+# 64-page book; putting it here would publish for free the one thing the whole
+# project treats as scarce (CLAUDE.md, non-negotiable 7). The other three are the
+# print-ready covers and interior — supplier files, not web files.
+#
+# tools/extract_book_content.py reads these to generate src/content/**. That
+# generated content IS committed, so the site builds from a fresh clone. Only
+# re-running the extraction needs the PDFs, and that is a job for this machine.
+/*.pdf
+
+# --- Camera originals -----------------------------------------------------------
+# ~40MB of unprocessed shoots, most of them a 13-year-old. The six photographs the
+# site actually uses are curated, cropped and re-encoded in src/assets/photos/, and
+# Astro's image pipeline strips EXIF on the way out. The originals do not: the
+# Zolder frame still carries GPS coordinates and a timestamp. Publishing raw
+# originals of a minor is exactly what CLAUDE.md rules out.
+/IMG_*.jpg
+/IMG_*.jpeg
+/image000*.jpeg
+/era-round-*.jpg
+/Ontwerp zonder titel*.png
+/judge-*.jpeg
+
+# --- Working material -----------------------------------------------------------
+# 36MB of review screenshots and design explorations. Useful while building, noise
+# in a repository someone clones to run the site.
+/design/
+
+# --- Build output and tooling ---------------------------------------------------
+node_modules/
+dist/
+.astro/
+.playwright-mcp/
+.vercel/
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
+
+# Local agent scratch, not project config (.claude/settings.json and
+# .claude/skills/ are committed on purpose — they are how this repo is worked on).
+.claude/scheduled_tasks.lock
+.og-tmp.html

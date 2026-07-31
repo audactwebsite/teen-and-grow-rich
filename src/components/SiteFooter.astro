@@ -1,0 +1,167 @@
+---
+/**
+ * The footer carries the one piece of copy on this site that is legally load-bearing:
+ * the Napoleon Hill non-affiliation line, verbatim from the book's Publishing Note
+ * (printed page 2). It is quoted, not paraphrased, and it appears on every page —
+ * D26 requires the Hill audit to be linked from every chapter page, and the cheapest
+ * way to guarantee that is to put it here.
+ *
+ * One contact route, one adult-monitored mailbox, no form (D28-1). A form would be a
+ * way for a 13-year-old to send us personal data, which is the thing this site exists
+ * not to do.
+ */
+const YEAR = new Date().getFullYear();
+
+const LINKS = [
+  /* The Reality Check library is the book's safety layer and had no persistent route
+     anywhere in the chrome — not the header, not the bottom nav, not here. A reader who
+     lands on a chapter page from the printed book must always have one link to the place
+     where "who to talk to" and the no-adult path live. */
+  { href: "/reality-check", label: "All 19 Reality Checks" },
+  { href: "/hill", label: "The Napoleon Hill audit" },
+  /* /proof is where every claim about Ryan is sourced and /get is the honest account of
+     what the book contains; both were reachable only from the homepage, which is the one
+     page a reader arriving mid-site never sees. */
+  { href: "/proof", label: "Ryan's record" },
+  { href: "/get", label: "Get the book" },
+  /* /editions is how anyone checks which printed run their page numbers belong to, and
+     therefore which listings are genuine. It was linked only from /terms and /updates —
+     two pages nobody reads before they need it. */
+  { href: "/editions", label: "Editions" },
+  { href: "/parents", label: "For parents" },
+  { href: "/schools/privacy", label: "For schools: privacy" },
+  { href: "/privacy", label: "Privacy" },
+  { href: "/terms", label: "Terms" },
+  { href: "/updates", label: "Updates" },
+];
+
+/* PLACEHOLDER — the real adult-monitored address is still open in docs/decisions.md. */
+const CONTACT = "hello@teenandgrowrich.com";
+---
+
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <nav aria-label="Site information">
+      <ul class="site-footer__links">
+        {
+          LINKS.map((l) => (
+            <li>
+              <a href={l.href} data-tap>
+                {l.label}
+              </a>
+            </li>
+          ))
+        }
+        <li><a href={`mailto:${CONTACT}`} data-tap>{CONTACT}</a></li>
+      </ul>
+    </nav>
+
+    <p class="site-footer__contact-note">
+      One adult-monitored mailbox. Nobody reads it urgently, and it is not a crisis
+      service.
+    </p>
+
+    <p class="site-footer__disclaimer">
+      This is an independent, original work inspired by widely discussed success
+      principles associated with Napoleon Hill. It is not a translation or reproduction
+      of Think and Grow Rich, and it is not affiliated with, authorized by, or endorsed
+      by the Napoleon Hill Foundation.
+    </p>
+
+    <p class="site-footer__meta">
+      Teen &amp; Grow Rich by Ryan Rijvers · Bright Kids · &copy; {YEAR}
+    </p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    margin-block-start: 4rem;
+    border-block-start: 1px solid var(--rule-hairline);
+    background: var(--surface-card);
+  }
+
+  .site-footer__inner {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    /* The extra bottom padding clears the fixed thumb-zone nav, which would otherwise
+       sit on top of the last lines of the footer on a phone. */
+    padding: 2rem clamp(1.25rem, 5vw, 3rem) calc(5rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  @media (min-width: 768px) {
+    .site-footer__inner {
+      padding-block-end: 2.5rem;
+    }
+  }
+
+  .site-footer__links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .site-footer__links a {
+    display: inline-flex;
+    align-items: center;
+    font-size: var(--text-meta);
+    font-weight: 700;
+    color: var(--text-default);
+    text-decoration-color: var(--rule-hairline);
+    text-underline-offset: 3px;
+  }
+
+  .site-footer__links a:hover {
+    text-decoration-color: var(--accent-spine);
+  }
+
+  .site-footer__contact-note,
+  .site-footer__disclaimer,
+  .site-footer__meta {
+    max-inline-size: var(--container-measure);
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .site-footer__contact-note {
+    margin-block-start: 1rem;
+  }
+
+  .site-footer__disclaimer {
+    margin-block-start: 1.5rem;
+    padding-block-start: 1.25rem;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .site-footer__meta {
+    margin-block-start: 1.25rem;
+  }
+
+  @media print {
+    /* The Napoleon Hill line is the one piece of site chrome that has to survive a print.
+       Several sheets exist specifically to be printed and handed to an adult, and a sheet
+       carrying book-derived material with the non-affiliation line stripped off it is
+       precisely the failure that line is there to prevent. global.css un-hides the footer
+       and this one paragraph; everything else in here stays gone, so what remains is
+       trimmed down to a rule and a paragraph rather than a footer. */
+    .site-footer {
+      margin-block-start: 1.5rem;
+      background: none;
+      border-block-start: 0;
+    }
+
+    .site-footer__inner {
+      max-inline-size: none;
+      padding: 0;
+    }
+
+    .site-footer__disclaimer {
+      margin-block-start: 0;
+      font-size: 8.5pt;
+      break-inside: avoid;
+    }
+  }
+</style>
