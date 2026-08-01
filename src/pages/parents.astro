@@ -19,6 +19,7 @@ import Flag from "../components/Flag.astro";
 import PageRef from "../components/PageRef.astro";
 import { allRealityChecks } from "../lib/content";
 import { WHO_COUNTS, FAMILY_RULE } from "./reality-check/_checks";
+import { FLAG_RULE_PAGE } from "../lib/build-meta";
 
 const checks = await allRealityChecks();
 
@@ -195,6 +196,88 @@ const QUESTIONS = [
         And going around the gate is the failure, not the clever move. If the adult you ask
         says no, that is information about timing — about this offer, this week, this
         amount of money. It is not information about you.
+      </p>
+    </div>
+  </section>
+
+  {/* The family agreement, as a thing you can actually put on the fridge.
+
+      The book asks a family to agree the rule once, up front, rather than negotiate it at
+      the moment something is already happening — which is when nobody negotiates well. The
+      site described that and never gave anyone the sheet.
+
+      Deliberately not a form and not stored anywhere: it is printed and filled in with a
+      pen, by two people, in the same room. That is the whole mechanism. Anything that
+      collected these answers would be collecting family arrangements about a minor, which
+      is exactly what this site exists not to hold. */}
+  <section class="agreement" aria-labelledby="agreement-h">
+    <h2 id="agreement-h" class="section">The agreement, on one sheet</h2>
+
+    <div class="prose" data-print="hide">
+      <p>
+        Worth doing before anything is at stake rather than in the middle of it. Print this,
+        fill it in together, and put it where you will both see it. It takes about ten
+        minutes and it settles the arguments you would otherwise have one at a time.
+      </p>
+      <p>
+        Nothing here is stored, sent or read by us — there is no form on this page. It is a
+        sheet of paper, and that is the point of it.
+      </p>
+      <p>
+        <button type="button" class="btn btn--primary js" data-print-btn>Print the agreement</button>
+        <span class="agreement__nojs">Use your browser's print command — File, then Print.</span>
+      </p>
+    </div>
+
+    <div class="sheet">
+      <p class="sheet__title">Our agreement</p>
+      <p class="sheet__sub">
+        Between <span class="sheet__rule"></span> and <span class="sheet__rule"></span>,
+        dated <span class="sheet__rule sheet__rule--short"></span>
+      </p>
+
+      <ol class="sheet__terms">
+        <li>
+          <b>Green is yours.</b> Low-cost, reversible things — writing, making, practising,
+          a first version nobody sees — need nobody's permission and no announcement.
+        </li>
+        <li>
+          <b>Yellow gets said out loud first.</b> Posting publicly, spending a little,
+          talking to someone new. A conversation before, not a report after.
+          <span class="sheet__fill">We will check in by: <span class="sheet__rule"></span></span>
+        </li>
+        <li>
+          <b>Red happens together.</b> Contracts, money moving, identity documents,
+          travelling, meeting anyone in person. The adult is on the account and on the
+          signature.
+        </li>
+        <li>
+          <b>No secrecy around money, meetings, identity documents, or pressure.</b> A
+          legitimate opportunity can survive an adult review and a night of sleep.
+        </li>
+        <li>
+          <b>Bringing something worrying is never punished.</b> Not the message, not the
+          mistake, not the money already sent. The only thing that makes any of those worse
+          is finding out late.
+          <span class="sheet__fill">The adult I will tell first: <span class="sheet__rule"></span></span>
+        </li>
+        <li>
+          <b>We look at the evidence, not the mood.</b> The question is what exists now that
+          did not exist last week — not how motivated anyone feels about it.
+        </li>
+        <li class="sheet__own">
+          <b>One rule we are adding ourselves:</b>
+          <span class="sheet__rule sheet__rule--wide"></span>
+        </li>
+      </ol>
+
+      <p class="sheet__sign">
+        Signed <span class="sheet__rule"></span> and <span class="sheet__rule"></span>
+      </p>
+
+      <p class="sheet__foot">
+        The green/yellow/red rule is printed in Teen &amp; Grow Rich, book page {FLAG_RULE_PAGE}.
+        Everything else on this sheet is this site putting it into practice.
       </p>
     </div>
   </section>
@@ -429,6 +512,133 @@ const QUESTIONS = [
 
     .cta {
       display: none;
+    }
+  }
+
+  /* --- The printable agreement ---------------------------------------------------- */
+
+  .agreement {
+    max-inline-size: 72rem;
+    margin: 3rem auto 0;
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .agreement .prose {
+    max-inline-size: var(--container-measure);
+    margin-block-start: 0.75rem;
+  }
+
+  .agreement .prose p + p {
+    margin-block-start: 0.9em;
+  }
+
+  :global(html:not([data-js])) .agreement__nojs {
+    display: inline;
+  }
+
+  :global(html[data-js]) .agreement__nojs {
+    display: none;
+  }
+
+  .agreement__nojs {
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .sheet {
+    max-inline-size: var(--container-measure);
+    margin-block-start: 1.5rem;
+    padding: 1.25rem;
+    background: var(--surface-card);
+    border: 1px solid var(--rule-hairline);
+  }
+
+  .sheet__title {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 6vw, 2rem);
+    line-height: 1.1;
+    color: var(--text-strong);
+  }
+
+  .sheet__sub,
+  .sheet__sign {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem 0.6rem;
+    margin-block-start: 0.6rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .sheet__sign {
+    margin-block-start: 1.5rem;
+  }
+
+  .sheet__rule {
+    flex: 1 1 7rem;
+    min-inline-size: 5rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .sheet__rule--short {
+    flex-basis: 4rem;
+  }
+
+  .sheet__rule--wide {
+    display: block;
+    margin-block-start: 0.6rem;
+    block-size: 1.4rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .sheet__terms {
+    margin-block-start: 1.25rem;
+    padding-inline-start: 1.2rem;
+  }
+
+  .sheet__terms li + li {
+    margin-block-start: 0.7rem;
+  }
+
+  .sheet__terms b {
+    color: var(--text-strong);
+  }
+
+  .sheet__fill {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem;
+    margin-block-start: 0.4rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .sheet__foot {
+    margin-block-start: 1.25rem;
+    padding-block-start: 0.8rem;
+    border-block-start: 1px solid var(--rule-hairline);
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  @media print {
+    /* The sheet carries its own title. The section heading above it is navigation for
+       someone reading the page, and on paper it just says the same thing twice. */
+    #agreement-h {
+      display: none;
+    }
+
+    .sheet {
+      background: none;
+      border: 0;
+      padding: 0;
+      break-before: page;
+    }
+
+    .sheet__terms li {
+      break-inside: avoid;
     }
   }
 </style>

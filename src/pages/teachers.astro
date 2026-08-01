@@ -1,0 +1,353 @@
+---
+/**
+ * For teachers, youth workers and librarians.
+ *
+ * Three reviews asked for a school route and they were right: /parents is written for a
+ * parent, /schools/privacy is written for an IT reviewer, and a teacher opening this site
+ * for the first time had to work out which of the two was nearer. Neither answers the
+ * question a teacher actually has, which is "can I photocopy this on Monday and what do I
+ * need to check first".
+ *
+ * What this page does NOT do: invent a poster format. A single Reality Check prints at 1.8
+ * A4 pages, because the print rules keep the whole check and the non-affiliation line, and
+ * squeezing it onto one sheet would mean cutting safety text to fit a layout. So the print
+ * routes named here are the ones that exist and are measured, not aspirational ones.
+ *
+ * The licence split is the real story for this audience and it already exists in /terms:
+ * everything is copyable, but the nineteen Reality Checks are the one thing that may not be
+ * edited. A safety warning with a teacher's edits and Ryan's name on it is the only object
+ * this project can produce that could genuinely hurt somebody.
+ */
+import Page from "../layouts/Page.astro";
+import ChapterFurniture from "../components/ChapterFurniture.astro";
+import Box from "../components/Box.astro";
+import { totals } from "../lib/content";
+import { FLAG_RULE_PAGE } from "../lib/build-meta";
+
+const t = await totals();
+
+/** Print routes that exist today. Each one was opened in print emulation and measured. */
+const PRINTABLE = [
+  {
+    href: "/reality-check",
+    label: "All 19 Reality Checks",
+    note: "One page, every check in full, grouped by the risk it is about. The longest print here — check your page count before you send it to a shared printer.",
+  },
+  {
+    href: "/race-control",
+    label: "The traffic-light rule",
+    note: "Green, yellow, red, with examples and the three questions. Three colours become three edge weights and three edge styles on paper, so it still works in black and white.",
+  },
+  {
+    href: "/receipts",
+    label: "The folder index",
+    note: "A blank cover sheet for the REAL RICH RECEIPTS folder: 19 builds, 4 worksheets, 2 plans, a box and a line each. Prints the same whether or not the browser holds anything.",
+  },
+  {
+    href: "/worksheet/starting-point",
+    label: "Your Starting Point",
+    note: "Seven fields. Prints blank and fills in by hand — no device needed at all.",
+  },
+  {
+    href: "/worksheet/first-offer-canvas",
+    label: "Your First Offer Canvas",
+    note: "The one that turns a skill into something a real person could actually buy.",
+  },
+  {
+    href: "/path/ninety-day",
+    label: "The 90-day path",
+    note: "Thirteen dated actions in three phases, three of them flagged red.",
+  },
+  {
+    href: "/path/tiny-launch",
+    label: "The 30-Day Tiny Launch",
+    note: "Twenty-one day-tasks across four weeks.",
+  },
+];
+
+/** What a teacher has to know before Monday, in the order it matters. */
+const BEFORE = [
+  {
+    q: "Do students need an account?",
+    a: "No. There is no account, no login, no email field and nowhere on this site to type a name. A class can use all of it without anyone signing up for anything.",
+  },
+  {
+    q: "What does it collect?",
+    a: "Nothing. No analytics, no cookies, no third-party requests, no server-side storage. Progress is kept in the browser on that device and never sent anywhere. Open developer tools, reload, and check the network tab — it takes about two minutes.",
+  },
+  {
+    q: "What happens on a shared school laptop?",
+    a: "Whatever a student ticks or writes is cleared when the device signs them out. That is why every worksheet prints and every page has a copy-as-text route: the paper is the record, and the site says so to students rather than pretending otherwise.",
+  },
+  {
+    q: "Can I photocopy it?",
+    a: "Yes, and you do not need to ask. See the licences below — the only restriction is that the Reality Checks may be copied but not altered.",
+  },
+  {
+    q: "Is anything blocked behind a purchase?",
+    a: "No. Every build, every Reality Check, every worksheet and both plans are free on a first visit. The book has the fifteen stories and the essays; the site has the tools. Nothing here is a sample of something.",
+  },
+];
+---
+
+<Page
+  title="For teachers"
+  description="Teen & Grow Rich for a classroom: what prints, what you may photocopy, what the site collects (nothing), and what to check before you use it with a class."
+>
+  <ChapterFurniture
+    eyebrow="For teachers, youth workers and librarians"
+    title="Using this with a class"
+    subtitle="What prints, what you may copy, and what to check before Monday."
+  />
+
+  <div class="wrap">
+    <div class="prose">
+      <p class="lede">
+        Everything here is free, nothing is locked, and you do not need to ask permission to
+        print it. The five answers below are the ones worth having before you put it in
+        front of a class; the print routes underneath are the ones that actually exist and
+        have been checked on paper.
+      </p>
+    </div>
+  </div>
+
+  <section class="wrap section" aria-labelledby="before">
+    <h2 id="before">Before you use it</h2>
+    <dl class="qa">
+      {
+        BEFORE.map((r) => (
+          <div class="qa__row">
+            <dt class="qa__q">{r.q}</dt>
+            <dd class="qa__a">{r.a}</dd>
+          </div>
+        ))
+      }
+    </dl>
+    <p class="qa__more">
+      The full technical version, written for an IT reviewer rather than a teacher, is on
+      <a href="/schools/privacy">the schools privacy page</a>.
+    </p>
+  </section>
+
+  <section class="wrap section" aria-labelledby="print">
+    <h2 id="print">What prints</h2>
+    <div class="prose">
+      <p>
+        Print stylesheets here are written, not left to the browser — several of these exist
+        specifically to be printed and worked on with a pen. Open the page and use your
+        browser's print command.
+      </p>
+    </div>
+    <ul class="printable">
+      {
+        PRINTABLE.map((p) => (
+          <li class="printable__item">
+            <a class="printable__link" href={p.href}>{p.label}</a>
+            <span class="printable__note">{p.note}</span>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="qa__more">
+      There is no single “print the whole site” button, and that is deliberate: it would be
+      well over a hundred pages, and almost none of it is what any one lesson needs.
+    </p>
+  </section>
+
+  <section class="wrap section" aria-labelledby="licence">
+    <h2 id="licence">What you may do with it</h2>
+
+    <div class="lic">
+      <Box kind="build">
+        <p class="lic__h">Worksheets, builds, templates and tools</p>
+        <p class="lic__l">CC BY-NC-SA 4.0</p>
+        <p>
+          Copy them, hand them out, put them in a lesson, translate them, cut them up and
+          rebuild them for your group. Credit the book, do not sell them, and keep whatever
+          you make from them open under the same terms.
+        </p>
+      </Box>
+
+      <Box kind="check">
+        <p class="lic__h">The 19 Reality Checks and the safety text</p>
+        <p class="lic__l">CC BY-NC-ND 4.0 — no derivatives</p>
+        <p>
+          Copy them and hand them out freely. <strong>Do not edit them.</strong> This is the
+          one restriction on the whole site and it is not about credit: an altered safety
+          warning circulating with a thirteen-year-old's name on it is the only thing this
+          project could produce that would genuinely hurt somebody. If a check is wrong for
+          your group, print it as it is and say so out loud in the room.
+        </p>
+      </Box>
+    </div>
+
+    <p class="qa__more">
+      The book itself is all rights reserved. Full terms on <a href="/terms">the terms page</a>.
+    </p>
+  </section>
+
+  <section class="wrap section" aria-labelledby="shape">
+    <h2 id="shape">How the material is shaped</h2>
+    <div class="prose">
+      <p>
+        Every chapter is the same five parts: one principle, five steps, one build that fits
+        in a lesson or an evening, a Reality Check, and three debrief questions. That
+        regularity is the useful bit for planning — {t.chapters} chapters, {t.builds} builds,
+        {" "}{t.realityChecks} Reality Checks, {t.playSteps} action steps and{" "}
+        {t.debriefQuestions} debrief questions, all in the same shape.
+      </p>
+      <p>
+        The green/yellow/red rule on printed page {FLAG_RULE_PAGE} runs through all of it,
+        and it is the thing most worth putting on a wall: green is do it, yellow is tell an
+        adult first, red is an adult does it with you.
+        <a href="/race-control">The version written for students</a> is one page and prints
+        cleanly.
+      </p>
+      <p class="aside">
+        The flag on each build is this site applying that printed rule, not a mark printed
+        beside the build in the book. Every page carrying one says so. If you disagree with
+        one of the nineteen, the printed rule wins — please tell us, the mailbox is in the
+        footer.
+      </p>
+    </div>
+  </section>
+</Page>
+
+<style>
+  .wrap {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .prose {
+    max-inline-size: var(--container-measure);
+  }
+
+  .prose p + p {
+    margin-block-start: 0.9em;
+  }
+
+  .lede {
+    margin-block-start: 1.75rem;
+    font-size: var(--text-subtitle);
+    line-height: var(--text-subtitle--line-height);
+    color: var(--text-strong);
+  }
+
+  .section {
+    margin-block-start: 3rem;
+  }
+
+  .section > h2 {
+    font-size: var(--text-h2);
+    line-height: var(--text-h2--line-height);
+    color: var(--text-section);
+    max-inline-size: var(--container-measure);
+  }
+
+  .section > .prose {
+    margin-block-start: 0.75rem;
+  }
+
+  .qa {
+    max-inline-size: var(--container-measure);
+    margin-block-start: 1.25rem;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .qa__row {
+    padding-block: 0.9rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .qa__q {
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  .qa__a {
+    margin: 0.3rem 0 0;
+  }
+
+  .qa__more {
+    max-inline-size: var(--container-measure);
+    margin-block-start: 1rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .printable {
+    max-inline-size: var(--container-measure);
+    margin-block-start: 1.25rem;
+    padding: 0;
+    list-style: none;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .printable__item {
+    padding-block: 0.8rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .printable__link {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 44px;
+    font-weight: 700;
+    color: var(--text-strong);
+    text-decoration-color: currentColor;
+    text-underline-offset: 3px;
+  }
+
+  .printable__note {
+    display: block;
+    font-size: var(--text-meta);
+    line-height: 1.5;
+    color: var(--text-muted);
+  }
+
+  .lic {
+    display: grid;
+    gap: 1rem;
+    margin-block-start: 1.25rem;
+  }
+
+  @media (min-width: 56rem) {
+    .lic {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: start;
+    }
+  }
+
+  .lic__h {
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  .lic__l {
+    margin-block-start: 0.15rem;
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .lic :global(.box__body) > p + p {
+    margin-block-start: 0.5rem;
+  }
+
+  .aside {
+    margin-block-start: 1.25rem;
+    padding-block-start: 1rem;
+    border-block-start: 3px solid var(--accent-dot);
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  a {
+    text-decoration-color: currentColor;
+    text-underline-offset: 3px;
+  }
+</style>

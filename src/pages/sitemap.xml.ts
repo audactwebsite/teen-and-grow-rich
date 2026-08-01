@@ -55,6 +55,7 @@ export const GET: APIRoute = async ({ site }) => {
     ["/offers", "0.7"],
     ["/race-control", "0.8"],
     ["/parents", "0.8"],
+    ["/teachers", "0.8"],
     ["/schools/privacy", "0.7"],
     ["/hill", "0.7"],
     ["/proof", "0.6"],
