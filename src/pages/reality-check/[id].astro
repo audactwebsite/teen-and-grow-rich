@@ -83,6 +83,11 @@ const jsonLd = {
   datePublished: REVIEWED,
   dateModified: REVIEWED,
   mainEntityOfPage: { "@type": "WebPage", "@id": canonical },
+  /* The plain-language phrasings, for machines only. A reader in trouble types something
+     short and first-person; the H1 is written to be read and covers the whole check. This
+     bridges the two without putting a "people also search for" block on a page somebody
+     opens because they are frightened. */
+  ...(meta.alsoAsked ? { alternativeHeadline: meta.alsoAsked } : {}),
   author: { "@type": "Person", name: "Ryan Rijvers" },
   publisher: { "@type": "Organization", name: "Bright Kids" },
   isPartOf: {

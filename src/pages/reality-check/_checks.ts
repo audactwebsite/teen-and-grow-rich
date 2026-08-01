@@ -65,6 +65,18 @@ export interface CheckMeta {
   flag: FlagLevel;
   /** For the three that guard no build: where the check actually lives on the site. */
   standalone?: { href: string; label: string };
+  /**
+   * How the same question actually gets typed by someone in the middle of it.
+   *
+   * `question` is written to be read — it is the H1, it is complete, and it covers the
+   * whole check. That makes it a poor match for what a fourteen-year-old types into a
+   * phone at eleven at night, which is short, specific and in the first person.
+   *
+   * These are emitted as structured data only. They are not rendered anywhere, because a
+   * visible "people also search for" block is SEO furniture and this page is read by
+   * people who are frightened. Only on the checks where the gap is real.
+   */
+  alsoAsked?: string[];
 }
 
 export const THEMES: Theme[] = [
@@ -150,6 +162,10 @@ export const CHECKS: CheckMeta[] = [
   },
   {
     id: "money-mindset",
+    alsoAsked: [
+      "is it my job to fix my family's money",
+      "my parents are struggling with money and I want to help",
+    ],
     theme: "money-and-contracts",
     question: "Is this book financial advice?",
     short: "Is this financial advice?",
@@ -258,6 +274,10 @@ export const CHECKS: CheckMeta[] = [
   /* --- Online contact ------------------------------------------------------ */
   {
     id: "squad-goals",
+    alsoAsked: [
+      "someone online is asking where I live",
+      "is it safe to send my school details to someone I build with",
+    ],
     theme: "online-contact",
     question: "What should you never share with someone you build with online?",
     short: "Building with people online",
@@ -279,6 +299,11 @@ export const CHECKS: CheckMeta[] = [
   },
   {
     id: "mindful-tech",
+    alsoAsked: [
+      "someone is threatening to share pictures of me",
+      "what do I do if someone is blackmailing me online",
+      "someone I met online is asking for photos",
+    ],
     theme: "online-contact",
     question: "What do you do about threats, sexual messages or blackmail online?",
     short: "Threats, sexual messages, blackmail",
@@ -309,6 +334,10 @@ export const CHECKS: CheckMeta[] = [
   /* --- Mental health and burnout ------------------------------------------- */
   {
     id: "believe-it",
+    alsoAsked: [
+      "why do I feel like I am not good enough",
+      "how do I get confidence when nothing I do feels good",
+    ],
     theme: "mental-health",
     question: "When is low confidence more than a mindset problem?",
     short: "When self-talk is more than mindset",
@@ -350,6 +379,10 @@ export const CHECKS: CheckMeta[] = [
   },
   {
     id: "unstoppable",
+    alsoAsked: [
+      "am I burnt out or just lazy",
+      "I cannot sleep because of a project",
+    ],
     theme: "mental-health",
     question: "Is burnout a sign you are working hard enough?",
     short: "Burnout is not proof",
@@ -371,6 +404,10 @@ export const CHECKS: CheckMeta[] = [
   },
   {
     id: "fearless",
+    alsoAsked: [
+      "my friends say I am scared but it feels wrong",
+      "how do I know if I am being pressured",
+    ],
     theme: "mental-health",
     question: "When is “just be brave” the wrong advice?",
     short: "When courage talk is a red flag",
