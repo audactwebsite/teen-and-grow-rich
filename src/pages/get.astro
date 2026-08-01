@@ -60,18 +60,31 @@ const FACTS = [
 ];
 
 /** D4: the split that makes both the book and the site better at their own job. */
-const BOOK_ONLY = [
+/**
+ * What the printed copy gives you that this site cannot.
+ *
+ * This list used to be "What the book has that this site does not": the fifteen stories,
+ * the Hill Remix essays and What It Means Now, deliberately withheld from the site so the
+ * book had something to sell. That has been reversed — the whole book is free to read here
+ * — so the list had to be rewritten rather than reworded. Nothing on it is information,
+ * because the information is no longer the scarce part. All of it is the object.
+ */
+const PRINT_ONLY = [
   {
-    title: "The 15 stories",
-    text: "One per chapter. Fictional composites, labelled as such on printed page 2, and the reason the ideas land instead of sitting there as advice.",
+    title: "Something to hand to somebody",
+    text: "You cannot give a URL to a friend the way you can put a book in their hands, and nobody has ever left a link on a classroom shelf.",
   },
   {
-    title: "The Hill Remix essays",
-    text: "What each of Napoleon Hill's principles actually said, and what happens to it when you move it into a teenager's life.",
+    title: "It cannot be closed by a notification",
+    text: "The whole design of this book is to be finishable. Sixty-four pages on paper is a very different promise from sixty-four pages on the device that keeps interrupting you.",
   },
   {
-    title: "What It Means Now",
-    text: "The closing passage of every chapter — the part that connects the idea to the week you are actually having.",
+    title: "The illustrations at full size",
+    text: "Fifteen of them, printed at 140 x 216mm on paper chosen for it. They are on this site too, scaled to whatever screen you happen to be holding.",
+  },
+  {
+    title: "It survives everything this site does not",
+    text: "No browser clears it, no school laptop signs you out of it, and it still works when the wifi does not. That is the same argument this site makes about printing your receipts.",
   },
 ];
 
@@ -95,17 +108,17 @@ const jsonLdText = jsonLd({ ...book, url: "/get" }, Astro.site);
   <ChapterFurniture
     eyebrow="The book"
     title="Get the book"
-    subtitle="64 pages. Here is exactly what that gets you, and who it is not for."
+    subtitle="Read all of it free, right here. Buy the print if you want the object."
   />
 
   <div class="wrap">
     <div class="intro">
       <div class="prose">
         <p class="lede">
-          Everything on this site is free and unlocked, first visit, no account. The book
-          is the only scarce thing here, so it is worth being precise about what it is: a
-          short, illustrated, deliberately finishable playbook, with fifteen stories the
-          site does not carry.
+          <b>The whole book is free to read here.</b> All fifteen chapters, the stories,
+          the Hill Remix essays and What It Means Now — the complete text, no account, no
+          email address, nothing to unlock. The printed copy is the same words on paper,
+          and that turns out to be worth something on its own.
         </p>
       </div>
 
@@ -120,6 +133,52 @@ const jsonLdText = jsonLd({ ...book, url: "/get" }, Astro.site);
       </figure>
     </div>
   </div>
+
+  {/* The whole book, free, two ways.
+
+      This was "The free starter chapter", carrying a placeholder that said the file did
+      not exist yet. One chapter as a taster is the wrong shape now: the whole thing is
+      free, so the only question left is which way you would rather read it. */}
+  <section class="wrap section" aria-labelledby="read">
+    <h2 id="read">Read the whole thing, free</h2>
+    <div class="prose">
+      <p>
+        No account, no email address, no &ldquo;enter your details to download&rdquo;. There
+        is nowhere on this site to enter your details, which is the point.
+      </p>
+    </div>
+
+    <ul class="ways">
+      <li class="way">
+        <a class="way__link" href="/c/01">
+          <span class="way__kicker">On this site</span>
+          <b class="way__title">Start at chapter one</b>
+          <span class="way__body">
+            The better version. Each chapter carries the story, the Hill Remix and What It
+            Means Now exactly as printed &mdash; and directly underneath, the Play as a
+            checklist, the 24-Hour Build with a timer, and the Reality Check in full. That
+            is the part a printed page cannot do.
+          </span>
+        </a>
+      </li>
+      <li class="way">
+        <a class="way__link" href="/teen-and-grow-rich.pdf" download>
+          <span class="way__kicker">PDF &middot; 2.6 MB &middot; 66 pages</span>
+          <b class="way__title">Download the whole book</b>
+          <span class="way__body">
+            The digital reading edition, the same file the print run was set from. For
+            offline, for an e-reader, for a school laptop with no wifi, or to print
+            yourself. Nothing is tracked and nothing is asked for.
+          </span>
+        </a>
+      </li>
+    </ul>
+
+    <p class="prose aside">
+      Both routes are the complete book. Neither is a sample, neither expires, and neither
+      leads to a page asking you for anything.
+    </p>
+  </section>
 
   <section class="wrap section" aria-labelledby="facts">
     <h2 id="facts">The physical truth</h2>
@@ -144,10 +203,10 @@ const jsonLdText = jsonLd({ ...book, url: "/get" }, Astro.site);
   </section>
 
   <section class="wrap section" aria-labelledby="book-only">
-    <h2 id="book-only">What the book has that this site does not</h2>
+    <h2 id="book-only">What the printed copy gives you</h2>
     <div class="rows">
       {
-        BOOK_ONLY.map((b) => (
+        PRINT_ONLY.map((b) => (
           <div class="row">
             <p class="row__key">{b.title}</p>
             <p class="row__value">{b.text}</p>
@@ -156,17 +215,18 @@ const jsonLdText = jsonLd({ ...book, url: "/get" }, Astro.site);
       }
     </div>
     <p class="prose note">
-      Each of those is teased on its chapter page here, with the printed page number, so
-      you can see what you would be reading before you decide anything.
+      Notice that none of those is information. The words are all on this site, free, and
+      they are staying that way — a thirteen-year-old should not have to ask a parent for
+      money to read a book about not needing money. What the print run sells is the object.
     </p>
   </section>
 
   <section class="wrap section" aria-labelledby="free">
-    <h2 id="free">What is on this site instead, free</h2>
+    <h2 id="free">And every tool in it, also free</h2>
     <div class="prose">
       <p>
-        The tools are all here. Not a sample of them, not a locked preview, and not behind
-        an email address:
+        Everything the book asks you to do is built here as something you can actually use.
+        Not a sample, not a locked preview, and not behind an email address:
       </p>
       <ul class="tally">
         <li><b>{t.builds}</b> 24-hour builds, each with a timer and a printable receipt</li>
@@ -196,34 +256,16 @@ const jsonLdText = jsonLd({ ...book, url: "/get" }, Astro.site);
     </div>
   </section>
 
-  <section class="wrap section" aria-labelledby="starter">
-    <h2 id="starter">The free starter chapter</h2>
-    <div class="prose">
-      <p>
-        A whole chapter, complete, with its build and its Reality Check. No email address,
-        no sign-up, no “enter your details to download”. There is nowhere on this site to
-        enter your details, which is the point.
-      </p>
-      <div data-placeholder class="placeholder">
-        <p class="placeholder__label">File not in place yet</p>
-        <p class="placeholder__note">
-          The starter chapter will publish as a page you can read here and as a PDF you can
-          print — a PDF alone is invisible on a projector and often blocked by a school
-          filter. Neither file is in the repository yet, so nothing is linked rather than
-          linking you to a 404.
-        </p>
-      </div>
-    </div>
-  </section>
-
   <section class="wrap section" aria-labelledby="buy">
-    <h2 id="buy">Where to buy it</h2>
+    <h2 id="buy">Where to buy the printed copy</h2>
     <div class="prose">
       <div data-placeholder class="placeholder">
         <p class="placeholder__label">Retailer link pending</p>
         <p class="placeholder__note">
-          The book is sold through an outside retailer, and the link is not confirmed yet.
-          It will appear here, plainly, with no countdown attached to it.
+          The printed book is sold through an outside retailer and the link is not
+          confirmed yet. It will appear here, plainly, with no countdown attached to it —
+          and nothing changes for you in the meantime, because the whole book is already
+          free above.
         </p>
       </div>
       <p>
@@ -410,5 +452,74 @@ const jsonLdText = jsonLd({ ...book, url: "/get" }, Astro.site);
   a {
     text-decoration-color: currentColor;
     text-underline-offset: 3px;
+  }
+
+  /* --- Two ways to read it ---------------------------------------------------- */
+
+  .ways {
+    display: grid;
+    gap: 1rem;
+    margin-block-start: 1.25rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 52rem) {
+    .ways {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      align-items: start;
+    }
+  }
+
+  .way {
+    display: flex;
+  }
+
+  .way__link {
+    display: grid;
+    align-content: start;
+    gap: 0.3rem;
+    inline-size: 100%;
+    padding: 1rem 1rem 1.1rem;
+    background: var(--surface-card);
+    /* A hairline is a divider colour and fails 1.4.11 as a control boundary. */
+    border-inline-start: 3px solid var(--accent-spine);
+    text-decoration: none;
+    color: var(--text-default);
+    transition: transform 180ms ease-out, background-color 180ms ease-out;
+  }
+
+  .way__link:hover {
+    background: var(--surface-raised);
+    transform: translateY(-2px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .way__link {
+      transition: none;
+    }
+
+    .way__link:hover {
+      transform: none;
+    }
+  }
+
+  .way__kicker {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .way__title {
+    font-size: var(--text-heading);
+    line-height: 1.25;
+    color: var(--text-strong);
+  }
+
+  .way__body {
+    font-size: var(--text-meta);
+    line-height: 1.55;
   }
 </style>

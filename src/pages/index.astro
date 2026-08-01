@@ -131,6 +131,15 @@ const description =
         sign up for.
       </p>
 
+      {/* The free-book line lives INSIDE the hero, under the lede, and not above the
+          field. Both printed QR codes land here, so the first thing a reader with the book
+          in their hand needs is still the number they are holding. This is the second
+          sentence, not the first. */}
+      <p class="hero__free">
+        <a href="/get">The whole book is free to read here</a> — all fifteen chapters, no
+        account, no email address.
+      </p>
+
       {/* action="/p/" is the no-JS path: that page lists all 65 destinations and reads
           ?page= itself. With JS the submit is intercepted and resolved here. */}
       <form
@@ -220,11 +229,11 @@ const description =
         <li class="start__card">
           <a class="start__link" href="/c/01">
             <span class="start__kicker">Just looking</span>
-            <b class="start__title">Read one chapter</b>
+            <b class="start__title">Read the whole book</b>
             <span class="start__body">
-              One idea, one thing that happened, and one thing to go and do afterwards.
-              That is the shape of all fifteen. Start at the first one and see if you like
-              how it thinks.
+              Free, all of it, starting at chapter one. One idea, one thing that happened,
+              and one thing to go and do afterwards — that is the shape of all fifteen.
+              Nothing to sign up for and nothing that expires.
             </span>
           </a>
         </li>
@@ -261,9 +270,10 @@ const description =
       <p class="eyebrow">The book, chapter by chapter</p>
       <h2 id="chapters-title" class="h2">15 chapters, {t.builds} builds, {t.realityChecks} Reality Checks</h2>
       <p class="prose lede">
-        Every chapter page carries the same five things: Hill's Original Idea, The Play as
-        five steps, the 24-Hour Build with a timer, the Reality Check in full, and three
-        debrief questions. The story stays in the book.
+        Every chapter page carries the whole chapter — the story, the Hill Remix and What
+        It Means Now, exactly as printed — and then the tools underneath: The Play as five
+        steps, the 24-Hour Build with a timer, the Reality Check in full, and three debrief
+        questions.
       </p>
 
       <p class="prose note">
@@ -1276,5 +1286,18 @@ const description =
     flex-wrap: wrap;
     gap: 0.5rem 1.5rem;
     margin-block-start: 1.25rem;
+  }
+
+  .hero__free {
+    margin-block-start: 0.6rem;
+    font-size: var(--text-meta);
+    color: var(--text-default);
+  }
+
+  .hero__free a {
+    font-weight: 700;
+    color: var(--text-strong);
+    text-decoration-color: currentColor;
+    text-underline-offset: 3px;
   }
 </style>

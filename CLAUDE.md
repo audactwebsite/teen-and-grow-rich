@@ -59,11 +59,28 @@ These come from the book itself. Breaking one breaks the product.
    Moderating minors is a liability this project will not take on.
 6. **Safe contact route only** — one adult-monitored email address. Never a form
    that collects data from a minor.
-7. **Nothing on the website is locked; the book is the only scarce thing.** No
-   paywalls, no email walls, no earned unlocks, no progress gates. Every build,
-   Reality Check, worksheet, template and Chapter 16 is free to anyone on their
-   first visit. The scarcity is the book itself: the 15 stories, "The Hill Remix"
-   essays and "What It Means Now" do not go online — teaser plus a page reference.
+7. **Nothing is locked, and that now includes the book.** No paywalls, no email
+   walls, no earned unlocks, no progress gates. Every build, Reality Check,
+   worksheet, template and Chapter 16 is free on a first visit — and so is the
+   complete text: all 15 chapters with their stories, Hill Remix essays and What
+   It Means Now, readable on the chapter pages and downloadable as a PDF.
+
+   **This reverses the original rule, deliberately.** The stories and essays used
+   to be withheld so the book had something to sell. The owner decided otherwise,
+   and the reasoning is worth keeping: for an unknown thirteen-year-old author
+   obscurity is the enemy, not piracy; the print margin was never going to be the
+   value; and a teenager who *gives away* a book about money is immune to the
+   hustle-culture criticism that a teenager who *sells* one invites. The book's
+   own argument — proof over performance — points the same way. The book is
+   Ryan's receipt, and a receipt is worth showing.
+
+   **What is sold is the object, not the words.** The printed copy is something
+   to hand to somebody, leave on a shelf, finish without a notification closing
+   it, and keep when a browser clears. Never sell it as access to information
+   that is free two clicks away.
+
+   Do not re-introduce a teaser, a sample chapter, or a "read the rest in the
+   book" line — those are all the previous rule, and they are gone.
 8. **Napoleon Hill wording is load-bearing.** "Inspired by success principles
    associated with Napoleon Hill." Never imply affiliation, endorsement,
    translation or reproduction. Mirror the book's front-matter disclaimer.

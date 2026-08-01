@@ -19,6 +19,16 @@ export interface Entry {
 
 export const ENTRIES: Entry[] = [
   {
+    date: "2026-08-01",
+    title: "The whole book is free",
+    items: [
+      "All fifteen chapters now carry the complete text — the story, the Hill Remix and What It Means Now — exactly as printed. They were always extracted verbatim and sitting in the content files; only the rendering withheld them.",
+      "The book is downloadable as a PDF as well: 66 pages, no email address, nothing to fill in. Both routes are the complete book and neither is a sample.",
+      "This reverses what this site used to do. The stories and essays were held back so the printed book had something to sell. It now sells the object instead — something to hand to somebody, leave on a shelf, or finish without a notification closing it.",
+      "Repaired the content pipeline while doing it. Pointing the extraction at the re-issued print files failed on the Safe First Offers table — 2 of 7 — because the new file merges table cells differently. It reads table columns by position now. Re-running the whole extraction against the new edition produces a zero-line diff: the re-issue changed the domain and nothing else.",
+    ],
+  },
+  {
     date: "2026-07-31",
     title: "Public beta, said out loud",
     items: [
@@ -58,7 +68,6 @@ export const ENTRIES: Entry[] = [
 export const MISSING = [
   "A verified helpline route — international, plus one for the Netherlands. This is the most urgent thing missing.",
   "The retailer link on /get. The book is sold through an outside retailer and the link is not confirmed.",
-  "The free starter chapter, as a readable page and as a printable PDF. Neither file is in place.",
   "The ISBNs on /editions.",
   "What the host's access logs contain, and how long they are kept, on /schools/privacy.",
   "The serverless function behind the two AI tools. Until it exists, both tools are shells.",

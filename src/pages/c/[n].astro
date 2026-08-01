@@ -216,13 +216,50 @@ const jsonLdText = jsonLd({
       <p>{c.hillIdea.text}</p>
     </Box>
 
+    {/* The whole chapter, not a teaser.
+
+        This shipped as the first paragraph plus "read the rest on book page N", because
+        the story, the Hill Remix and What It Means Now were the book's scarcity — the six
+        reasons /get gave anyone to buy it. That has been reversed on purpose: the whole
+        book is free to read here, and the print run is sold as the object rather than as
+        access to the words. See CLAUDE.md, non-negotiable 7.
+
+        The data never changed. All fifteen stories were already extracted verbatim by
+        tools/extract_book_content.py and sitting in chapters.yaml; only the rendering
+        withheld them. So this is a presentation change, and the book's wording is the
+        book's wording — nobody retyped it on the way here.
+
+        Reading it on this page beats reading it in the PDF, which is the point: the Play,
+        the timer, the build and the Reality Check are directly underneath, where a printed
+        page cannot put them. */}
     <section class="section" aria-labelledby="story">
       <h2 id="story" class="h2">The Story</h2>
-      <p>{c.story[0]}</p>
+      <div class="story">
+        {c.story.map((para) => <p>{para}</p>)}
+      </div>
+    </section>
+
+    {/* NOT a Box. The three semantic boxes carry fixed labels, and kind="hill" prints
+        "Hill's Original Idea" — which is the box already at the top of this page, holding
+        different text. Wrapping the Remix in it put that heading on the page twice, saying
+        two different things. The Remix is the essay about the principle; it is prose. */}
+    <section class="section" aria-labelledby="remix">
+      <h2 id="remix" class="h2">The Hill Remix</h2>
+      <div class="story">
+        <p>{c.hillRemix}</p>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="means">
+      <h2 id="means" class="h2">What It Means Now</h2>
+      <div class="story">
+        <p>{c.whatItMeansNow}</p>
+      </div>
       <p class="section__note">
-        Read the full story on book page {c.printedPage}. The Story, The Hill Remix and
-        What It Means Now stay in the book. Everything on this page is a tool, and none
-        of it is locked.
+        That is the whole chapter, exactly as it is printed on book page {c.printedPage} —
+        <a href="/get">and the whole book is free to read here</a>. What the printed copy
+        gives you that this page cannot is a thing you can hold, hand to someone, or leave
+        in a classroom.
       </p>
     </section>
 
@@ -708,5 +745,16 @@ const jsonLdText = jsonLd({
     .chapter-nav {
       display: none;
     }
+  }
+
+  /* The story runs at reading length, so it gets paragraph spacing that a one-paragraph
+     teaser never needed. Capped at the same measure as the rest of the column: the book's
+     own line is about 68 characters. */
+  .story p + p {
+    margin-block-start: 0.9em;
+  }
+
+  .story {
+    max-inline-size: var(--container-measure);
   }
 </style>
