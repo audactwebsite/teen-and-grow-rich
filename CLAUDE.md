@@ -73,6 +73,13 @@ These come from the book itself. Breaking one breaks the product.
    motivational statistic from the self-help canon. Each of these is ruled out on
    published research, not taste — see `docs/decisions.md` D16.
 10. **Every number links to a primary source, or it gets cut.** Site-wide.
+11. **English only.** No Dutch, no dual-language, no translated parents page, no
+    `hreflang`. Two separate reviews proposed a Dutch version and the owner has
+    ruled it out. The book is English and all 231 items are its verbatim wording,
+    so a translated site would either paraphrase the book — which rule 1 of the
+    content pipeline forbids — or wrap English content in Dutch chrome. Verified:
+    `lang="en"`, no Dutch markers in any of the 147 pages, no alternate versions.
+    Do not propose it again.
 
 ## Stack
 

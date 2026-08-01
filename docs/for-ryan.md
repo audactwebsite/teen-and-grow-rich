@@ -4,6 +4,12 @@ Everything else is built. These are the items only he can supply, in the order t
 block things. Each one has a placeholder on the live site right now that says plainly
 that it is missing, rather than quietly pretending otherwise.
 
+**If only one thing gets done this week, make it number 7.** The site is publicly
+reachable, six of the nineteen Reality Checks touch blackmail, self-harm and family money,
+and there is no verified helpline behind any of them. Every one of those pages now says
+out loud that nobody is on the other end and to tell one adult today — which is honest,
+and is not the same as having a route.
+
 ---
 
 ## 1. Sign off the flags — the only judgement call on the whole site
@@ -63,10 +69,13 @@ is filenamed `era-round-3---zolder-(08-07-2022)`, and in July 2022 Ryan was 8. Z
 also sells a "Formula 4 Experience" through the ERA Racing School, which is not the same
 as competing in a championship.
 
-Tell me exactly what happened — which car, which day, which programme — and I will state
-it precisely. *"Drove an F4-spec single-seater at Zolder at eleven"* is impressive and
-true. A book whose first promise is "no fake case studies" cannot carry an unverifiable
-claim about its own author.
+**Partly resolved.** The site now states what the family confirmed: at eleven he drove an
+F4 car built to his measurements, and he trains in it rather than racing it. That is on
+`/proof` with its own section, because it is more interesting than the rumour.
+
+What is still open is narrower: which car, which day, which programme. Not to make the
+claim bigger — to make it checkable, the same way the karting results will be once item 4
+lands.
 
 ## 4. Source links for `/proof`
 
