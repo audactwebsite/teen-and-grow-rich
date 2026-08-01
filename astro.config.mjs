@@ -62,7 +62,13 @@ export default defineConfig({
            failure would only ever have shown up in production. Still no cross-origin
            target: 'self' cannot post anywhere but this site. */
         "form-action 'self'",
-        "frame-ancestors 'none'",
+        /* frame-ancestors is NOT here, and cannot be. The CSP spec requires browsers to
+           ignore it when it arrives in a <meta> element, so it protected nothing and
+           logged a console error on every single page load — the only failing item in a
+           Lighthouse run. It is served as a real Content-Security-Policy response header
+           from vercel.json instead, alongside X-Frame-Options: DENY. If this site ever
+           moves off a host that can set response headers, that protection moves with it
+           and does not come back here. */
         "object-src 'none'",
       ],
 

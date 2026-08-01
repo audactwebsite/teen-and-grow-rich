@@ -76,23 +76,33 @@ const TIMELINE = [
 const jsonLdText = jsonLd({ ...author, url: "/proof", nationality: "NL", knowsAbout: ["Karting", "Writing"], workExample: book }, Astro.site);
 ---
 
+{/* The title is his name.
+
+    It was "Who wrote this", which is the right label on a link from inside the site and the
+    wrong one in a search result: not one page on this site had "Rijvers" in its <title>,
+    including the page about him. The <title> is the strongest on-page signal there is for a
+    name query, and somebody searching for him is exactly the visitor this page exists for —
+    a parent checking whether the author is real, a teacher deciding whether to use the book.
+
+    The links pointing here still say "Who wrote this", because that is what it is when you
+    are already reading. */}
 <Page
-  title="Who wrote this"
+  title="Ryan Rijvers"
   description="Ryan Rijvers, author of Teen & Grow Rich, is thirteen. Karting across Europe since he was eight, a Formula 4 car built to fit him at eleven, and a book written at thirteen."
   jsonLdText={jsonLdText}
 >
   <ChapterFurniture
     eyebrow="The author"
-    title="Who wrote this"
-    subtitle="He is thirteen. He is probably not much older than you are."
+    title="Ryan Rijvers"
+    subtitle="He is thirteen, and he wrote this book. He is probably not much older than you are."
   />
 
   <div class="wrap">
     <div class="prose">
       <p class="lede">
-        Ryan Rijvers is from Schimmert, in the Netherlands. He wrote this book himself,
-        in between racing karts across Europe and building things on a laptop. Here is
-        the short version of how he got here.
+        From Schimmert, in the Netherlands. He wrote the book himself, in between racing
+        karts across Europe and building things on a laptop. Here is the short version of
+        how he got here.
       </p>
     </div>
 

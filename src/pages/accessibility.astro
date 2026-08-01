@@ -55,6 +55,10 @@ const BUILT_IN = [
     how: "Print stylesheets are written for every worksheet, plan and receipt, not left to the browser. Several features exist specifically to be printed and taken to an adult.",
   },
   {
+    what: "A Lighthouse run, published",
+    how: "Chrome's own Lighthouse, mobile emulation, on four page templates: 100 for accessibility, best practices, SEO and agentic browsing on all four, with 0 failing audits. It found two real defects, which were fixed before the report was written — a console error on every page and 0.255 cumulative layout shift caused by the site header. The dated report is committed in docs/audits/ alongside the script that produced the rest of it.",
+  },
+  {
     what: "No third-party code",
     how: "Nothing on this site is loaded from anywhere else, which means no embedded widget, advert or consent dialog can break keyboard focus or introduce a control we did not write. A build step fails the release if an external host appears anywhere in the output.",
   },
@@ -65,7 +69,7 @@ const BUILT_IN = [
  * statement that the feature is broken.
  */
 const NOT_YET_TESTED = [
-  "A full automated audit (axe-core or equivalent) across every page template, with the report published here and dated.",
+  "An axe-core pass. Lighthouse has been run and is published in docs/audits/, but its accessibility category uses only a subset of axe rules — a score of 100 there means no automated rule fired, not that the site works for a disabled reader.",
   "Screen reader testing with a person who uses one daily. Nothing on this site has been through NVDA, JAWS or VoiceOver with a real user rather than a developer.",
   "A complete keyboard-only pass of every interactive page — worksheets, timers, checklists, the receipts dashboard and the page-number field — recorded step by step.",
   "Reflow and readability at 200% and 400% browser zoom on every template.",

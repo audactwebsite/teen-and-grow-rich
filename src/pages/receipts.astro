@@ -196,7 +196,13 @@ const EXAMPLES = [
         </p>
       </section>
 
-      <section class="empty prose" data-empty hidden aria-labelledby="empty-h">
+      {/* NOT hidden. Both states used to ship hidden and a deferred script revealed one,
+          so on a throttled phone the page painted and then jumped — 0.42 CLS, the worst
+          number on the site, on the page a reader returns to most. The empty state is the
+          correct answer for a first visit and the only one knowable at build time, so it
+          is what the server sends. The script hides it only when there is something to
+          show instead. */}
+      <section class="empty prose" data-empty aria-labelledby="empty-h">
         <h2 id="empty-h">Nothing here yet</h2>
         <p>
           This browser is not holding any receipts. That is the normal state on a first
@@ -784,6 +790,34 @@ const EXAMPLES = [
 
   :global(:root[data-js]) .nojs {
     display: none;
+  }
+
+  /* Reserve the space the state block is about to fill.
+
+     Both states ship hidden and a deferred script reveals one of them, so on a throttled
+     phone the whole page painted, then jumped as a block appeared above it. Lighthouse
+     measured 0.42 CLS on this page — by far the worst number on the site, and on the page
+     a reader comes back to most.
+
+     The taller of the two is the empty state, which is also the one most visits get:
+     383px at 390px wide, 270px from 46rem up. Reserving that height means the reveal
+     happens inside a box that already exists, and nothing below it moves. It is a
+     min-height, so a summary listing many receipts can still grow past it — growth at the
+     end of the block does not shift what is above it. */
+  .js {
+    min-block-size: 383px;
+  }
+
+  @media (min-width: 46rem) {
+    .js {
+      min-block-size: 270px;
+    }
+  }
+
+  @media print {
+    .js {
+      min-block-size: 0;
+    }
   }
 
   .nojs,

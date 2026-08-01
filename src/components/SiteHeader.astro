@@ -85,17 +85,42 @@ const LINKS = [
     border-block-end: 1px solid var(--rule-hairline);
   }
 
+  /* Deterministic at every width, which is the actual requirement.
+
+     This was flex-wrap: wrap with no other guidance, and at 390px the three items came to
+     roughly eight pixels more than the available width while the metric-adjusted fallback
+     font was still in use. So the header shipped two rows tall and unwrapped to one the
+     moment Noto Sans arrived — the theme toggle jumping from (20, 50) to (251, 10), and
+     everything below it moving up 41px.
+
+     That was 0.255 cumulative layout shift on EVERY page, measured under CPU throttling. It
+     surfaced on /receipts in a Lighthouse run, which made it look like a receipts bug. It
+     was a header bug, on all 147 pages, in the first thing anybody sees.
+
+     nowrap was the wrong fix — tried, measured, and it overlapped the wordmark onto the nav
+     at 320px. The right one is to make the outcome not depend on a font metric at all:
+     below 26rem the wordmark takes a whole row on purpose, so the header is two rows and
+     stays two rows; above it there is room for one row whichever font is in use. Either way
+     nothing moves when the webfont lands. */
   .site-header__inner {
     display: flex;
     align-items: center;
-    gap: 0.75rem 1rem;
+    gap: 0.6rem 1rem;
     flex-wrap: wrap;
     max-inline-size: 72rem;
     margin-inline: auto;
     padding: 0.6rem clamp(1.25rem, 5vw, 3rem);
   }
 
+  @media (max-width: 25.999rem) {
+    .wordmark {
+      flex-basis: 100%;
+    }
+  }
+
   .wordmark {
+    /* Never breaks. It is two words and a wrapped wordmark reads as a rendering fault. */
+    white-space: nowrap;
     font-family: var(--font-display);
     font-weight: 900;
     font-size: 1rem;
