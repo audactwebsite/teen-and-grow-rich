@@ -2,7 +2,7 @@
 
 Extracted directly from the print PDFs (not invented). Every value below was measured
 from the embedded text layers and rendered pages of
-`04_Teen_and_Grow_Rich_Full_Book_Digital_Mobile.pdf`.
+`03_Teen_and_Grow_Rich_DIGITAL_READING_EDITION_66P_NEW_DOMAIN.pdf`.
 
 The website is a **translation** of the book's design language, not a redesign.
 

@@ -164,8 +164,15 @@ Full system in `docs/design-system.md`. The ones most often got wrong:
 
 ## Source material
 
-The four PDFs in the repo root are the shipped book. They are the source of
+The three `*_NEW_DOMAIN.pdf` files in the repo root are the shipped book — the
+re-issued edition that carries the hyphenated domain. They are the source of
 truth for all copy; do not paraphrase the book's wording when quoting it.
+The pre-re-issue set (the four files without `NEW_DOMAIN` in the name) is still
+in the repo root and is **not** the source of truth. Do not extract from it and
+do not quote it — it carries the hyphen-free domain. The content is otherwise
+identical: re-running the extraction against the new edition produced a zero-line
+diff against the committed data, which is how we know the re-issue changed only
+the address.
 `assets/from-book/` holds the extracted artwork.
 
 **Known constraint:** the 15 chapter illustrations are only 900 × 675. Too small

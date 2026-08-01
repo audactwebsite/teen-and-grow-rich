@@ -1,8 +1,8 @@
 # --- The book itself. Never commit these. --------------------------------------
-# The repository is public. 04_..._Full_Book_Digital_Mobile.pdf is the complete
-# 64-page book; putting it here would publish for free the one thing the whole
-# project treats as scarce (CLAUDE.md, non-negotiable 7). The other three are the
-# print-ready covers and interior — supplier files, not web files.
+# The repository is public. 03_..._DIGITAL_READING_EDITION_66P_NEW_DOMAIN.pdf is
+# the complete 64-page book; putting it here would publish for free the one thing
+# the whole project treats as scarce (CLAUDE.md, non-negotiable 7). The other two
+# are the print-ready cover spread and interior — supplier files, not web files.
 #
 # tools/extract_book_content.py reads these to generate src/content/**. That
 # generated content IS committed, so the site builds from a fresh clone. Only

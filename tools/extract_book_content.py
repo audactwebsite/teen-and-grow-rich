@@ -33,7 +33,7 @@ except ImportError:
     sys.exit("pyyaml is required:  python -m pip install pyyaml")
 
 ROOT = Path(__file__).resolve().parent.parent
-PDF = ROOT / "04_Teen_and_Grow_Rich_Full_Book_Digital_Mobile.pdf"
+PDF = ROOT / "03_Teen_and_Grow_Rich_DIGITAL_READING_EDITION_66P_NEW_DOMAIN.pdf"
 OUT = ROOT / "src" / "content" / "data"
 
 RUNNING_HEADER = "TEEN & GROW RICH"
@@ -390,31 +390,56 @@ def parse_worksheet(doc, pdf_page: int, labels: list[str], stop: tuple[str, ...]
 
 
 def parse_offers(doc, pdf_page: int) -> list[dict]:
-    """Seven Safe First Offers: left cell holds offer name + deliverable, right cell the proof."""
-    raw = doc[pdf_page - 1].get_text("blocks")
-    raw.sort(key=lambda b: (round(b[1], 1), round(b[0], 1)))
-    rows: dict[float, dict[float, str]] = {}
-    for b in raw:
-        text = re.sub(r"\s+", " ", " ".join(b[4].split())).strip()
-        if not text:
+    """Seven Safe First Offers, read by table column rather than by text block.
+
+    The first version grouped `get_text("blocks")` by rounded y and required two blocks per
+    row: the left one holding offer name + deliverable, the right one the proof. That held
+    for the original print file and broke on the re-issued edition, where PyMuPDF merges the
+    proof into the left block on five of the seven rows. The parser found two offers,
+    asserted, and had already written the truncated file — the assertion caught it, which is
+    what it is for, but the data was gone until it was restored from git.
+
+    Block grouping is a property of the PDF producer, not of the book. The table is not: its
+    three columns sit at fixed x positions, so this reads words and assigns each to a column
+    by where it starts. A new row begins whenever a word appears in the first column.
+    """
+    # Measured on the page itself: offer 57.7, deliverable 136.7, proof 269.9.
+    COL_DELIVERABLE = 120.0
+    COL_PROOF = 265.0
+
+    words = doc[pdf_page - 1].get_text("words")
+    words.sort(key=lambda w: (round(w[1], 1), round(w[0], 1)))
+
+    rows: list[dict[str, list[str]]] = []
+    for x0, y0, _x1, _y1, word, *_ in words:
+        # The table body only. Above it: running header, title, standfirst, column heads.
+        # Below it: the Reality Check box and the folio.
+        if y0 < 145 or y0 > 430:
             continue
-        rows.setdefault(round(b[1], 0), {})[round(b[0], 0)] = text
+        col = "offer" if x0 < COL_DELIVERABLE else ("deliverable" if x0 < COL_PROOF else "firstProof")
+        if col == "offer" and (not rows or rows[-1]["_started"]):
+            rows.append({"offer": [], "deliverable": [], "firstProof": [], "_started": []})
+            rows[-1]["_started"] = []
+        if not rows:
+            continue
+        # A word back in the offer column after the row already has deliverable text is the
+        # next offer, not a continuation of this one.
+        if col == "offer" and rows[-1]["deliverable"]:
+            rows.append({"offer": [], "deliverable": [], "firstProof": [], "_started": []})
+        rows[-1][col].append(word)
 
     offers = []
-    for y in sorted(rows):
-        cells = rows[y]
-        xs = sorted(cells)
-        left = cells[xs[0]]
-        name = next((n for n in OFFER_NAMES if left.startswith(n)), None)
-        if not name or len(xs) < 2:
+    for row in rows:
+        name = " ".join(row["offer"]).strip()
+        if name not in OFFER_NAMES:
             continue
         offers.append(
             {
                 "id": slugify(name),
                 "n": OFFER_NAMES.index(name) + 1,
                 "offer": name,
-                "deliverable": left[len(name) :].strip(),
-                "firstProof": cells[xs[1]].strip(),
+                "deliverable": re.sub(r"\s+", " ", " ".join(row["deliverable"])).strip(),
+                "firstProof": re.sub(r"\s+", " ", " ".join(row["firstProof"])).strip(),
             }
         )
     offers.sort(key=lambda o: o["n"])

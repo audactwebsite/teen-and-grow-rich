@@ -12,7 +12,7 @@ is the source of truth. `docs/content-inventory.md` is the index.
 
 1. **Quote the book verbatim.** Builds, Reality Checks, The Play steps, debrief
    questions and worksheet field labels are the author's words. Extract them from
-   `04_Teen_and_Grow_Rich_Full_Book_Digital_Mobile.pdf`; do not paraphrase,
+   `03_Teen_and_Grow_Rich_DIGITAL_READING_EDITION_66P_NEW_DOMAIN.pdf`; do not paraphrase,
    modernise, shorten or "improve" them.
 2. **Every item records its printed page number.** Readers hold the book. A tool
    page that cannot say "page 42" fails its main job.
@@ -35,7 +35,7 @@ Page N printed = PDF page N+1. To pull exact text:
 ```bash
 python -c "
 import fitz
-d = fitz.open('04_Teen_and_Grow_Rich_Full_Book_Digital_Mobile.pdf')
+d = fitz.open('03_Teen_and_Grow_Rich_DIGITAL_READING_EDITION_66P_NEW_DOMAIN.pdf')
 print(d[42].get_text())   # PDF index 42 == printed page 42
 "
 ```
