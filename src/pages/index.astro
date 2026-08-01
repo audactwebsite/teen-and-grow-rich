@@ -81,6 +81,21 @@ const kept = {
   ),
 };
 
+/* The 90-day path, from the book's own data. Three phases, not the four a reviewer
+   proposed — Build Proof, Offer A Tiny Result, Earn And Improve are what is printed, and
+   inventing a fourth to make a nicer diagram is the thing this project does not do. */
+const ninety = sequences.find((s) => s.id === "ninety-day");
+const phases = (ninety?.data.groups ?? []).map((g) => {
+  const m = g.heading.match(/^Phase \d+\s*[-–]\s*(.+?)\s*\(Days\s*([\d–-]+)\)$/);
+  return {
+    id: g.id,
+    name: m ? m[1] : g.heading,
+    days: m ? m[2].replace("-", "–") : "",
+    count: g.items.length,
+    first: g.items[0],
+  };
+});
+
 const description =
   "The companion site for the book Teen & Grow Rich. Type the page number you are on and it opens the tool for that page.";
 ---
@@ -291,6 +306,53 @@ const description =
           </a>
         </li>
       </ol>
+    </div>
+  </section>
+
+
+  {/* ------------------------------------------------------------- 3b. The 90-day route
+
+      Nothing on this page pointed at it. The path from a skill to a first honest offer is
+      the largest single piece of the book and only five pages on the whole site linked to
+      it, none of them the front door — so a reader could finish every build and never learn
+      the arc they were on.
+
+      Three phases, because the book prints three. A review proposed four by adding a Real
+      Rich phase on the end; that is a reasonable idea and it is not what is on page 55, so
+      it is not what is here. */}
+  <section class="route" aria-labelledby="route-title">
+    <div class="wrap">
+      <p class="eyebrow">After the chapters</p>
+      <h2 id="route-title" class="h2">{ninety?.data.title}</h2>
+      <p class="route__lede">
+        Ninety days, three phases, {phases.reduce((n, p) => n + p.count, 0)} dated actions.
+        It is the back of the book, and it is the part that turns everything above into
+        something a real person would pay for — safely, with an adult on the parts that
+        need one.
+      </p>
+
+      <ol class="route__list">
+        {
+          phases.map((ph, i) => (
+            <li class="route__step">
+              <p class="route__days" aria-hidden="true">{ph.days}</p>
+              <div>
+                <h3 class="route__name">
+                  <span class="route__sr">Days {ph.days}: </span>
+                  {ph.name}
+                </h3>
+                <p class="route__first">{ph.first}</p>
+                <p class="route__count">{ph.count} actions</p>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
+
+      <p class="route__cta">
+        <a class="link" href="/path/ninety-day">Open the ninety days</a>
+        <a class="link" href="/path/tiny-launch">Or the 30-day launch</a>
+      </p>
     </div>
   </section>
 
@@ -1134,5 +1196,85 @@ const description =
     .book__cover {
       box-shadow: none;
     }
+  }
+
+  /* ---- 3b. The ninety days --------------------------------------------------- */
+
+  .route {
+    margin-block-start: 3rem;
+  }
+
+  .route__lede {
+    max-inline-size: var(--container-measure);
+    margin-block-start: 0.6rem;
+    color: var(--text-default);
+  }
+
+  .route__list {
+    display: grid;
+    gap: 1rem;
+    margin-block-start: 1.5rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 52rem) {
+    .route__list {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      align-items: start;
+    }
+  }
+
+  .route__step {
+    padding: 1rem 1.1rem 1.1rem;
+    background: var(--surface-card);
+    border-inline-start: 3px solid var(--accent-spine);
+  }
+
+  .route__days {
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    line-height: 1;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .route__name {
+    margin-block-start: 0.3rem;
+    font-size: var(--text-heading);
+    line-height: 1.25;
+    color: var(--text-strong);
+  }
+
+  /* The day range is decorative in the layout and essential in the reading order. */
+  .route__sr {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .route__first {
+    margin-block-start: 0.35rem;
+    font-size: var(--text-meta);
+    line-height: 1.55;
+    color: var(--text-muted);
+  }
+
+  .route__count {
+    margin-block-start: 0.5rem;
+    font-size: var(--text-meta);
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+
+  .route__cta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.5rem;
+    margin-block-start: 1.25rem;
   }
 </style>
