@@ -125,6 +125,33 @@ const PAPER = [
     items: sequences.map((sq, i) => ({ n: pad(i + 1), label: sq.data.title })),
   },
 ];
+
+/**
+ * Three worked receipts. Deliberately unimpressive: the failure mode this page has to
+ * fight is a reader deciding their own first thing is too small to count. Every one of
+ * these is a real build from the book done at the smallest honest size, and no money
+ * appears in any of them.
+ */
+const EXAMPLES = [
+  {
+    before: "“I want to learn web design.”",
+    build: "Made one mobile page for a made-up cafe. 35 minutes.",
+    proof: "A screenshot of the page, and the two things a friend said were confusing.",
+    next: "Fix the headline, and try it on someone who has not seen it.",
+  },
+  {
+    before: "“I should probably practise editing.”",
+    build: "Cut one long clip of my own into three short ones with captions.",
+    proof: "The three files, plus the original, so the difference is visible.",
+    next: "Do the same with footage someone else shot — after asking them.",
+  },
+  {
+    before: "“I have no idea where my money goes.”",
+    build: "Wrote down every single thing I spent for one day.",
+    proof: "The list, and the one line I did not expect to be on it.",
+    next: "Do it for six more days before deciding anything.",
+  },
+];
 ---
 
 <Page
@@ -250,6 +277,40 @@ const PAPER = [
         it, put it in the front of the folder, and fill it in with a pen as you go. That is
         the one record that survives a wiped browser, a new phone and a school Chromebook
         signing out. */}
+    {/* What a receipt is.
+
+        "Receipt" is the book's word and it carries a lot: proof of something you actually
+        did, kept so it can be shown. A reader who arrives here from a QR code has met it
+        on page 4. A reader who arrives from a search has not met it at all, and this page
+        used the word eleven times before defining it once. Three worked examples cost less
+        than a paragraph of explanation. */}
+    <section class="what prose" aria-labelledby="what-h">
+      <h2 id="what-h">What counts as a receipt</h2>
+      <p>
+        Proof of something you actually did, made, learned or tested. Not a plan, not an
+        intention, not a screenshot of a course you bought. Something that exists now and
+        did not exist last week.
+      </p>
+
+      <ol class="examples">
+        {
+          EXAMPLES.map((e) => (
+            <li class="example">
+              <p class="example__before"><span class="example__k">Before</span>{e.before}</p>
+              <p class="example__build"><span class="example__k">Built</span>{e.build}</p>
+              <p class="example__proof"><span class="example__k">The receipt</span>{e.proof}</p>
+              <p class="example__next"><span class="example__k">Next</span>{e.next}</p>
+            </li>
+          ))
+        }
+      </ol>
+
+      <p class="what__note">
+        None of those took a week. That is the point of the whole thing — a receipt small
+        enough to finish is worth more than a project big enough to abandon.
+      </p>
+    </section>
+
     <section class="paper" aria-labelledby="paper-h">
       <h2 id="paper-h">The paper version</h2>
       <div class="prose">
@@ -1122,6 +1183,78 @@ const PAPER = [
       border-block-end: 1px solid #999;
       font-size: 7.5pt;
       color: #767676;
+    }
+  }
+
+  /* --- What a receipt is --------------------------------------------------------- */
+
+  .what {
+    margin-block-start: 3rem;
+  }
+
+  .what > h2 {
+    font-size: var(--text-h2);
+    line-height: var(--text-h2--line-height);
+    color: var(--text-section);
+  }
+
+  .examples {
+    margin-block-start: 1.25rem;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: 1rem;
+  }
+
+  @media (min-width: 56rem) {
+    .examples {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      align-items: start;
+      /* Wider than the prose measure on purpose: three short cards side by side read as
+         one comparison, and stacked they read as three separate stories. */
+      max-inline-size: none;
+    }
+  }
+
+  .example {
+    padding: 0.9rem 1rem 1rem;
+    background: var(--surface-card);
+    border-inline-start: 3px solid var(--accent-spine);
+  }
+
+  .example p {
+    margin-block-start: 0.5rem;
+    font-size: var(--text-meta);
+    line-height: 1.5;
+  }
+
+  .example p:first-child {
+    margin-block-start: 0;
+  }
+
+  .example__k {
+    display: block;
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .example__proof {
+    color: var(--text-strong);
+  }
+
+  .example__proof .example__k {
+    color: var(--text-strong);
+  }
+
+  .what__note {
+    margin-block-start: 1.25rem;
+  }
+
+  @media print {
+    .what {
+      display: none;
     }
   }
 </style>

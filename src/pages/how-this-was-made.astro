@@ -1,0 +1,245 @@
+---
+/**
+ * How this site was made.
+ *
+ * /hill audits the book's own source. /proof says which of its own claims are checked and
+ * which are not. The one thing left unaudited was the site itself — which is odd, because
+ * it was built with AI, its author is thirteen and enjoys building with AI, and the whole
+ * project's argument is that you should be able to see the working.
+ *
+ * The line this page has to hold: it must not overclaim in either direction. It does not
+ * say Ryan wrote every line of code, because he did not. It does not say a machine wrote
+ * the book, because it did not, and that is the important half. It says which is which.
+ *
+ * Deliberately absent: names of people other than the author, company structure,
+ * ownership, and anything about the family beyond "the family checked the facts". A
+ * reviewer already demonstrated how quickly a profile assembles from public sources.
+ */
+import Page from "../layouts/Page.astro";
+import ChapterFurniture from "../components/ChapterFurniture.astro";
+import { totals } from "../lib/content";
+
+const t = await totals();
+
+/* `trackable` counts things a reader can tick; the nineteen Reality Checks are not among
+   them, because a safety note is not a task. Everything extracted from the print PDFs is
+   both — so the number in the sentence below is computed rather than typed, and cannot
+   drift from the content the day something is added. */
+const extracted = t.trackable + t.realityChecks;
+
+/** Who did what. `who` is deliberately blunt — this is the whole point of the page. */
+const SPLIT = [
+  {
+    what: "The book",
+    who: "Ryan",
+    detail:
+      "Every word of the printed book is his: the fifteen stories, the Hill remixes, The Play steps, the 24-Hour Builds, the Reality Checks, the ninety-day path. No AI wrote any of it, and nothing on this site is allowed to write in his voice — which is why Chapter 16 still says “not written yet” instead of being filled in with something plausible.",
+  },
+  {
+    what: "The book's words on this site",
+    who: "A script, not a person and not a model",
+    detail: `All ${extracted} items were pulled out of the print PDFs by a Python script that checks fourteen counts every time it runs — nineteen builds, nineteen Reality Checks, seventy-five Play steps, and so on. If a count comes out wrong the extraction fails rather than publishing. That is why the book copy here is the book's wording and not a paraphrase: nobody retyped it, so nobody could improve it on the way past.`,
+  },
+  {
+    what: "The site itself",
+    who: "Built with AI, mostly Claude Code",
+    detail:
+      "The pages, the layout, the print stylesheets, the storage rules, the build checks. Described, generated, then read back and argued with — a lot of what is here is the second or fifth version, because the first one was wrong in a way that only showed up once it was on screen. That loop is the same one every build in this book asks you to run.",
+  },
+  {
+    what: "The editorial layer",
+    who: "Written for this site, and labelled as such",
+    detail:
+      "The nineteen build flags, the question-and-answer around each Reality Check, the examples on Race Control, the “not for” line on each offer. None of it is in the book. Every page that carries any of it says so on the page, because a reader has to be able to tell the book's judgement from ours.",
+  },
+  {
+    what: "The facts about Ryan",
+    who: "His family, and the published race reports",
+    detail:
+      "Nothing on the author page came from a model. The racing results are published and reported; the Formula 4 detail came from the family, because a training day has no results sheet. Both of those are stated on that page rather than blended together.",
+  },
+];
+
+/** What the AI got wrong, kept because it is the useful part. */
+const WRONG = [
+  "Nine of the fifteen chapter pages showed the wrong safety flag — the build's flag instead of the Reality Check's own, always erring toward the less cautious one. One page displayed “Green · go” directly above text about blackmail.",
+  "Four bugs only existed in production, because the site's content security policy does not apply while developing. The light theme — the one you print from and show an adult — was unreachable. The page-number field did not work without JavaScript.",
+  "The extraction script quietly swallowed a whole section of the first build, attached four worksheet hints to the wrong fields, and stripped the fill-in blanks, so a worksheet displayed “I help get by .”",
+  "Bringing receipts in from another device had no size limit, so one oversized file would have pushed a reader's own answers out of storage.",
+];
+---
+
+<Page
+  title="How this was made"
+  description="The book was written by a thirteen-year-old. The website was built with AI. This page says exactly which parts are which, and what the AI got wrong."
+>
+  <ChapterFurniture
+    eyebrow="Show the working"
+    title="How this was made"
+    subtitle="The book is Ryan's. The site was built with AI. Here is which part is which."
+  />
+
+  <div class="wrap">
+    <div class="prose">
+      <p class="lede">
+        This site audits <a href="/hill">the book's own source</a> and it says on
+        <a href="/proof">the author page</a> which of its claims are checked and which are
+        not. It would be strange to do that and then be vague about itself.
+      </p>
+      <p>
+        So: the book is Ryan's, written by hand at thirteen. The website was built with AI —
+        mostly Claude Code — and he likes doing that more than almost anything else he is
+        not driving. Those are two different statements and this page keeps them apart.
+      </p>
+    </div>
+  </div>
+
+  <section class="wrap section" aria-labelledby="split">
+    <h2 id="split">Who did what</h2>
+    <dl class="split">
+      {
+        SPLIT.map((r) => (
+          <div class="split__row">
+            <dt class="split__what">
+              {r.what}
+              <span class="split__who">{r.who}</span>
+            </dt>
+            <dd class="split__detail">{r.detail}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </section>
+
+  <section class="wrap section" aria-labelledby="wrong">
+    <h2 id="wrong">What the AI got wrong</h2>
+    <div class="prose">
+      <p>
+        This is the part worth reading, and the part most “built with AI” pages leave out.
+        Everything below was found by reviewing the output rather than trusting it, and
+        every one of them was live in some version of this site before it was caught.
+      </p>
+    </div>
+    <ol class="wrong">{WRONG.map((w) => <li>{w}</li>)}</ol>
+    <div class="prose">
+      <p class="aside">
+        None of those were caught by the thing that produced them. They were caught by
+        someone looking, measuring, and reading the output back — which is the entire skill,
+        and the reason “I used AI” is not the same sentence as “it is finished”.
+      </p>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="you">
+    <h2 id="you">If you want to do this</h2>
+    <div class="prose">
+      <p>
+        You do not need permission and you do not need a course. Describe the smallest
+        version of the thing you want. Look hard at what comes back. Find the part that is
+        wrong. Fix that part. That is the loop, and it is exactly the loop
+        <a href="/builds">the nineteen builds</a> put you through with a timer running.
+      </p>
+      <p>
+        The thing that makes the difference is not the tool. It is whether you can tell when
+        the answer is wrong — which comes from having built enough things to have opinions.
+        That is what the folder is for.
+      </p>
+      <p class="aside">
+        A note for grown-ups: no personal data of any reader was involved in building this,
+        because there is none to involve. <a href="/schools/privacy">The privacy page</a>
+        shows how to verify that in about two minutes.
+      </p>
+    </div>
+  </section>
+</Page>
+
+<style>
+  .wrap {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .prose {
+    max-inline-size: var(--container-measure);
+  }
+
+  .prose p + p {
+    margin-block-start: 0.9em;
+  }
+
+  .lede {
+    margin-block-start: 1.75rem;
+    font-size: var(--text-subtitle);
+    line-height: var(--text-subtitle--line-height);
+    color: var(--text-strong);
+  }
+
+  .section {
+    margin-block-start: 3rem;
+  }
+
+  .section > h2 {
+    font-size: var(--text-h2);
+    line-height: var(--text-h2--line-height);
+    color: var(--text-section);
+    max-inline-size: var(--container-measure);
+  }
+
+  .section > .prose {
+    margin-block-start: 0.75rem;
+  }
+
+  .split {
+    max-inline-size: var(--container-measure);
+    margin-block-start: 1.25rem;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .split__row {
+    padding-block: 1rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .split__what {
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  .split__who {
+    display: block;
+    margin-block-start: 0.15rem;
+    font-size: var(--text-meta);
+    font-weight: 400;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .split__detail {
+    margin: 0.5rem 0 0;
+  }
+
+  .wrong {
+    max-inline-size: var(--container-measure);
+    margin-block-start: 1.25rem;
+    padding-inline-start: 1.3rem;
+  }
+
+  .wrong li + li {
+    margin-block-start: 0.7rem;
+  }
+
+  .aside {
+    margin-block-start: 1.25rem;
+    padding-block-start: 1rem;
+    border-block-start: 3px solid var(--accent-dot);
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  a {
+    text-decoration-color: currentColor;
+    text-underline-offset: 3px;
+  }
+</style>

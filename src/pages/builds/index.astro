@@ -208,6 +208,46 @@ const flagCounts = {
           sixteen also sit on their build, and three belong to no build at all.
         </p>
       </section>
+
+      {/* What happens after all nineteen.
+
+          A reader who finishes the marathon got nothing — the page simply stopped. Not a
+          badge and not a certificate: those are the mechanics this book argues against, and
+          a rank name invented by a website is worth exactly nothing. What it is instead is
+          the honest next thing, which is that the folder is now the interesting object and
+          the cycle starts again from a different place.
+
+          Revealed by the same script that counts the ticks, and hidden until then. Nothing
+          is gated behind it: every one of these links works from the first visit. */}
+      <section class="done-all" data-done-all hidden aria-labelledby="done-all-h">
+        <p class="done-all__kicker">19 of 19</p>
+        <h2 id="done-all-h" class="done-all__h">You did all of them</h2>
+        <p class="done-all__body">
+          Which means the folder is now the interesting thing, not this page. Go and look
+          at what is in it: the first build and the last one, side by side. That difference
+          is the only progress bar worth having, and nobody had to award it to you.
+        </p>
+        <ul class="done-all__next">
+          <li>
+            <a href="/worksheet/real-rich-scoreboard">Score the six again</a> — Skills,
+            Health, Time, People, Money, Impact. You filled this in before you started.
+            The point is not the total; it is which one is lowest now.
+          </li>
+          <li>
+            <a href="/worksheet/real-rich-plan">Redo the one-page plan</a> with what you
+            actually know now instead of what you guessed.
+          </li>
+          <li>
+            <a href="/path/ninety-day">Start the ninety days again</a> from a different
+            skill. The second time through is a different book.
+          </li>
+          <li>
+            <a href="/receipts">Print the folder index</a> and fill in what is really in
+            there. Browsers forget. Paper does not.
+          </li>
+        </ul>
+      </section>
+
     </div>
   </div>
 </Page>
@@ -250,6 +290,13 @@ const flagCounts = {
   };
 
   hub?.addEventListener("change", report);
+
+  /* The nineteenth tick is the only thing on this page that changes what is on screen
+     rather than what is filtered. No badge, no rank, no confetti — a section that was not
+     there, with the four things worth doing next. */
+  if (done === totalRows && totalRows > 0) {
+    document.querySelector<HTMLElement>("[data-done-all]")?.removeAttribute("hidden");
+  }
 </script>
 
 <style>
@@ -577,5 +624,48 @@ const flagCounts = {
     .hub__count {
       display: none;
     }
+  }
+
+  /* --- After all nineteen ---------------------------------------------------------- */
+
+  .done-all {
+    max-inline-size: var(--container-measure);
+    margin-block-start: 3rem;
+    padding: 1.25rem 1.25rem 1.5rem;
+    background: var(--surface-card);
+    border-inline-start: 3px solid var(--accent-dot);
+  }
+
+  .done-all__kicker {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    line-height: 1;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .done-all__h {
+    margin-block-start: 0.35rem;
+    font-size: var(--text-h2);
+    line-height: var(--text-h2--line-height);
+    color: var(--text-strong);
+  }
+
+  .done-all__body {
+    margin-block-start: 0.6rem;
+  }
+
+  .done-all__next {
+    margin-block-start: 1rem;
+    padding-inline-start: 1.1rem;
+  }
+
+  .done-all__next li + li {
+    margin-block-start: 0.6rem;
+  }
+
+  .done-all__next a {
+    font-weight: 700;
+    color: var(--text-strong);
   }
 </style>
