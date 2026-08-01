@@ -49,6 +49,31 @@ that actually happened, and one thing the reader can do.
 in Ryan's voice, and a fabricated Chapter 16 on a site whose centrepiece is an honesty
 audit would be indefensible.
 
+## 2b. The domain in the printed book is not ours
+
+This one is not on Ryan; it is worth knowing before anything else on this list.
+
+Both QR codes in the printed book encode `https://teenandgrowrich.com` — decoded from the
+artwork, not assumed. **That domain belongs to a different company.** It is not for sale to
+us and it is not coming. The site lives at `teen-andgrowrich.com`, with the hyphen.
+
+So every QR code in every printed copy points at somebody else's domain. It does not
+resolve today, but the owner can put anything there at any time, and a reader scanning a
+code from a book written for thirteen-year-olds would land on it.
+
+What already covers it: `/p/1`–`/p/65`. A reader types the page number they are on instead
+of scanning. That system was built to retro-fit deep links into the first print run, and it
+turns out to be the only route from the printed book into this site — which is why those
+sixty-five routes must never break.
+
+What is worth deciding, in rough order of cost:
+
+1. **Ask the owner what they want for it.** A short, polite email. Worst case is no.
+2. **A sticker or insert** for stock that has not shipped, with the hyphenated address.
+3. **Fix it in the second print run** — both QR codes and any printed URL.
+4. **Say it out loud** in the book's own listing or on `/editions`: if the QR does not work,
+   type the page number at teen-andgrowrich.com.
+
 ## 3. The exact Formula 4 facts
 
 `/proof` currently publishes only what the press has reported and can be checked: from
@@ -89,8 +114,11 @@ exists it goes in one place and nowhere else. Two constraints:
 
 ## 6. The contact address
 
-Every page currently shows `hello@teenandgrowrich.com`, which does not exist. It needs to
-be a real mailbox **an adult reads**. The site already tells readers, in the footer and
+Every page shows `hello@teen-andgrowrich.com`, which does not exist yet. It needs to be a
+real mailbox **an adult reads**.
+
+Note the hyphen. It used to read `hello@teenandgrowrich.com` — a domain that belongs to an
+unrelated company, so mail sent there would have gone to a stranger rather than nowhere. The site already tells readers, in the footer and
 on both AI tool pages: *"One adult-monitored mailbox. Nobody reads it urgently, and it is
 not a crisis service."*
 

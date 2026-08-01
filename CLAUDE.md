@@ -20,6 +20,14 @@ homepage is a landing page for someone holding a physical book on a phone. It is
 not primarily a marketing page. Verified by rendering all 132 PDF pages and
 running QR detection — there are exactly two codes and neither deep-links.
 
+**That domain is not ours.** It belongs to an unrelated company and is not
+available. The site lives at `teen-andgrowrich.com`, with the hyphen, and that is
+the only address this project has. Every printed QR code therefore points at a
+stranger's domain, which makes `/p/1`–`/p/65` the only working route from the
+printed book into this site rather than a convenience. Never write the hyphen-free
+spelling anywhere in the codebase; the origin is read from `astro.config.mjs`
+through `src/lib/site.ts`.
+
 ## Non-negotiables
 
 These come from the book itself. Breaking one breaks the product.

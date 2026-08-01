@@ -24,9 +24,14 @@ export default defineConfig({
      canonical pointing at a host that does not resolve is worse than none.
 
      The two printed QR codes encode the bare root https://teenandgrowrich.com (decoded
-     from assets/from-book/qr-companion.png, not assumed). That domain is not connected;
-     teen-andgrowrich.com is. If the hyphen-free domain is ever acquired, change this
-     line back and redeploy — it is the single place the origin is written. */
+     from assets/from-book/qr-companion.png, not assumed). THAT DOMAIN BELONGS TO SOMEBODY
+     ELSE — a different company, unconnected to this project. It is not available and it is
+     not coming. teen-andgrowrich.com, with the hyphen, is the only address this book has.
+
+     So this is not a placeholder waiting to be swapped back. Every printed QR code points
+     at a stranger's domain, and the only route a reader has into this site is typing the
+     page number. That is what /p/1../p/65 is for, and it is why those routes must never
+     break. */
   site: "https://teen-andgrowrich.com",
   output: "static",
 
