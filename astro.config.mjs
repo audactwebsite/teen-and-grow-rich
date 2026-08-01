@@ -4,7 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 import { INLINE_SCRIPT_HASHES } from "./src/lib/inline-scripts.mjs";
 
 /**
- * teenandgrowrich.com — static companion site for the book Teen & Grow Rich.
+ * teen-andgrowrich.com — static companion site for the book Teen & Grow Rich.
  *
  * Decisions this file implements (see docs/decisions.md):
  *  D20  Astro 7 + the built-in Fonts API. Noto Sans is taken verbatim from the print
@@ -23,15 +23,14 @@ export default defineConfig({
      from this string, so it must match the domain that is actually connected — a
      canonical pointing at a host that does not resolve is worse than none.
 
-     The two printed QR codes encode the bare root https://teenandgrowrich.com (decoded
-     from assets/from-book/qr-companion.png, not assumed). THAT DOMAIN BELONGS TO SOMEBODY
-     ELSE — a different company, unconnected to this project. It is not available and it is
-     not coming. teen-andgrowrich.com, with the hyphen, is the only address this book has.
+     Both printed QR codes encode this exact string, decoded from the print files rather
+     than assumed. The hyphen matters: teenandgrowrich.com without it belongs to an
+     unrelated company, and the book was re-issued specifically to correct that — QR codes,
+     Publishing Note, author page and back cover all now carry the hyphen.
 
-     So this is not a placeholder waiting to be swapped back. Every printed QR code points
-     at a stranger's domain, and the only route a reader has into this site is typing the
-     page number. That is what /p/1../p/65 is for, and it is why those routes must never
-     break. */
+     Do not "tidy" this. There is no version of this project that lives at the hyphen-free
+     spelling, and /p/1../p/65 remains the route for a reader who cannot scan: Dutch
+     classrooms have banned phones since 1 January 2024. */
   site: "https://teen-andgrowrich.com",
   output: "static",
 

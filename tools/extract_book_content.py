@@ -524,6 +524,10 @@ def main() -> None:
         text, _ = take_until(
             rest,
             (
+                # The Publishing Note's own line. It changed with the re-issue that moved the
+                # book to the hyphenated domain; both spellings stay here so the extraction
+                # still runs against an older print file.
+                "Website: teen-andgrowrich.com",
                 "Website: teenandgrowrich.com",
                 "Debrief",
                 "Your First Offer Canvas",

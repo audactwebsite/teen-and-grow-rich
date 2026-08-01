@@ -1,4 +1,4 @@
-# teenandgrowrich.com
+# teen-andgrowrich.com
 
 Companion website for the book **Teen & Grow Rich** by Ryan Rijvers (13), imprint
 Bright Kids. The book is done and printed. This repo is the website.
@@ -15,18 +15,18 @@ Read once before your first change:
 A reader finishes a chapter, scans the QR code in the book, and lands here to
 **do the thing**. The site supplies the tools; the book keeps the stories.
 
-Both printed QR codes encode the bare root `https://teenandgrowrich.com`, so the
+Both printed QR codes encode the bare root `https://teen-andgrowrich.com`, so the
 homepage is a landing page for someone holding a physical book on a phone. It is
-not primarily a marketing page. Verified by rendering all 132 PDF pages and
-running QR detection — there are exactly two codes and neither deep-links.
+not primarily a marketing page. Verified by rendering every page of the print
+files and running QR detection — there are exactly two codes, both point at the
+hyphenated domain, and neither deep-links.
 
-**That domain is not ours.** It belongs to an unrelated company and is not
-available. The site lives at `teen-andgrowrich.com`, with the hyphen, and that is
-the only address this project has. Every printed QR code therefore points at a
-stranger's domain, which makes `/p/1`–`/p/65` the only working route from the
-printed book into this site rather than a convenience. Never write the hyphen-free
-spelling anywhere in the codebase; the origin is read from `astro.config.mjs`
-through `src/lib/site.ts`.
+**The hyphen is not optional.** `teenandgrowrich.com` without it belongs to an
+unrelated company. The book was re-issued to fix this: the QR codes, the
+Publishing Note on page 3, the author page and the back cover all carry
+`teen-andgrowrich.com`. Never write the hyphen-free spelling anywhere in the
+codebase; the origin is read once from `astro.config.mjs` through
+`src/lib/site.ts` and everything else derives from it.
 
 ## Non-negotiables
 

@@ -1,4 +1,4 @@
-# teenandgrowrich.com
+# teen-andgrowrich.com
 
 Companion site for the book **Teen & Grow Rich** by Ryan Rijvers, imprint Bright Kids.
 

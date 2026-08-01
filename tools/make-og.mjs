@@ -9,6 +9,20 @@ import { pathToFileURL } from 'node:url';
 
 const cover = (await readFile('src/assets/photos/book-cover.jpg')).toString('base64');
 
+/**
+ * The host, read from astro.config.mjs rather than typed here.
+ *
+ * It was typed here, at the hyphen-free spelling, and stayed that way after the site moved.
+ * Nothing checks a string inside a card generator: the wrong domain was baked into a JPEG
+ * and served as the preview every time anybody shared this site on WhatsApp, Slack or
+ * LinkedIn. A picture is the one place a stale string cannot be found by grepping the
+ * output, so it reads the single source like everything else does.
+ */
+const configSource = await readFile('astro.config.mjs', 'utf8');
+const siteMatch = /^\s*site:\s*["'](https?:\/\/[^"']+)["']/m.exec(configSource);
+if (!siteMatch) throw new Error('make-og: no `site` found in astro.config.mjs');
+const host = new URL(siteMatch[1]).host;
+
 const html = `<!doctype html><html><head><meta charset="utf-8">
 <style>
   @font-face { font-family: N; src: url('http://127.0.0.1:4321/_astro/fonts/1e5097bbf9c9d577.woff2') format('woff2'); font-weight: 400 700; }
@@ -35,7 +49,7 @@ const html = `<!doctype html><html><head><meta charset="utf-8">
     <h1>Type the page<br>you are on.</h1>
     <div class="rules"><span class="r1"></span><span class="r2"></span></div>
     <p>It opens the tool for that page.</p>
-    <p class="foot">teenandgrowrich.com <span class="dot"></span> no account, nothing to sign up for</p>
+    <p class="foot">${host} <span class="dot"></span> no account, nothing to sign up for</p>
   </div>
 </body></html>`;
 

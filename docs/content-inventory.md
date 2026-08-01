@@ -180,7 +180,7 @@ a night of sleep."*
 1 illustrated author portrait (navy/teal/orange brush strokes on off-white),
 1 photographic author portrait (B&W, back cover), 1 cover, 2 QR codes.
 
-**Both QR codes encode `https://teenandgrowrich.com`** — the bare root, no deep
+**Both QR codes encode `https://teen-andgrowrich.com`** — the bare root, no deep
 links. Verified by rendering all 132 pages at 200 dpi and running multi-QR
 detection. The homepage is therefore the landing page for a reader holding the
 book. Design per-chapter URLs (`/c/01`, `/build/07`) now so the second print run
