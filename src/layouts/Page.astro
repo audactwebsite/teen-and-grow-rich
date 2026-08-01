@@ -80,4 +80,15 @@ const { title, description, printedPage, ogType, noindex, jsonLdText, ogImageUrl
   .skip-link:focus-visible {
     transform: translateY(0);
   }
+
+  /* Not on paper. It is moved off-screen with a transform, and Chromium lays a
+     transformed fixed element back into the flow when printing — so an orange "Skip to
+     content" button was landing in the middle of every printed worksheet and receipt
+     sheet. Several features here exist specifically to be printed and handed to an
+     adult, so this is not cosmetic. */
+  @media print {
+    .skip-link {
+      display: none;
+    }
+  }
 </style>

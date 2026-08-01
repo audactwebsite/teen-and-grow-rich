@@ -53,6 +53,7 @@ export const GET: APIRoute = async ({ site }) => {
     ...worksheets.map((w) => [`/worksheet/${w.id}`, "0.7"] as [string, string]),
     ...sequences.map((s) => [`/path/${s.id}`, "0.7"] as [string, string]),
     ["/offers", "0.7"],
+    ["/race-control", "0.8"],
     ["/parents", "0.8"],
     ["/schools/privacy", "0.7"],
     ["/hill", "0.7"],

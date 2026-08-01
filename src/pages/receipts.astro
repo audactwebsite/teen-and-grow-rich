@@ -102,6 +102,29 @@ const GROUPS = [
   { kind: "day", heading: "Days you marked done" },
   { kind: "score", heading: "Scores" },
 ];
+
+/**
+ * The printable index. Built from the same content as the page above, but it reads no
+ * storage at all — it is the same sheet whether or not this browser has ever kept anything,
+ * because its whole job is to outlive this browser.
+ */
+const PAPER = [
+  {
+    heading: "The 19 builds",
+    items: builds.map((b) => {
+      const chapter = chapters.find((c) => c.data.n === b.data.chapter);
+      return { n: pad(b.data.n), label: chapter ? chapter.data.title : b.data.source };
+    }),
+  },
+  {
+    heading: "The worksheets",
+    items: worksheets.map((w, i) => ({ n: pad(i + 1), label: w.data.title })),
+  },
+  {
+    heading: "The plans",
+    items: sequences.map((sq, i) => ({ n: pad(i + 1), label: sq.data.title })),
+  },
+];
 ---
 
 <Page
@@ -214,6 +237,70 @@ const GROUPS = [
         }
       </div>
     </div>
+
+    {/* The paper index.
+
+        Build 01 is the backbone of the book: start a folder called REAL RICH RECEIPTS and
+        put every piece of evidence in it. That folder is physical — screenshots printed,
+        drafts, a page someone wrote back on — and this site cannot hold it. What it can do
+        is print the cover sheet.
+
+        Deliberately blank and static. It does not read storage, it does not need
+        JavaScript, and it works on a first visit before anything has been ticked: you print
+        it, put it in the front of the folder, and fill it in with a pen as you go. That is
+        the one record that survives a wiped browser, a new phone and a school Chromebook
+        signing out. */}
+    <section class="paper" aria-labelledby="paper-h">
+      <h2 id="paper-h">The paper version</h2>
+      <div class="prose">
+        <p>
+          Build 01 asks you to start a real folder called <b>REAL RICH RECEIPTS</b> and put
+          every piece of proof inside it. This is the sheet that goes in the front of it.
+        </p>
+        <p>
+          Print it and fill it in with a pen. It does not need this browser, it does not
+          need a login, and it is still there in a year when everything on this page has
+          been cleared. That is the point of it.
+        </p>
+        <p class="paper__cta" data-print="hide">
+          <button type="button" class="btn btn--primary js" data-print-btn>
+            Print this sheet
+          </button>
+          <span class="paper__nojs">Use your browser's print command — File, then Print.</span>
+        </p>
+      </div>
+
+      <div class="sheet">
+        <p class="sheet__title">REAL RICH RECEIPTS</p>
+        <p class="sheet__sub">
+          Name <span class="sheet__rule"></span> Started <span class="sheet__rule sheet__rule--short"></span>
+        </p>
+
+        {
+          PAPER.map((g) => (
+            <div class="sheet__group">
+              <p class="sheet__group-h">
+                {g.heading} <span class="sheet__count">{g.items.length}</span>
+              </p>
+              <ul class="sheet__list">
+                {g.items.map((i) => (
+                  <li class="sheet__item">
+                    <span class="sheet__box" aria-hidden="true" />
+                    <span class="sheet__n">{i.n}</span>
+                    <span class="sheet__label">{i.label}</span>
+                    <span class="sheet__proof">what is in the folder</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+
+        <p class="sheet__foot">
+          Teen &amp; Grow Rich · one tick per thing that exists, not per thing you meant to do.
+        </p>
+      </div>
+    </section>
 
     <section class="truth prose" aria-labelledby="truth-h">
       <h2 id="truth-h">What “kept in this browser” actually means</h2>
@@ -874,6 +961,167 @@ const GROUPS = [
     .truth {
       margin-block-start: 1.5rem;
       padding-block-start: 1rem;
+    }
+  }
+
+  /* --- The printable index ------------------------------------------------------- */
+
+  .paper {
+    margin-block-start: 3rem;
+  }
+
+  .paper > h2 {
+    font-size: var(--text-h2);
+    line-height: var(--text-h2--line-height);
+    color: var(--text-section);
+  }
+
+  .paper .prose {
+    max-inline-size: var(--container-measure);
+    margin-block-start: 0.75rem;
+  }
+
+  .paper__cta {
+    margin-block-start: 1rem;
+  }
+
+  .paper__nojs {
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  /* Shown only when the theme script has confirmed JS is alive; global.css hides .js
+     until then, so the printed hint below is what a no-JS reader sees instead. */
+  :global(html:not([data-js])) .paper__nojs {
+    display: inline;
+  }
+
+  :global(html[data-js]) .paper__nojs {
+    display: none;
+  }
+
+  .sheet {
+    margin-block-start: 1.5rem;
+    padding: 1.25rem;
+    background: var(--surface-card);
+    border: 1px solid var(--rule-hairline);
+  }
+
+  .sheet__title {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 6vw, 2rem);
+    line-height: 1.1;
+    color: var(--text-strong);
+  }
+
+  .sheet__sub {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem 1rem;
+    margin-block-start: 0.6rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .sheet__rule {
+    flex: 1 1 8rem;
+    border-block-end: 1px solid var(--rule-hairline);
+    min-inline-size: 6rem;
+  }
+
+  .sheet__rule--short {
+    flex-basis: 5rem;
+  }
+
+  .sheet__group {
+    margin-block-start: 1.5rem;
+    break-inside: avoid;
+  }
+
+  .sheet__group-h {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-strong);
+    padding-block-end: 0.35rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .sheet__count {
+    color: var(--text-muted);
+  }
+
+  .sheet__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .sheet__item {
+    display: grid;
+    grid-template-columns: 1.1rem 2rem minmax(0, 1fr);
+    gap: 0.5rem;
+    align-items: baseline;
+    padding-block: 0.45rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .sheet__box {
+    inline-size: 0.95rem;
+    block-size: 0.95rem;
+    /* 3:1 against the card, because an empty box IS the control here — 1.4.11 applies
+       to a boundary a reader has to see in order to use the sheet. */
+    border: 2px solid var(--control-edge);
+  }
+
+  .sheet__n {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .sheet__label {
+    font-size: var(--text-meta);
+    color: var(--text-default);
+  }
+
+  .sheet__proof {
+    display: none;
+  }
+
+  .sheet__foot {
+    margin-block-start: 1.25rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  @media print {
+    .paper .prose,
+    .paper > h2 {
+      display: none;
+    }
+
+    .sheet {
+      background: none;
+      border: 0;
+      padding: 0;
+    }
+
+    /* On paper there is room for the second column: a line to write WHAT the proof is,
+       which is the thing the folder is actually for. */
+    .sheet__item {
+      grid-template-columns: 1.1rem 2rem minmax(0, 1fr) 40%;
+      break-inside: avoid;
+    }
+
+    .sheet__proof {
+      display: block;
+      border-block-end: 1px solid #999;
+      font-size: 7.5pt;
+      color: #767676;
     }
   }
 </style>

@@ -1,0 +1,441 @@
+---
+/**
+ * Race Control, for the person the rule is actually about.
+ *
+ * The traffic-light rule is printed on page 61 of the book, in the "For Parents & Guardians"
+ * section, and /parents renders it for adults. Three separate reviews noticed the same gap:
+ * there is nowhere on this site that explains the rule to a thirteen-year-old. They meet it
+ * as a coloured label on a build card, after they have already opened the build — which is
+ * to say, after the decision.
+ *
+ * So this page is the rule, first, in the reader's own language, before anything is at
+ * stake. Deliberately static: no JavaScript, no widget, no questionnaire that stores an
+ * answer. It is a thing to read, and a thing a family can print and put on a fridge.
+ *
+ * The book's own wording is quoted verbatim in `book`. Everything in `you` and in the
+ * examples is site-authored, written by applying that printed rule — the same boundary the
+ * nineteen derived build flags are under, and stated on the page rather than blurred.
+ */
+import Page from "../layouts/Page.astro";
+import ChapterFurniture from "../components/ChapterFurniture.astro";
+import Flag from "../components/Flag.astro";
+import PageRef from "../components/PageRef.astro";
+import { FAMILY_RULE } from "./reality-check/_checks";
+import { FLAG_RULE_PAGE } from "../lib/build-meta";
+
+const TIERS = [
+  {
+    level: "green" as const,
+    heading: "Green — go",
+    /** Verbatim, printed page 61. */
+    book: "Green decisions are low-cost and reversible.",
+    you: "Just do it. Nobody needs to approve this and nothing breaks if it goes wrong. Most of what is on this site is green.",
+    like: [
+      "Writing your idea down",
+      "Making a first version nobody sees",
+      "Practising a skill for twenty minutes",
+      "Sorting what you spent last week",
+      "Building a demo for a made-up client",
+    ],
+  },
+  {
+    level: "yellow" as const,
+    heading: "Yellow — say it out loud first",
+    book: "Yellow decisions involve public posting, small spending, or contact with new people and require a check-in.",
+    you: "Tell an adult before, not after. This is a conversation, not permission — they are looking at it with you, and most of the time they will say go ahead.",
+    like: [
+      "Posting something publicly with your name on it",
+      "Spending a small amount of your own money",
+      "Messaging someone you have never met",
+      "Putting your work somewhere strangers can see it",
+      "Agreeing to do something for someone by a date",
+    ],
+  },
+  {
+    level: "red" as const,
+    heading: "Red — an adult does it with you",
+    book: "Red decisions involve contracts, financial products, travel, identity documents, large payments, or in-person meetings and require direct adult involvement.",
+    you: "Not you on your own. An adult is in the room, on the account and on the signature. This is not because you cannot be trusted — it is because these are the ones that are hard to undo.",
+    like: [
+      "Anything you have to sign",
+      "Anything where money moves",
+      "Sending ID, a passport page or a bank card",
+      "Meeting someone in person",
+      "Travelling somewhere for it",
+      "Anything to do with investing or crypto",
+    ],
+  },
+];
+
+/** Three questions, in order. The first yes decides it. */
+const DECIDE = [
+  {
+    q: "Does it involve signing, money moving, ID, travelling, or meeting someone in person?",
+    then: "red" as const,
+    say: "Then it is red. Stop and get an adult in it before you do anything else — including replying.",
+  },
+  {
+    q: "Does it involve posting publicly, spending a little, or talking to someone new?",
+    then: "yellow" as const,
+    say: "Then it is yellow. Say it out loud to an adult first. Two minutes, before it happens.",
+  },
+  {
+    q: "Neither of those?",
+    then: "green" as const,
+    say: "Then it is green. Go and make it.",
+  },
+];
+---
+
+<Page
+  title="Race Control"
+  description="The traffic-light rule from Teen & Grow Rich, explained for the person it is about. Green: go. Yellow: tell an adult first. Red: an adult does it with you. Three questions, and the first yes decides."
+  printedPage={FLAG_RULE_PAGE}
+>
+  <ChapterFurniture
+    eyebrow="Race control"
+    title="Green, yellow, red"
+    subtitle="One rule for every decision in this book. Three questions, and the first yes decides it."
+  />
+
+  <div class="wrap">
+    <div class="prose">
+      <p class="lede">
+        In racing, flags come from race control and every driver on the track obeys them —
+        not because they are being told off, but because the person with the flag can see
+        the whole circuit and the driver can only see the next corner. That is the whole
+        idea. This is not about whether you are sensible. It is about who can see what.
+      </p>
+      <p class="meta"><PageRef page={FLAG_RULE_PAGE} kind="For Parents & Guardians" /></p>
+    </div>
+  </div>
+
+  {/* The decision, before the explanation. Someone who arrives here with a message open in
+      another tab needs an answer in ten seconds, not a page about safety culture. */}
+  <section class="wrap section" aria-labelledby="decide">
+    <h2 id="decide">Work out which one it is</h2>
+    <ol class="decide">
+      {
+        DECIDE.map((d, i) => (
+          <li class="decide__step">
+            <p class="decide__n" aria-hidden="true">{i + 1}</p>
+            <div class="decide__body">
+              <h3 class="decide__q">{d.q}</h3>
+              <p class="decide__flag"><Flag level={d.then} size="sm" /></p>
+              <p class="decide__say">{d.say}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+    <p class="decide__note">
+      Answer them in order and stop at the first yes. If you are not sure which one
+      something is, treat it as the more careful colour — that costs you a conversation,
+      and being wrong the other way costs a lot more.
+    </p>
+  </section>
+
+  <section class="wrap section" aria-labelledby="tiers">
+    <h2 id="tiers">What each colour actually means</h2>
+
+    <div class="tiers">
+      {
+        TIERS.map((t) => (
+          <article class={`tier tier--${t.level}`}>
+            <div class="tier__head">
+              <Flag level={t.level} />
+              <h3 class="tier__heading">{t.heading}</h3>
+            </div>
+
+            <p class="tier__you">{t.you}</p>
+
+            <p class="tier__like-label">Things that are {t.level}</p>
+            <ul class="tier__like">{t.like.map((l) => <li>{l}</li>)}</ul>
+
+            <p class="tier__book">
+              <span class="tier__book-label">The book's words</span>
+              {t.book}
+            </p>
+          </article>
+        ))
+      }
+    </div>
+
+    <p class="derived">
+      The quoted line under each colour is printed in the book, on page {FLAG_RULE_PAGE}.
+      Everything above it is this site putting that rule into the words you would actually
+      use — including the examples, which the book does not print. If one of them looks
+      wrong to you, the printed rule wins.
+    </p>
+  </section>
+
+  <section class="wrap section" aria-labelledby="rule">
+    <h2 id="rule">The one line worth remembering</h2>
+    <blockquote class="rule">
+      <p>{FAMILY_RULE}</p>
+      <footer><PageRef page={FLAG_RULE_PAGE} kind="For Parents & Guardians" /></footer>
+    </blockquote>
+    <div class="prose">
+      <p>
+        That second sentence is the useful one. A real offer is still there tomorrow. If
+        something cannot survive you sleeping on it and showing one adult, that is not bad
+        luck about timing — that is the whole trick, and it is the most common one there is.
+      </p>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="adults">
+    <h2 id="adults">“An adult” does not only mean a parent</h2>
+    <div class="prose">
+      <p>
+        A teacher, a coach, a librarian, a youth worker, a school counsellor, an aunt or
+        uncle, a brother or sister over 18. It has to be someone who will actually look at
+        the thing with you — not the person who is easiest to get a yes from.
+      </p>
+      <p>
+        If there is nobody at home you can ask, that is not a dead end and it does not mean
+        you are on your own. <a href="/reality-check">Every Reality Check</a> names who to
+        raise that particular thing with, and several of them assume the answer is not a
+        parent.
+      </p>
+      <p class="aside">
+        Grown-ups reading over a shoulder: <a href="/parents">Race Control for adults</a> has
+        the same rule with the family agreement, what to ask, and what this site does and
+        does not do with anything typed into it.
+      </p>
+    </div>
+  </section>
+</Page>
+
+<style>
+  .wrap {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .prose {
+    max-inline-size: var(--container-measure);
+  }
+
+  .prose p + p {
+    margin-block-start: 0.9em;
+  }
+
+  .lede {
+    margin-block-start: 1.75rem;
+    font-size: var(--text-subtitle);
+    line-height: var(--text-subtitle--line-height);
+    color: var(--text-strong);
+  }
+
+  .meta {
+    margin-block-start: 0.75rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .section {
+    margin-block-start: 3rem;
+  }
+
+  .section > h2 {
+    font-size: var(--text-h2);
+    line-height: var(--text-h2--line-height);
+    color: var(--text-section);
+    max-inline-size: var(--container-measure);
+  }
+
+  /* --- The three questions ---------------------------------------------------- */
+
+  .decide {
+    max-inline-size: var(--container-measure);
+    margin-block-start: 1.25rem;
+    padding: 0;
+    list-style: none;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .decide__step {
+    display: grid;
+    grid-template-columns: 2.25rem minmax(0, 1fr);
+    gap: 0.75rem;
+    align-items: start;
+    padding-block: 1rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .decide__n {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    line-height: 1.1;
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .decide__q {
+    font-size: var(--text-heading);
+    line-height: 1.3;
+    color: var(--text-strong);
+  }
+
+  .decide__flag {
+    margin-block-start: 0.5rem;
+  }
+
+  .decide__say {
+    margin-block-start: 0.35rem;
+  }
+
+  .decide__note {
+    max-inline-size: var(--container-measure);
+    margin-block-start: 1rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  /* --- The three colours ------------------------------------------------------ */
+
+  .tiers {
+    display: grid;
+    gap: 1rem;
+    margin-block-start: 1.5rem;
+  }
+
+  @media (min-width: 56rem) {
+    .tiers {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      align-items: start;
+    }
+  }
+
+  .tier {
+    padding: 1rem 1.1rem 1.2rem;
+    background: var(--surface-card);
+    /* Edge weight AND colour, so the three stay distinguishable on a black-and-white
+       photocopy — the way a family will actually put this on a fridge. */
+    border-inline-start-style: solid;
+  }
+
+  .tier--green {
+    border-inline-start: 3px solid var(--flag-green);
+  }
+
+  .tier--yellow {
+    border-inline-start: 5px dashed var(--flag-yellow);
+  }
+
+  .tier--red {
+    border-inline-start: 7px double var(--flag-red);
+  }
+
+  .tier__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.75rem;
+  }
+
+  .tier__heading {
+    font-size: var(--text-heading);
+    line-height: 1.25;
+    color: var(--text-strong);
+  }
+
+  .tier__you {
+    margin-block-start: 0.6rem;
+  }
+
+  .tier__like-label {
+    margin-block-start: 1rem;
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .tier__like {
+    margin-block-start: 0.4rem;
+    padding-inline-start: 1.1rem;
+    font-size: var(--text-meta);
+    line-height: 1.6;
+  }
+
+  .tier__book {
+    margin-block-start: 1rem;
+    padding-block-start: 0.8rem;
+    border-block-start: 1px solid var(--rule-hairline);
+    font-size: var(--text-meta);
+    line-height: 1.5;
+    color: var(--text-muted);
+  }
+
+  .tier__book-label {
+    display: block;
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-strong);
+  }
+
+  .derived {
+    max-inline-size: var(--container-measure);
+    margin-block-start: 1.25rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  /* --- The family rule -------------------------------------------------------- */
+
+  .rule {
+    max-inline-size: var(--container-measure);
+    margin: 1.25rem 0 0;
+    padding-inline-start: 1rem;
+    border-inline-start: 3px solid var(--accent-dot);
+  }
+
+  .rule p {
+    font-size: var(--text-subtitle);
+    line-height: var(--text-subtitle--line-height);
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  .rule footer {
+    margin-block-start: 0.5rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .aside {
+    margin-block-start: 1.25rem;
+    padding-block-start: 1rem;
+    border-block-start: 3px solid var(--accent-dot);
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  a {
+    text-decoration-color: currentColor;
+    text-underline-offset: 3px;
+  }
+
+  /* A family printing this puts it somewhere visible. Three colours become three edge
+     weights and three edge styles on paper, and the cards must not split across a page. */
+  @media print {
+    .tiers {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.5rem;
+    }
+
+    .tier {
+      background: none;
+      break-inside: avoid;
+    }
+
+    .decide__step {
+      break-inside: avoid;
+    }
+  }
+</style>
