@@ -122,3 +122,41 @@ and one gap is enough, because the absence of that gap is the whole product.
 
 This file is itself an application of that test. The failure it records is one the project's
 own method predicts: a claim written in the past tense before the work existed.
+
+---
+
+## Update, later the same day: the gates passed dead features
+
+A review round with four independent lenses plus a design pass found something the audit
+above could not: three features committed earlier today were **dead markup**. The portfolio
+export on `/receipts`, the Safe Witness Loop on the worksheets, and the scoreboard routing
+all shipped with no CSS and no JavaScript — visible, focusable, keyboard-operable buttons
+that did nothing when pressed. On `/receipts`, thirty of forty-seven class names resolved to
+no rule at all.
+
+Every automated gate was green the whole time. `astro check` clean, build clean, all
+eighteen extraction assertions passing, external-host check clean. A button that does
+nothing is valid HTML, and none of those gates reads a rendered page.
+
+That is the second time in one day the same shape of failure got through. The first was
+nineteen run-together words, live, invisible to every check because the markup was valid.
+Both were caught by something looking at the page as a reader sees it — once by the owner
+reading a sentence, once by a screenshot.
+
+**The lesson is not "add another check".** It is that this project's gates verify structure
+and cannot verify appearance or behaviour, and nothing should be described as finished until
+somebody has looked at the rendered page and pressed the thing.
+
+Four of the five repairs landed in `012d0ad`: the false statement on `/terms`, the licence
+contradiction between `/get` and `/terms`, the `/race-control` questions that disagreed with
+their own tier lists, and the two worksheet features wired properly.
+
+**Still broken, still live: the portfolio export on `/receipts`.** Its agent was mid-write
+when the session ended. Fix that before adding anything else — a control that is reachable
+and inert is worse than a feature that was never shipped.
+
+Also still not run: the full design pass (light theme, print emulation, 320px, CLS,
+Lighthouse) and the read-it-as-a-reader review the owner asked for, which should check
+specifically for text that sounds like a note from the builder rather than writing for a
+thirteen-year-old, and for anything attributed to Ryan that is not verbatim in
+`src/content/data/voice.yaml`.
