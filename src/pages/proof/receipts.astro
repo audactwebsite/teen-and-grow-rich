@@ -1,0 +1,199 @@
+---
+/**
+ * Ryan's own receipts.
+ *
+ * Three reviewers asked for this independently, and the sharpest version was: "The site
+ * shows Ryan's story, not his receipts. Where is Ryan's own REAL RICH RECEIPTS folder?"
+ *
+ * The point is not content. Every chapter of the book asks the reader to keep proof of what
+ * they built, and the author had none on display — which is the one thing a competitor
+ * cannot fake and the one thing this project cannot argue its way out of. A book about proof
+ * over performance whose author shows no proof is performing.
+ *
+ * WHY MOST OF THIS PAGE IS EMPTY, AND WHY THAT IS THE CORRECT STATE. Ryan has not supplied
+ * the material yet. Nothing on this site is allowed to write in his voice or invent his
+ * work — the same rule that keeps Chapter 16 saying "not written yet" instead of being
+ * filled with something plausible. A named empty slot is honest. A filled fake one is the
+ * exact failure /hill exists to warn about, committed by us, on the page whose whole subject
+ * is evidence.
+ *
+ * So this page ships with the slots named and the gaps stated, in the same register /get
+ * uses for "Retailer link pending" and /accessibility uses for its six unverified items.
+ * When the material arrives it drops into slots that already say what they are for.
+ */
+import Page from "../../layouts/Page.astro";
+import ChapterFurniture from "../../components/ChapterFurniture.astro";
+
+/** Each slot names what goes there and what is honest to say while it is empty. */
+const SLOTS = [
+  {
+    what: "His first website",
+    why: "Not this one. The first one, before he knew what he was doing.",
+    state: "Not supplied yet.",
+  },
+  {
+    what: "His first Claude Code project, with the mistakes still in it",
+    why: "The mistakes are the point. A receipt is not a highlight reel, and a version that only shows the working end of the work is a portfolio, not proof.",
+    state: "Not supplied yet.",
+  },
+  {
+    what: "A photograph of the printed build receipts in his folder",
+    why: "The book asks a reader to keep a physical folder. Either the author has one or the instruction is decoration.",
+    state: "Not supplied yet.",
+  },
+  {
+    what: "His own Real Rich Scoreboard, filled in",
+    why: "Six areas, scored honestly, including the low ones. The worksheet refuses to total the six on purpose — a total would be a grade, and the instruction is to pick one action for the lowest area.",
+    state: "Not supplied yet.",
+  },
+  {
+    what: "The karting results, as receipts rather than as a story",
+    why: "This is the one slot that is already evidenced. The results are published in independent motorsport press and every claim on the author page now carries its source.",
+    state: "Sourced. See the author page.",
+    href: "/proof",
+    hrefLabel: "The author page",
+  },
+];
+---
+
+<Page
+  title="Ryan's own receipts — the author's folder, mostly empty"
+  description="The book asks every reader to keep proof of what they built. This is where the author's own proof goes. Most of it is not here yet, and that is stated rather than filled in."
+>
+  <ChapterFurniture
+    eyebrow="Show the working"
+    title="Ryan's own receipts"
+    subtitle="The book asks you to keep proof. This is the author's folder, and most of it is empty."
+  />
+
+  <div class="wrap">
+    <div class="prose">
+      <p class="lede">
+        Every chapter of this book ends by telling you to keep the proof of what you made.
+        It would be strange to ask that and then show nothing.
+      </p>
+      <p>
+        So this page exists, and most of it is empty. That is not a placeholder waiting to be
+        quietly filled — it is the honest state, written down. Nothing on this site is
+        allowed to invent Ryan's work or write in his voice, which is the same reason
+        <a href="/c/16">Chapter 16</a> still says it is not written yet instead of being
+        filled with something that sounds about right.
+      </p>
+      <p>
+        An empty slot with a name on it tells you exactly what is missing. A full one that
+        was made up tells you nothing, and it would be the failure
+        <a href="/hill">the Hill audit</a> exists to warn about — committed here, on the page
+        whose entire subject is evidence.
+      </p>
+    </div>
+  </div>
+
+  <section class="wrap section" aria-labelledby="folder">
+    <h2 id="folder">What goes in the folder</h2>
+    <dl class="slots">
+      {
+        SLOTS.map((s) => (
+          <div class="slot">
+            <dt class="slot__what">
+              {s.what}
+              <span class="slot__state" data-filled={s.href ? "yes" : "no"}>{s.state}</span>
+            </dt>
+            <dd class="slot__why">
+              {s.why}
+              {s.href && (
+                <>
+                  {" "}
+                  <a href={s.href}>{s.hrefLabel}</a>.
+                </>
+              )}
+            </dd>
+          </div>
+        ))
+      }
+    </dl>
+  </section>
+
+  <section class="wrap section" aria-labelledby="yours">
+    <h2 id="yours">Yours is the one that matters</h2>
+    <div class="prose">
+      <p>
+        This folder is the author's, and it is behind. Yours does not have to be.
+        <a href="/receipts">Your own receipts</a> are kept in this browser and printable as a
+        folder index — and printing them is the point, because a browser can clear itself and
+        paper cannot.
+      </p>
+    </div>
+  </section>
+</Page>
+
+<style>
+  .wrap {
+    max-inline-size: 72rem;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 5vw, 3rem);
+  }
+
+  .prose {
+    max-inline-size: var(--container-measure);
+  }
+
+  .prose p + p {
+    margin-block-start: 1rem;
+  }
+
+  .section {
+    margin-block-start: 3rem;
+  }
+
+  .slots {
+    margin-block-start: 1.5rem;
+    display: grid;
+    gap: 1.25rem;
+  }
+
+  .slot {
+    border-inline-start: 2px solid var(--rule-hairline);
+    padding-inline-start: 1rem;
+  }
+
+  .slot__what {
+    color: var(--text-strong);
+    font-weight: 700;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem 0.75rem;
+  }
+
+  /* The state label is deliberately quiet, and deliberately NOT a flag. Green here would
+     read as the traffic-light system, which is about whether a decision needs an adult —
+     nothing to do with whether Ryan has sent a photograph yet. Weight carries the
+     difference instead of colour, so it also survives being printed in black and white. */
+  .slot__state {
+    font-size: var(--text-meta);
+    font-weight: 400;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .slot__state[data-filled="yes"] {
+    color: var(--text-strong);
+    font-weight: 700;
+  }
+
+  .slot__why {
+    margin-block-start: 0.35rem;
+    max-inline-size: var(--container-measure);
+    color: var(--text-muted);
+  }
+
+  /* Printed, this is a folder index: someone ticks the empty slots off by hand as the
+     material arrives. The rules stay, the muted greys go to full contrast. */
+  @media print {
+    .slot__why,
+    .slot__state {
+      color: inherit;
+    }
+  }
+</style>

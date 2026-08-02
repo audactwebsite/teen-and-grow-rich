@@ -56,6 +56,23 @@ const ALLOWED_TEXT = [
      follows it. A privacy page that names its processor without linking the document that
      makes it one is asking to be taken on trust, which is the opposite of that page's job. */
   "https://vercel.com/legal/dpa",
+
+  /* The karting record on /proof, sourced. Same shape again: outbound links, nothing
+     requested until a reader leaves. These exist because /proof was the one page breaking
+     non-negotiable 10 — it asked a reader to believe a thirteen-year-old's results and
+     linked to nothing, because nobody had gone looking. They are independent Dutch
+     motorsport press from 2022 and 2023, written years before this project by people with
+     no stake in a book. Listed as complete URLs, not host prefixes, so only these exact
+     articles pass.
+
+     Note for whoever touches this next: one of the eight sources found during that search
+     already returns 404, which is why archive copies are on the owner's list. A dead link
+     is not a source, and a citation that breaks is worse than none — it looks like the
+     claim was checked when it can no longer be. */
+  "https://www.racexpress.nl/formule-1/karttalent-ryan-rijvers-uit-schimmert-imponeert-tijdens-eerste-wedstrijd-ooit-en-pakt-drie-bekers/n/121318",
+  "https://parkstadactueel.nl/2022/05/26/karttalent-ryan-rijvers-8-uit-schimmert-imponeert-tijdens-eerste-wedstrijd-ooit-en-pakt-drie-bekers/",
+  "https://www.racexpress.nl/rotax-euro/ryan-rijvers-10-wint-titanenstrijd-in-genk-en-wordt-belgisch-kampioen-ik-was-heel-blij-dat-voelt-zo-goed/n/131801",
+  "https://www.racexpress.nl/rotax-euro/karttalent-ryan-rijvers-bluft-iedereen-af-in-genk-en-wint-duitse-rotax-max-fijn-weer-eens-te-winnen/n/136219",
 ];
 
 /** Attributes that actually cause a network request. */
