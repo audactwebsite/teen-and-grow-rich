@@ -40,7 +40,15 @@ const note = (await allRealityChecks()).find((c) => c.id === "publishing-note")!
  *  the copyright is unchanged. So it keeps "all rights reserved" — the honest legal
  *  position — and then spells out, in plain words, the permission actually being given.
  *  It is deliberately not relabelled CC: a Creative Commons grant is irrevocable, and
- *  handing the book's text away under one is a decision for the owner, not for a page. */
+ *  handing the book's text away under one is a decision for the owner, not for a page.
+ *
+ *  For the same reason the row grants reading and downloading but NOT redistribution of
+ *  the file. An earlier draft here said "put the PDF on a school drive, hand it to a
+ *  class", which is a redistribution licence, and it contradicted /get outright. Nobody
+ *  loses anything by the narrower version: the text is free at the link, so a teacher who
+ *  sends the link has given a class exactly what the file would have. The difference is
+ *  that a link stays current and stays attached to its source, and a permission that was
+ *  never granted can still be granted later — the reverse is not true. */
 const LICENCES = [
   {
     what: "This site's worksheets, builds, tools and templates",
@@ -58,7 +66,7 @@ const LICENCES = [
     what: "The book's stories, essays and illustrations",
     licence: "All rights reserved — and free to read",
     means:
-      "All 15 chapters are published on this site, and the whole book is here as a PDF. Read it, print it for yourself, put the PDF on a school drive, hand it to a class — all of that is fine and you do not have to ask. Copyright is still Ryan's, though: this row is not a Creative Commons licence. You may not sell the text, put it inside anything anyone pays for, or publish it under another name.",
+      "All 15 chapters are published on this site, and the whole book is here as a PDF. Read it, download it, print a copy for yourself — free, and you never have to ask. Copyright is still Ryan's, though: this row is not a Creative Commons licence. Send a class the link rather than the file. Do not sell the text, put it inside anything anyone pays for, repost it, or publish it under another name.",
   },
 ];
 ---
@@ -215,13 +223,14 @@ const LICENCES = [
         licence covers the material this site made — the worksheets, the builds, the
         printables — and a teacher may genuinely remix those. It does not stretch over the
         book's text or the PDF. Being able to download something for nothing has never been
-        permission to sell it.
+        permission to hand it on or to sell it.
       </p>
       <p>
-        The plain version, if you only read one line: copy anything here for a class, for
-        free, forever. Sell none of it, and put none of it inside a course, a coaching
-        programme or anything else somebody pays for. If another page on this site sounds
-        looser than that, this page is the one that counts.
+        The plain version, if you only read one line: copy anything this site made for a
+        class, for free, forever. Share the book by sending its link, not its file. Sell
+        none of it, and put none of it inside a course, a coaching programme or anything
+        else somebody pays for. If another page on this site sounds looser than that, this
+        page is the one that counts.
       </p>
     </div>
 

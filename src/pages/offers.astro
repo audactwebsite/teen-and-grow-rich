@@ -117,7 +117,9 @@ const PRINTED_PAGE = 57;
                     href={`/worksheet/first-offer-canvas?from=${o.id}`}
                     data-tap
                   >
-                    Start the canvas
+                    Start the canvas{" "}
+                    {/* The space above is load-bearing: without it the accessible name
+                        computes as "Start the canvasfor One-page website". */}
                     <span class="visually-hidden">for {o.data.offer}</span>
                   </a>
                 </td>

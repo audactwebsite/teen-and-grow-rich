@@ -19,6 +19,17 @@ export interface Entry {
 
 export const ENTRIES: Entry[] = [
   {
+    date: "2026-08-02",
+    title: "One answer about copying, instead of three",
+    items: [
+      "Three pages gave three different answers about what you may do with the book. The book page said the PDF was already licensed to print, photocopy and put on a shared drive. The terms page said the stories were not published here at all, which had stopped being true the day before. The teachers page said the licence below allowed putting the file on a shared drive and sending it to a class, and the licence below said the opposite.",
+      "The settled answer, in one line: everything this site made — the worksheets, the builds, the templates, the Reality Checks — is Creative Commons and yours to copy. The book itself is free to read and free to download, and it is shared by sending its link rather than its file.",
+      "That is narrower than the book page claimed yesterday, so it is worth being plain about what changed: an implied permission to pass the PDF around was withdrawn. Nothing that was free stopped being free. All fifteen chapters are still there for anyone with the link, with no account and no email address, and a class reached by a link has exactly what a class reached by a file would have had.",
+      "Fixed a control that did nothing. The plus and minus buttons on the Real Rich Scoreboard were visible and could be tabbed to with JavaScript switched off, and pressing them did nothing at all. They are now hidden when there is no scripting to make them work — the slider beside them is a normal one and still answers the arrow keys, and the sheet still prints and fills in by hand.",
+      "Fixed five places where two words were printed with no space between them, on the teachers, schools privacy, privacy, editions and how-this-was-made pages. A template was eating the line break between a sentence and the word that followed it.",
+    ],
+  },
+  {
     date: "2026-08-01",
     title: "The whole book is free",
     items: [

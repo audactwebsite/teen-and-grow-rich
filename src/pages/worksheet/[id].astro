@@ -1112,7 +1112,14 @@ const prefill =
     margin-block-start: 0.5rem;
   }
 
+  /* The steppers are pure script. They exist to give the range a 44px target that does not
+     need a drag (WCAG 2.2 2.5.7 and 2.5.8), and without scripting they would be visible,
+     focusable and inert — the one state that is worse than not shipping a control at all.
+     Nothing is lost when they are gone: the range beside them is a native input and still
+     answers the arrow keys, and the no-JS line under the buttons says the sheet fills in by
+     hand. Same gate as .actions__row below. */
   .score__step {
+    display: none;
     flex: none;
     inline-size: 44px;
     min-block-size: 44px;
@@ -1124,6 +1131,10 @@ const prefill =
     background: transparent;
     border: 2px solid var(--control-edge);
     cursor: pointer;
+  }
+
+  :global(:root[data-js]) .score__step {
+    display: block;
   }
 
   .score__step:hover {

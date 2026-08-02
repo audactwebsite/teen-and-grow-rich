@@ -226,6 +226,12 @@ const PF_FLAG_LABEL = "Red · one adult reads it before you send it";
 const PF_CONTACT_NOTE =
   "Anything about money, meetings or personal details goes through the adult on that line first.";
 
+/* Titles for the two links under the intro. Read from the collection, never typed in —
+   they are the book's wording. fieldRef() above has already thrown if either sheet is
+   missing, so these assertions cannot fire. */
+const PF_OFFER_TITLE = worksheets.find((w) => w.id === OFFER_WORKSHEET)!.data.title;
+const PF_START_TITLE = worksheets.find((w) => w.id === START_WORKSHEET)!.data.title;
+
 /* The Canvas's own Reality Check, verbatim from the book, on the same terms it is attached
    there: a required safety element fails the build rather than vanishing. */
 const PF_CHECK_ID = "seven-safe-offers";
@@ -388,6 +394,18 @@ const PF_BUILDS = builds.map((b) => {
           anywhere: print it, or copy it out, and that version is the one that lasts.
           Because it is written to go to somebody who has never met you, show the whole
           sheet to one adult before it goes anywhere — and read the check under it first.
+        </p>
+        {/* Without this a reader whose sheet comes out half empty has no idea where the
+            missing halves are written. The middle block disappears entirely when the
+            Canvas is blank, so nothing on the sheet itself can point at it. */}
+        {/* The titles carry their own "Your", so nothing here adds one in front. */}
+        <p>
+          Nothing on it is typed here. It comes from three places you have already been:
+          the proof line on each{" "}
+          <a href="/builds">build page</a>,{" "}
+          <a href={`/worksheet/${OFFER_WORKSHEET}`}>{PF_OFFER_TITLE}</a>, and{" "}
+          <a href={`/worksheet/${START_WORKSHEET}`}>{PF_START_TITLE}</a>. A line left blank
+          there is a line left blank here.
         </p>
       </div>
 
@@ -1080,6 +1098,9 @@ const PF_BUILDS = builds.map((b) => {
         const since = shown(pfSince);
         if (since) out.push(since);
 
+        /* .pf__unwritten is skipped in both branches. It is a note to the reader about how
+           this site works, and how far through a website somebody got is not the business
+           of whoever is reading the copy. */
         out.push("", head(pfBuilt));
         const rows = [...pf.querySelectorAll<HTMLElement>(".pf__item")].filter((li) => !li.hidden);
         if (rows.length) {
@@ -1088,8 +1109,6 @@ const PF_BUILDS = builds.map((b) => {
             out.push(`  ${flat(li.querySelector(".pf__ref"))}`);
           }
         } else {
-          /* The count of ticked-but-unwritten builds is not copied. It is a note to the
-             reader about this site, and it is not the recipient's business. */
           out.push(flat(pfNone));
         }
 
@@ -1103,7 +1122,10 @@ const PF_BUILDS = builds.map((b) => {
 
         out.push("", head(pfReach));
         out.push(shown(pfContact) || `${flat(pfContactBlank)} ______`);
-        out.push(pf.dataset.pfNote ?? "");
+        /* Read off the sheet, not out of a data attribute: this is the line that tells the
+           recipient the contact route goes through an adult, and it is the one line on the
+           copy that is not allowed to go missing. */
+        out.push(flat(pfReach.querySelector(".pf__note")));
 
         /* The check travels with the sheet. A Reality Check is never dropped from a
            surface, and a plain-text message pasted into a chat is a surface. */
