@@ -210,6 +210,22 @@ const PF_OFFER = ["who-i-help", "the-result", "the-deliverable", "the-proof"].ma
 );
 const PF_CONTACT = fieldRef(OFFER_WORKSHEET, "the-safe-contact-route");
 
+/**
+ * The two safety lines, written once.
+ *
+ * Each is used three times: on the sheet a reader looks at, in the text they copy out, and
+ * — for the flag — as the flag's own label. Three near-identical sentences is how a safety
+ * line becomes something a reader can argue with, so there is one of each and the copy
+ * template reads them back off the rendered sheet rather than restating them.
+ *
+ * The red level is not a judgement made here. It is the level the Canvas's own
+ * THE SAFE CONTACT ROUTE field carries on /worksheet/first-offer-canvas, and this sheet
+ * prints that field.
+ */
+const PF_FLAG_LABEL = "Red · one adult reads it before you send it";
+const PF_CONTACT_NOTE =
+  "Anything about money, meetings or personal details goes through the adult on that line first.";
+
 /* The Canvas's own Reality Check, verbatim from the book, on the same terms it is attached
    there: a required safety element fails the build rather than vanishing. */
 const PF_CHECK_ID = "seven-safe-offers";
@@ -379,15 +395,21 @@ const PF_BUILDS = builds.map((b) => {
         Building this sheet means reading what this browser has kept, which takes a few
         lines of script. With scripting off there is nothing to read it with — so write
         the same three things out by hand: what you made, who you can help, and an email
-        an adult can see.
+        an adult can see. The check under this still applies to the hand-written one.
       </p>
 
+      {/* The check text and the flag wording ride on the sheet itself, so the copied
+          version can quote them back without a second copy of either string living in the
+          client script. Everything else the script needs is a storage key. */}
       <article
         class="pf"
         data-pf
         data-pf-name-key={PF_NAME.key}
         data-pf-since-key={PF_SINCE.key}
         data-pf-contact-key={PF_CONTACT.key}
+        data-pf-flag={PF_FLAG_LABEL}
+        data-pf-check={pfCheck.data.text}
+        data-pf-check-page={pfCheck.data.printedPage}
       >
         <p class="pf__kicker">Portfolio</p>
         <p class="pf__name" data-pf-name hidden></p>
@@ -396,7 +418,7 @@ const PF_BUILDS = builds.map((b) => {
         </p>
         <p class="pf__since" data-pf-since hidden></p>
 
-        <section class="pf__block">
+        <section class="pf__block" data-pf-built>
           <h3 class="pf__h">What I built</h3>
           <ol class="pf__list">
             {
@@ -411,9 +433,16 @@ const PF_BUILDS = builds.map((b) => {
             }
           </ol>
           <p class="pf__none" data-pf-none>
-            Nothing in this browser yet. Do one build, write one line about what now
-            exists, and it turns up here.
+            Nothing on this sheet yet. A build lands here when you write the one line about
+            what now exists. The tick on its own stays in your record above — it is not
+            something a stranger can read.
           </p>
+
+          {/* A message to the reader, not to whoever receives the sheet — so it carries
+              data-print="hide" and the copy template skips it. A build ticked with no line
+              under it cannot go on a portfolio: the tick is this site's record of you, and
+              the line is the only part a stranger can read. */}
+          <p class="pf__unwritten" data-pf-unwritten data-print="hide" hidden></p>
         </section>
 
         <section class="pf__block" data-pf-offer hidden>
@@ -430,16 +459,13 @@ const PF_BUILDS = builds.map((b) => {
           </dl>
         </section>
 
-        <section class="pf__block">
+        <section class="pf__block" data-pf-reach>
           <h3 class="pf__h">How to reach me</h3>
           <p class="pf__contact" data-pf-contact hidden></p>
           <p class="pf__blank" data-pf-contact-blank>
             An email an adult can see <span class="pf__rule"></span>
           </p>
-          <p class="pf__note">
-            Anything about money, meetings or personal details goes through the adult on
-            that line first.
-          </p>
+          <p class="pf__note">{PF_CONTACT_NOTE}</p>
         </section>
       </article>
 
@@ -450,7 +476,7 @@ const PF_BUILDS = builds.map((b) => {
       <div class="portfolio__before">
         <p class="portfolio__before-h">Before this goes anywhere</p>
         <p class="portfolio__flag">
-          <Flag level="red" size="sm" label="Red · one adult reads it before you send it" />
+          <Flag level="red" size="sm" label={PF_FLAG_LABEL} />
         </p>
         <Box kind="check" class="check">
           <p class="check__flag"><Flag level={pfCheckFlag} size="sm" /></p>
@@ -756,6 +782,11 @@ const PF_BUILDS = builds.map((b) => {
       return parts.join(" · ");
     };
 
+    /* Assigned by the portfolio block further down, which runs before the first paint().
+       A no-op until then, and a no-op for good if that block ever fails to find its sheet:
+       the record is the thing a reader came here for and it must paint either way. */
+    let paintPortfolio = () => {};
+
     const paint = () => {
       entries = read();
 
@@ -798,6 +829,10 @@ const PF_BUILDS = builds.map((b) => {
           list.append(li);
         }
       }
+
+      /* The portfolio reads the same storage, so it is stale at exactly the moments the
+         record is: after an import, after a delete, after a write in another tab. */
+      paintPortfolio();
     };
 
     /* --- Copy as text: the primary action ------------------------------------ */
@@ -840,20 +875,44 @@ const PF_BUILDS = builds.map((b) => {
     const fallback = root.querySelector<HTMLElement>("[data-fallback]")!;
     const fallbackField = root.querySelector<HTMLTextAreaElement>("[data-fallback-field]")!;
 
-    root.querySelector<HTMLButtonElement>("[data-copy]")!.addEventListener("click", async () => {
-      const text = asText();
+    /**
+     * One clipboard path, two documents.
+     *
+     * The record and the portfolio differ in what they say and in where their fallback
+     * lands, and in nothing else — so the writeText call, the refused-permission branch
+     * and the wording of both are written once. Each caller passes its own status line and
+     * its own textarea, because the portfolio's copy of both sits outside the block that
+     * stays hidden until this browser is holding something.
+     */
+    const copyOut = async (
+      text: string,
+      into: HTMLElement,
+      box: HTMLElement,
+      field: HTMLTextAreaElement,
+      ok: string,
+    ) => {
       try {
         await navigator.clipboard.writeText(text);
-        status.textContent = "Copied. Paste it somewhere of your own.";
-        fallback.hidden = true;
+        into.textContent = ok;
+        box.hidden = true;
       } catch {
         // Older browsers, and any browser that refuses the permission. Show the text.
-        fallbackField.value = text;
-        fallback.hidden = false;
-        fallbackField.focus();
-        fallbackField.select();
-        status.textContent = "";
+        field.value = text;
+        box.hidden = false;
+        field.focus();
+        field.select();
+        into.textContent = "This browser blocked the clipboard, so the text is below instead.";
       }
+    };
+
+    root.querySelector<HTMLButtonElement>("[data-copy]")!.addEventListener("click", () => {
+      void copyOut(
+        asText(),
+        status,
+        fallback,
+        fallbackField,
+        "Copied. Paste it somewhere of your own.",
+      );
     });
 
     /* --- Export, print, import ----------------------------------------------- */
@@ -869,9 +928,40 @@ const PF_BUILDS = builds.map((b) => {
       status.textContent = "File made. Keep it somewhere you will find it again.";
     });
 
-    root.querySelector<HTMLButtonElement>("[data-print-btn]")!.addEventListener("click", () => {
-      window.print();
+    /**
+     * Two print routes off one page, and they must not print the same thing.
+     *
+     * "Print the whole folder" and "Print this sheet" are the record: everything on this
+     * page, in this site's order. "Print my portfolio" goes to somebody who has never met
+     * the reader, and sending the record with it would hand a stranger exactly the
+     * document the portfolio exists to replace — so that route flags the page first and
+     * the print stylesheet drops everything that is not the portfolio.
+     *
+     * The flag is set at the click AND re-asserted on beforeprint, because Ctrl+P is a
+     * third route where no button was pressed and the flag has to be off. afterprint
+     * clears it; if a browser never fires afterprint the next beforeprint still corrects
+     * it, and the flag does nothing at all on screen.
+     */
+    let portfolioOnly = false;
+    const flagPrint = () => {
+      document.documentElement.toggleAttribute("data-print-portfolio", portfolioOnly);
+    };
+    window.addEventListener("beforeprint", flagPrint);
+    window.addEventListener("afterprint", () => {
+      portfolioOnly = false;
+      flagPrint();
     });
+
+    /* querySelectorAll, and from the document rather than from root: there is a second
+       print button down in the paper-index section, outside the .js wrapper. It shipped
+       with no listener at all, so it was a visible, focusable button that did nothing. */
+    for (const btn of document.querySelectorAll<HTMLButtonElement>("[data-print-btn]")) {
+      btn.addEventListener("click", () => {
+        portfolioOnly = false;
+        flagPrint();
+        window.print();
+      });
+    }
 
     const importStatus = root.querySelector<HTMLElement>("[data-import-status]")!;
     root.querySelector<HTMLInputElement>("[data-import]")!.addEventListener("change", async (event) => {
@@ -889,6 +979,162 @@ const PF_BUILDS = builds.map((b) => {
       // So the same file can be chosen twice if the first attempt failed.
       input.value = "";
     });
+
+    /* --- The portfolio -------------------------------------------------------- */
+
+    /**
+     * The same storage as everything above, read the other way round.
+     *
+     * The record answers "what did I tick". The portfolio answers "what exists", which is
+     * the only question the person reading it has — so it leads with the line the reader
+     * wrote about what they made, and the build it came out of sits under that line as a
+     * reference rather than above it as a score. No count of anything appears on it.
+     *
+     * A build that is ticked but has no proof line is deliberately not on the sheet. The
+     * tick is this site's record of the reader; the line is the part somebody else can
+     * read, and inventing one on their behalf for a document going to a stranger is the
+     * one thing this page must never do. It says so instead, on screen only.
+     */
+    const pf = document.querySelector<HTMLElement>("[data-pf]");
+
+    if (pf) {
+      const pfName = pf.querySelector<HTMLElement>("[data-pf-name]")!;
+      const pfNameBlank = pf.querySelector<HTMLElement>("[data-pf-name-blank]")!;
+      const pfSince = pf.querySelector<HTMLElement>("[data-pf-since]")!;
+      const pfBuilt = pf.querySelector<HTMLElement>("[data-pf-built]")!;
+      const pfNone = pf.querySelector<HTMLElement>("[data-pf-none]")!;
+      const pfUnwritten = pf.querySelector<HTMLElement>("[data-pf-unwritten]")!;
+      const pfOffer = pf.querySelector<HTMLElement>("[data-pf-offer]")!;
+      const pfReach = pf.querySelector<HTMLElement>("[data-pf-reach]")!;
+      const pfContact = pf.querySelector<HTMLElement>("[data-pf-contact]")!;
+      const pfContactBlank = pf.querySelector<HTMLElement>("[data-pf-contact-blank]")!;
+
+      const pfValue = (key: string): string => {
+        const v = state().get(key);
+        return typeof v === "string" ? v.trim() : "";
+      };
+
+      paintPortfolio = () => {
+        const kept = state();
+
+        const name = pfValue(pf.dataset.pfNameKey!);
+        pfName.textContent = name;
+        pfName.hidden = name === "";
+        pfNameBlank.hidden = name !== "";
+
+        const since = pfValue(pf.dataset.pfSinceKey!);
+        pfSince.textContent = since ? `Started ${since}` : "";
+        pfSince.hidden = since === "";
+
+        let made = 0;
+        let ticked = 0;
+        for (const li of pf.querySelectorAll<HTMLElement>("[data-pf-build]")) {
+          const id = li.dataset.pfBuild!;
+          // textContent, never innerHTML: this is the reader's own free text.
+          const line = pfValue(`field:proof:${id}`);
+          li.querySelector<HTMLElement>("[data-pf-made]")!.textContent = line;
+          li.hidden = line === "";
+          if (line) made += 1;
+          else if (kept.get(`build:${id}`) === 1) ticked += 1;
+        }
+
+        pfNone.hidden = made > 0;
+        pfUnwritten.hidden = ticked === 0;
+        pfUnwritten.textContent =
+          ticked === 0
+            ? ""
+            : `${ticked} ${ticked === 1 ? "build is" : "builds are"} ticked in this browser with ` +
+              `no line under ${ticked === 1 ? "it" : "them"}. Write one on the build page and ` +
+              `${ticked === 1 ? "it lands" : "they land"} here.`;
+
+        let anyOffer = false;
+        for (const row of pfOffer.querySelectorAll<HTMLElement>("[data-pf-field]")) {
+          const value = pfValue(row.dataset.pfField!);
+          row.querySelector<HTMLElement>("[data-pf-value]")!.textContent = value;
+          row.hidden = value === "";
+          if (value) anyOffer = true;
+        }
+        pfOffer.hidden = !anyOffer;
+
+        const contact = pfValue(pf.dataset.pfContactKey!);
+        pfContact.textContent = contact;
+        pfContact.hidden = contact === "";
+        pfContactBlank.hidden = contact !== "";
+      };
+
+      /**
+       * The copy is read back off the sheet that is already on the page, not rebuilt from
+       * storage a second time. The sheet has already decided what is filled in, what is
+       * still a blank line and what is hidden; a copy that disagreed with the printed
+       * version by one line would be worse than no copy at all.
+       */
+      const flat = (el: Element | null): string =>
+        (el?.textContent ?? "").replace(/\s+/g, " ").trim();
+      const shown = (el: HTMLElement | null): string => (el && !el.hidden ? flat(el) : "");
+      const head = (block: HTMLElement): string =>
+        flat(block.querySelector(".pf__h")).toLocaleUpperCase();
+
+      const pfText = (): string => {
+        const out = ["TEEN & GROW RICH — MY PORTFOLIO"];
+        out.push(shown(pfName) || `${flat(pfNameBlank)} ______`);
+        const since = shown(pfSince);
+        if (since) out.push(since);
+
+        out.push("", head(pfBuilt));
+        const rows = [...pf.querySelectorAll<HTMLElement>(".pf__item")].filter((li) => !li.hidden);
+        if (rows.length) {
+          for (const li of rows) {
+            out.push(`- ${flat(li.querySelector(".pf__made"))}`);
+            out.push(`  ${flat(li.querySelector(".pf__ref"))}`);
+          }
+        } else {
+          /* The count of ticked-but-unwritten builds is not copied. It is a note to the
+             reader about this site, and it is not the recipient's business. */
+          out.push(flat(pfNone));
+        }
+
+        if (!pfOffer.hidden) {
+          out.push("", head(pfOffer));
+          for (const row of pfOffer.querySelectorAll<HTMLElement>("[data-pf-field]")) {
+            if (row.hidden) continue;
+            out.push(`${flat(row.querySelector(".pf__field-k"))}: ${flat(row.querySelector(".pf__field-v"))}`);
+          }
+        }
+
+        out.push("", head(pfReach));
+        out.push(shown(pfContact) || `${flat(pfContactBlank)} ______`);
+        out.push(pf.dataset.pfNote ?? "");
+
+        /* The check travels with the sheet. A Reality Check is never dropped from a
+           surface, and a plain-text message pasted into a chat is a surface. */
+        out.push("", "BEFORE THIS GOES ANYWHERE");
+        out.push(pf.dataset.pfFlag ?? "");
+        out.push(`${pf.dataset.pfCheck ?? ""} (book page ${pf.dataset.pfCheckPage ?? ""})`);
+
+        out.push("", `Written out of Teen & Grow Rich by Ryan Rijvers — ${SITE_HOST}`);
+        return out.join("\n");
+      };
+
+      const pfStatus = document.querySelector<HTMLElement>("[data-pf-status]")!;
+      const pfFallback = document.querySelector<HTMLElement>("[data-pf-fallback]")!;
+      const pfFallbackField = document.querySelector<HTMLTextAreaElement>("[data-pf-fallback-field]")!;
+
+      document.querySelector<HTMLButtonElement>("[data-pf-copy]")!.addEventListener("click", () => {
+        void copyOut(
+          pfText(),
+          pfStatus,
+          pfFallback,
+          pfFallbackField,
+          "Copied. Show the whole thing to one adult before you send it anywhere.",
+        );
+      });
+
+      document.querySelector<HTMLButtonElement>("[data-pf-print]")!.addEventListener("click", () => {
+        portfolioOnly = true;
+        flagPrint();
+        window.print();
+      });
+    }
 
     /* --- Delete -------------------------------------------------------------- */
 
@@ -1269,6 +1515,277 @@ const PF_BUILDS = builds.map((b) => {
     }
   }
 
+  /* --- The portfolio ------------------------------------------------------------- */
+
+  /* A fifth route out, sitting beside the four above rather than replacing them, so it
+     takes the same furniture: section margin, prose intro, a card holding the document,
+     and a button row that matches .actions__row. What differs is what the document leads
+     with, and that difference is carried by .pf__made / .pf__ref below. */
+
+  .portfolio {
+    margin-block-start: 3rem;
+  }
+
+  .portfolio .prose {
+    margin-block-start: 0.75rem;
+  }
+
+  .portfolio__nojs {
+    margin-block-start: 1rem;
+    max-inline-size: var(--container-measure);
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  /* The sheet is read out of storage and both buttons need scripting, so none of the
+     three is reachable — not clickable, not focusable, not in the tab order — until the
+     pre-paint script in inline-scripts.mjs has set data-js on <html>. Same gate the
+     Reality Check index and the teacher sheets use. A visible button that does nothing
+     when pressed is worse than a feature that did not ship.
+
+     The Reality Check below is deliberately NOT behind this gate: it is the one element
+     on the page that must exist whether or not anything ran. */
+  .pf,
+  .portfolio__actions,
+  .portfolio__status {
+    display: none;
+  }
+
+  :global(:root[data-js]) .pf {
+    display: block;
+  }
+
+  :global(:root[data-js]) .portfolio__actions {
+    display: flex;
+  }
+
+  :global(:root[data-js]) .portfolio__status {
+    display: block;
+  }
+
+  :global(:root[data-js]) .portfolio__nojs {
+    display: none;
+  }
+
+  /* The document itself. Same card as the paper index, because it is the same kind of
+     object: a sheet that only starts mattering once it is off this device. */
+  .pf {
+    margin-block-start: 1.5rem;
+    padding: 1.25rem;
+    max-inline-size: var(--container-measure);
+    background: var(--surface-card);
+    border: 1px solid var(--rule-hairline);
+  }
+
+  .pf__kicker {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .pf__name {
+    margin-block-start: 0.35rem;
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 6vw, 2rem);
+    line-height: 1.1;
+    color: var(--text-strong);
+    /* The reader's own free text, everywhere it appears on this sheet. One pasted URL in
+       a worksheet field used to widen the initial containing block past the viewport. */
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  /* A written-on line, for the parts this browser is not holding. The sheet is meant to
+     print and be finished with a pen, exactly like the paper index. */
+  .pf__blank {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem 1rem;
+    margin-block-start: 0.35rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .pf__rule {
+    flex: 1 1 8rem;
+    min-inline-size: 6rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .pf__since {
+    margin-block-start: 0.35rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .pf__block {
+    margin-block-start: 1.5rem;
+    break-inside: avoid;
+  }
+
+  .pf__h {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-strong);
+    padding-block-end: 0.35rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .pf__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .pf__item,
+  .pf__field {
+    padding-block: 0.7rem;
+    border-block-end: 1px solid var(--rule-hairline);
+    break-inside: avoid;
+  }
+
+  /* The whole difference between this sheet and the record above it, in two rules. The
+     line the reader wrote about what exists is first and in body ink; the build it came
+     out of sits underneath as a reference, in meta. The record does the opposite, because
+     the record is a list of what was ticked. */
+  .pf__made,
+  .pf__contact {
+    font-weight: 700;
+    color: var(--text-strong);
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .pf__ref {
+    margin-block-start: 0.15rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+
+  .pf__field-k {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    color: var(--text-muted);
+  }
+
+  .pf__field-v {
+    margin-block-start: 0.15rem;
+    color: var(--text-default);
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .pf__none,
+  .pf__unwritten,
+  .pf__note {
+    margin-block-start: 0.7rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+    max-inline-size: var(--container-measure);
+  }
+
+  /* The contact line's own guidance, printed on the sheet rather than offered as advice
+     beside it — the person receiving this is the one who has to use it. */
+  .pf__note {
+    color: var(--text-default);
+  }
+
+  .portfolio__before {
+    margin-block-start: 1.5rem;
+    max-inline-size: var(--container-measure);
+  }
+
+  .portfolio__before-h {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-strong);
+  }
+
+  .portfolio__flag {
+    margin-block-start: 0.5rem;
+  }
+
+  .check {
+    margin-block-start: 0.9rem;
+  }
+
+  .check__flag {
+    margin-block-end: 0.6rem;
+  }
+
+  .check__ref {
+    margin-block-start: 0.6rem;
+  }
+
+  /* Matches .actions__row above: wrapped flex, 12rem basis, so the pair sits side by side
+     on a laptop and stacks into the thumb zone on a phone. */
+  .portfolio__actions {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-block-start: 1.25rem;
+    max-inline-size: var(--container-measure);
+  }
+
+  .portfolio__actions .btn {
+    flex: 1 1 12rem;
+  }
+
+  .portfolio__status {
+    margin-block-start: 0.6rem;
+    min-block-size: 1.45em;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+    max-inline-size: var(--container-measure);
+  }
+
+  @media print {
+    /* The intro paragraphs are guidance for the reader; the sheet is the document. Same
+       split the paper index makes below. The no-JS sentence is left in — on paper it is
+       the instruction for writing the sheet out by hand. */
+    .portfolio > h2,
+    .portfolio .prose {
+      display: none;
+    }
+
+    .pf {
+      background: none;
+      border: 0;
+      padding: 0;
+      max-inline-size: none;
+    }
+
+    .portfolio__before {
+      break-inside: avoid;
+    }
+  }
+
+  /* "Print my portfolio" prints the portfolio and nothing else.
+
+     The record is the wrong document to hand a stranger — that is the whole reason this
+     sheet exists — so printing the two together would undo it. The attribute is set by
+     this page's own print button and cleared on afterprint; it does nothing on screen.
+
+     One :global() selector rather than a scoped one, because it also has to reach the
+     chapter furniture, which belongs to another component and whose H1 on this page reads
+     "Your receipts" — the wrong name at the top of a sheet going to a first client.
+     !important for the same reason [data-print="hide"] carries it in global.css: several
+     of the blocks being hidden set their own display. */
+  @media print {
+    :global(:root[data-print-portfolio] .print-sheet > :not(.portfolio)),
+    :global(:root[data-print-portfolio] .furniture) {
+      display: none !important;
+    }
+  }
+
   /* --- The printable index ------------------------------------------------------- */
 
   .paper {
@@ -1303,6 +1820,20 @@ const PF_BUILDS = builds.map((b) => {
 
   :global(html[data-js]) .paper__nojs {
     display: none;
+  }
+
+  /* The other half of that pair, which the markup comment beside this button described and
+     nobody wrote. Without it the button shipped visible, focusable and keyboard-operable
+     with no script gate and — because the handler was queried from inside the .js wrapper,
+     which this button sits outside of — no listener either. It was inert in every browser,
+     with or without scripting. inline-flex, not block: .btn is inline-flex and block
+     stretches it across the whole prose column. */
+  .paper__btn {
+    display: none;
+  }
+
+  :global(html[data-js]) .paper__btn {
+    display: inline-flex;
   }
 
   .sheet {
