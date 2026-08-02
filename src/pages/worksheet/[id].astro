@@ -13,14 +13,23 @@
  * The Real Rich Scoreboard is the one worksheet with a different control: six 1–10
  * sliders and one bar visual. There is no total, no average and no grade — the book's
  * instruction is "choose one action for the lowest area", so the only derived fact the
- * page states is which area is lowest.
+ * page states is which area is lowest, and AREA_CHAPTER below says where to go for it.
+ *
+ * The other three sheets can also write the reader's ask to their safe witness, out of
+ * what they have already typed. See ASK.
  */
 import Page from "../../layouts/Page.astro";
 import ChapterFurniture from "../../components/ChapterFurniture.astro";
 import PageRef from "../../components/PageRef.astro";
 import Box from "../../components/Box.astro";
 import Flag from "../../components/Flag.astro";
-import { allWorksheets, allRealityChecks, allOffers } from "../../lib/content";
+import {
+  allBuilds,
+  allChapters,
+  allWorksheets,
+  allRealityChecks,
+  allOffers,
+} from "../../lib/content";
 import type { Worksheet } from "../../lib/content";
 import { metaFor } from "../reality-check/_checks";
 
@@ -56,6 +65,118 @@ const FIELD_FLAGS: Record<string, "green" | "yellow" | "red"> = {
   "real-rich-plan:my-stop-rules": "yellow",
 };
 
+/**
+ * The six Real Rich areas, and the chapter that answers each one.
+ *
+ * The scoreboard has always named the reader's lowest area and then stopped, which is
+ * half of the book's own instruction — "choose one action for the lowest area" — with the
+ * action missing. The action is already written: it is that chapter's 24-Hour Build.
+ *
+ * Only the chapter number lives here. The title and the build number are read from the
+ * collections below, so a second edition that renumbers the builds cannot leave this
+ * pointing at the wrong one, and no book wording is retyped into this file.
+ *
+ * Two of the six are judgement calls worth stating. Health goes to chapter 8, not to
+ * chapter 14: 8 is where the book separates rest from quitting and where the Reality
+ * Check names sleep, burnout and telling an adult. Time goes to chapter 6, because the
+ * scoreboard's "time" is the currency in chapter 15's own list — hours you get to decide
+ * about — and 6 is the chapter that hands the reader a week.
+ */
+const AREA_CHAPTER: Record<string, number> = {
+  skills: 4,
+  health: 8,
+  time: 6,
+  people: 9,
+  money: 11,
+  impact: 15,
+};
+
+/**
+ * The message a reader sends to their safe witness.
+ *
+ * The book puts a safe witness in front of the reader on eight printed pages and tells
+ * them to involve an adult on twenty-five, but on this site the witness was only ever a
+ * field to fill in. Nothing helped anyone actually ask. This composes the ask out of what
+ * the reader has already typed: written in the browser, copied by the reader, sent by the
+ * reader, in whatever app they already use. No address is collected, nothing is stored and
+ * nothing leaves the device — which is the only version of this feature allowed to exist.
+ *
+ * `lines` is [field id, how the line starts]. The ids are checked against the worksheet
+ * below and throw if one is ever renamed, so the message cannot quietly go short.
+ *
+ * `questions` is rendered on the page as well as into the message. It is the safety half
+ * of the ask, and a reader with no scripting still has to be able to read it and say it
+ * out loud.
+ *
+ * The scoreboard has no entry. Its six controls produce numbers, not sentences, and a
+ * message that is only somebody's scores is not an ask — the route out of that sheet is
+ * AREA_CHAPTER above.
+ */
+type Ask = { opening: string; lines: [string, string][]; questions: string[] };
+
+/* Two of the three sheets close on the same pair: show me the work, and come to me before
+   money, accounts, posting or strangers. That pair is the whole point, so it is written
+   once and cannot drift between sheets. */
+const WEEKLY_ASK = [
+  "Can I show you what I have made once a week, even the bad versions?",
+  "Can I check with you first if any of it involves money, an account, posting in public, or someone I only know online?",
+];
+
+const ASK: Record<string, Ask> = {
+  "starting-point": {
+    opening:
+      "I am starting something out of a book called Teen & Grow Rich, and you are the person I want to tell about it.",
+    lines: [
+      ["the-dream-that-keeps-returning", "The thing I keep coming back to"],
+      ["one-skill-i-want-to-build", "The skill I want to build"],
+      ["one-problem-i-care-about", "The problem I care about"],
+      ["my-30-day-proof", "What I want to have finished in 30 days"],
+      ["start-date", "The day I start"],
+    ],
+    questions: WEEKLY_ASK,
+  },
+  /* This sheet asks for more than a weekly look, because the book asks for more: two of
+     its fields are red-flagged and the hint on the price says "set with a parent or
+     guardian". So the ask is to do those two together, not to be told about them after. */
+  "first-offer-canvas": {
+    opening:
+      "I am working out my first offer — the first thing I would do for someone else for money. It is from a book called Teen & Grow Rich, and the book is clear that I do not set the price on my own.",
+    lines: [
+      ["who-i-help", "Who I would help"],
+      ["the-problem", "What is wrong for them right now"],
+      ["the-result", "What is different when I am done"],
+      ["the-deliverable", "What they actually get"],
+      ["the-deadline", "When it would be finished"],
+      ["the-starter-price", "What I was thinking of charging"],
+      ["the-proof", "What I can already show them"],
+      ["the-safe-contact-route", "How they would reach me"],
+      ["the-stop-rules", "When I stop or walk away"],
+    ],
+    questions: [
+      "Can we set the price and the way people reach me together, before I tell anyone this exists?",
+      "Can I come to you first if this needs an account, a contract, or meeting someone I only know online?",
+    ],
+  },
+  "real-rich-plan": {
+    opening:
+      "I have written a 90-day plan out of a book called Teen & Grow Rich. This is all of it, and you are the person I want to check it.",
+    lines: [
+      ["my-90-day-goal", "What I want to be true in 90 days"],
+      ["the-skill-i-am-building", "The skill I am building"],
+      ["the-problem-i-solve", "The problem I solve, and who for"],
+      ["my-three-proof-projects", "The three things I will make as proof"],
+      ["my-weekly-build-blocks", "When the work actually happens"],
+      ["my-first-offer", "My first offer"],
+      ["my-money-split", "How I would split any money that comes in"],
+      ["my-stop-rules", "What makes me stop"],
+      ["my-real-rich-scoreboard", "Where I am across the six areas"],
+    ],
+    questions: WEEKLY_ASK,
+  },
+};
+
+const ask = ASK[worksheet.id];
+
 /* Two fields are a name and a date. Every other field in the book's worksheets is a
    sentence or more, where a textarea that grows is the phone-friendly default. */
 const SINGLE_LINE = new Set(["my-name", "start-date"]);
@@ -85,6 +206,57 @@ for (const id of extraIds) {
         "reality-checks.yaml. A required safety element must fail the build, never vanish.",
     );
   }
+}
+
+/* Same rule for the safe-witness message: a line that silently disappears because a field
+   was renamed is worse than a build that fails, because nobody would notice. */
+if (ask) {
+  const known = new Set(w.fields.map((f) => f.id));
+  for (const [id] of ask.lines) {
+    if (!known.has(id)) {
+      throw new Error(
+        `The safe-witness message for "${worksheet.id}" names field "${id}", which is not ` +
+          "on that worksheet. Point it at a field that exists, or the message quietly " +
+          "drops a line the reader typed.",
+      );
+    }
+  }
+}
+
+/**
+ * The scoreboard's six routes, resolved once at build time.
+ *
+ * Throws rather than dropping a row: an area that is named as the reader's weakest and
+ * then offers nowhere to go is exactly the dead end AREA_CHAPTER exists to close.
+ */
+type Route = { area: string; label: string; chapter: string; title: string; build: string };
+
+let routes: Route[] = [];
+
+if (isScoreboard) {
+  const chapters = await allChapters();
+  const builds = await allBuilds();
+  const pad = (n: number) => String(n).padStart(2, "0");
+
+  routes = w.fields.map((f) => {
+    const n = AREA_CHAPTER[f.id];
+    const chapter = chapters.find((c) => c.data.n === n);
+    const build = builds.find((b) => b.data.chapter === n);
+    if (!chapter || !build) {
+      throw new Error(
+        `Real Rich area "${f.id}" has no chapter and 24-Hour Build to route to. Every ` +
+          "area on the scoreboard needs one — the book's instruction is to choose an " +
+          "action for the lowest area, and this is where that action is written down.",
+      );
+    }
+    return {
+      area: f.id,
+      label: f.label,
+      chapter: pad(chapter.data.n),
+      title: chapter.data.title,
+      build: pad(build.data.n),
+    };
+  });
 }
 
 /**
@@ -219,6 +391,37 @@ const prefill =
             </ol>
             <p class="bars__lowest" role="status" data-lowest></p>
           </section>
+
+          {/* Where to go for it. All six are listed and always visible, for two reasons:
+              without scripting nothing computes a lowest area, and knowing which chapter
+              owns which area is worth having on its own. The script only marks the row. */}
+          <section class="routes" aria-labelledby="routes-h">
+            <h3 class="routes__heading" id="routes-h">
+              Where the book answers each area
+            </h3>
+            <p class="routes__note">
+              Whichever one comes out lowest, that is the row to open. The build under it is
+              the one thing to do about it.
+            </p>
+            <ol class="routes__list">
+              {routes.map((r) => (
+                <li class="route" data-route={r.area} data-route-label={r.label}>
+                  <p class="route__area">
+                    {r.label}
+                    <span class="route__tag">Lowest</span>
+                  </p>
+                  <p class="route__where">
+                    <a href={`/c/${r.chapter}`} data-tap>
+                      Chapter {r.chapter} · {r.title}
+                    </a>
+                    <a href={`/build/${r.build}`} data-tap>
+                      24-Hour Build {r.build}
+                    </a>
+                  </p>
+                </li>
+              ))}
+            </ol>
+          </section>
         </>
       ) : (
         <ol class="fields">
@@ -318,6 +521,41 @@ const prefill =
 
     <p class="actions__status" role="status" data-status></p>
 
+    {
+      ask && (
+        /* Nothing is sent from here. The message is composed in the browser out of what
+           is already on this page, and the reader is the one who sends it — so no
+           address is ever collected and the site never learns who this person is.
+           The questions render server-side because they are the safety half of the ask:
+           without scripting the button is hidden, and they are still readable. */
+        <div class="ask" data-ask={JSON.stringify(ask)}>
+          <h3 class="ask__heading">Ask your safe witness</h3>
+          <p class="ask__note">
+            A parent, a teacher, a coach, a librarian, a youth worker or a sibling over 18
+            — the one you would actually tell the truth to. This writes the message out of
+            what you typed above. It does not send anything; you copy it and send it
+            yourself, in whatever app you already use.
+          </p>
+          <ol class="ask__questions">
+            {ask.questions.map((q) => (
+              <li>{q}</li>
+            ))}
+          </ol>
+          <p class="ask__note">
+            Change any of it. The questions at the end are the part worth keeping.
+          </p>
+
+          <div class="actions__row">
+            <button type="button" class="btn" data-ask-copy>
+              Copy the message
+            </button>
+          </div>
+
+          <p class="ask__status" role="status" data-ask-status />
+        </div>
+      )
+    }
+
     <label class="actions__fallback" data-fallback hidden>
       <span>Copying did not work in this browser. Select all of this and copy it.</span>
       <textarea readonly rows="8" data-fallback-text></textarea>
@@ -325,7 +563,10 @@ const prefill =
 
     <p class="actions__nojs">
       Without JavaScript this worksheet still prints and still fills in by hand. Nothing
-      here is locked.
+      here is locked.{
+        ask &&
+          " The message for your safe witness is only what is already on this page plus the questions above, so you can write it out yourself in a minute."
+      }
     </p>
   </div>
 </Page>
@@ -345,8 +586,11 @@ const prefill =
     const wsId = sheet.dataset.worksheet ?? "";
     const kept = state();
 
-    const say = (message: string) => {
-      if (status) status.textContent = message;
+    /* Two buttons now write here, so the target is a parameter. Both live regions sit
+       directly under the button that fills them; a confirmation a phone has scrolled off
+       the screen is not a confirmation. */
+    const say = (message: string, into: HTMLElement | null = status) => {
+      if (into) into.textContent = message;
     };
 
     /* --- Text fields ------------------------------------------------------- */
@@ -437,6 +681,7 @@ const prefill =
     const ranges = [...sheet.querySelectorAll<HTMLInputElement>("[data-score]")];
     const lowest = sheet.querySelector<HTMLElement>("[data-lowest]");
     const barsEmpty = sheet.querySelector<HTMLElement>("[data-bars-empty]");
+    const routeRows = [...sheet.querySelectorAll<HTMLElement>("[data-route]")];
 
     const scored = new Map<string, number>();
 
@@ -457,14 +702,23 @@ const prefill =
       if (!lowest) return;
       if (scored.size < ranges.length) {
         lowest.textContent = "";
+        for (const row of routeRows) row.removeAttribute("data-route-lowest");
         return;
       }
       let min = 11;
       for (const v of scored.values()) min = Math.min(min, v);
-      const names = ranges
-        .filter((r) => scored.get(r.dataset.score ?? "") === min)
-        .map((r) => r.dataset.label ?? "");
+      const low = ranges.filter((r) => scored.get(r.dataset.score ?? "") === min);
+      const names = low.map((r) => r.dataset.label ?? "");
       lowest.textContent = `Lowest right now: ${names.join(", ")}. Choose one action for it.`;
+
+      /* "Choose one action for it" used to end there, with no route. The six routes are
+         already on the page; this marks the one being pointed at. The sentence above is
+         left alone deliberately — it is a live region, and links announced inside one are
+         noise. Ties mark every row that ties, the same way the sentence names them all. */
+      const ids = new Set(low.map((r) => r.dataset.score ?? ""));
+      for (const row of routeRows) {
+        row.toggleAttribute("data-route-lowest", ids.has(row.dataset.route ?? ""));
+      }
     };
 
     for (const range of ranges) {

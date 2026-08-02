@@ -236,12 +236,25 @@ in the changelog as a sale.
 
 > De bookpage-lookup mag blijven, maar één schuif naar beneden — hij is een utility, geen entree.
 
-No, and the reasoning is inverted. Both printed QR codes encode the hyphen-free domain,
-**which belongs to somebody else.** A reader who scans the code in the book lands on a
-stranger's website. They then have to reach this site by typing the address by hand.
+No, and the reasoning is inverted. **Neither printed QR code deep-links.** There are exactly
+two of them and both encode the bare root `https://teen-andgrowrich.com` — verified by
+rendering every page of the print files and running QR detection. So a scan made on page 41
+lands on the homepage, and the reader is still holding a page whose tool they now have to go
+find. The page-number field is what closes that gap; it is the entrance for a book-holder,
+not a leftover.
 
-`/p/1`–`/p/65` is therefore not a utility. It is the *only working route from the printed
-book into this site*, for every copy of the first print run, forever. It stays first.
+It also works where a camera cannot. Dutch classrooms have banned phones, tablets and
+smartwatches since 1 January 2024, and school Chromebooks have no camera workflow — a
+typeable number works on a locked-down device, on a projector, and read aloud by a teacher.
+The reader most likely to be holding this book in the country it was written in is the
+reader who cannot scan anything.
+
+`/p/1`–`/p/65` is therefore not a utility. It is the *only route from a printed page to that
+page's tool*, for every copy of the first print run, forever. It stays first.
+
+(An earlier version of this entry said both codes encode the hyphen-free domain and send
+readers to a stranger's website. That was wrong: the book was re-issued precisely to fix the
+domain, and the re-issued files are what was measured. The conclusion did not depend on it.)
 
 ### A parent block on all fifteen chapter pages, and 70/30 parent-facing
 

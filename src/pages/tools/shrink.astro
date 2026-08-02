@@ -13,6 +13,27 @@
  * form-action 'self', which permits the same-origin page-number form on / and /404), but
  * because an input that looks live and silently does nothing is worse than one that says
  * it is off.
+ *
+ * THE FIXED ENDING. Scam Check's every answer ends in "show one adult" and that is written
+ * into its spec (D9). This tool needs the same thing for a different reason: a perfectly
+ * good twenty-minute first step can be "post the first version", "message somebody who has
+ * already done this", or "charge five euros for it". Public posting, contact with new
+ * people and money moving are yellow and red on the book's own rule (printed page 61), and
+ * a page that hands a thirteen-year-old three of those and says "do it before tomorrow
+ * night" with no adult named anywhere is the tool answering a question it was not asked.
+ *
+ * So two things are specified here rather than left to the model:
+ *   1. every step carries a flag — green, yellow or red. The tier is what decides whether
+ *      the step is the reader's to take alone, so it is part of the answer, not a garnish
+ *      (D12: the flag is the primary UI atom, and colour is never the only signal — the
+ *      Flag component always writes the rule out in words).
+ *   2. the three lines underneath are the same on every answer, and they are printed by
+ *      this page rather than generated. That is the part that makes "the model cannot
+ *      vary or omit it" true rather than hoped for: there is no wording there for it to
+ *      soften, and no answer where it can decide an adult is not needed.
+ *
+ * Writing it now is deliberate. The tool is still a shell, which is the cheapest moment a
+ * line like this is ever mandatory; bolting it onto a live tool is how it becomes optional.
  */
 import Page from "../../layouts/Page.astro";
 import ChapterFurniture from "../../components/ChapterFurniture.astro";
@@ -29,20 +50,32 @@ const check = (await allRealityChecks()).find((c) => c.id === "dream-big")!;
 const checkMeta = metaFor(check.id);
 
 /* Illustrative only, and labelled as such on the page. Deliberately not built from the
-   book's Chapter 1 story: the 15 stories are the book's, not the site's (D4). */
+   book's Chapter 1 story: the 15 stories are the book's, not the site's (D4).
+
+   The flags are part of the example on purpose. Two green and one yellow is what a real
+   answer looks like — most first steps genuinely are green, and a page where every step
+   came back yellow would teach a reader to stop reading the flag. The `why` line exists
+   because a colour and a word tell you the tier but not the reason, and the reason is the
+   part that transfers to the next decision. */
 const EXAMPLE_GOAL = "I want to start a YouTube channel.";
 const EXAMPLE_STEPS = [
   {
     step: "Say the first sixty seconds of one video out loud and time it on your phone.",
     proof: "A script you have actually heard, and a real number for how long it runs.",
+    flag: "green" as const,
+    why: "Nobody hears it, nothing is spent, and it can be undone by deleting a recording.",
   },
   {
     step: "Film that sixty seconds in one take. Do not edit it, do not re-record it.",
     proof: "One video file with today's date on it, which did not exist this morning.",
+    flag: "green" as const,
+    why: "A file on your phone is not a post. Putting it online is a separate decision, and that one is yellow.",
   },
   {
     step: "Send the take to one person and ask what was confusing.",
     proof: "One reply with one specific note in it — the first outside information you have.",
+    flag: "yellow" as const,
+    why: "It leaves your phone and lands on a person. The tool cannot know who you are sending it to, so this one gets said out loud first.",
   },
 ];
 ---
@@ -132,6 +165,14 @@ const EXAMPLE_STEPS = [
         leaves behind — because proof is the thing the next chapter runs on, and a step
         that leaves nothing behind is a step you cannot tell you took.
       </p>
+      <p>
+        Each one also carries a flag, because a twenty-minute step is not automatically
+        yours to take on your own. A first step can mean posting something with your name
+        on it, messaging somebody you have never met, or charging money for something, and
+        those are yellow and red on the book's own rule. The answer says which before you
+        start, not after.
+      </p>
+      <p>Then every answer ends the same way, in the same words, whatever you typed.</p>
     </div>
 
     {/* A section rather than a div: an aria-label on a generic element is dropped by
@@ -149,6 +190,12 @@ const EXAMPLE_STEPS = [
             <li class="step">
               <p class="step__n">{i + 1} · 20 minutes</p>
               <p class="step__do">{s.step}</p>
+              {/* Flag before proof, not after: the tier answers "is this mine to do at
+                  all", and that question comes before "what will it leave behind". */}
+              <p class="step__flag">
+                <Flag level={s.flag} size="sm" />
+              </p>
+              <p class="step__why">{s.why}</p>
               <p class="step__proof">
                 <span class="step__proof-key">The proof this leaves</span>
                 {s.proof}
@@ -158,14 +205,35 @@ const EXAMPLE_STEPS = [
         }
       </ol>
 
+      {/* THE FIXED ENDING. Not example copy — these three lines print under every answer
+          the tool ever gives, word for word, and they are the reason this page can send a
+          reader off to do something public, or something with money in it, at all.
+
+          Written out here rather than held in a constant so that the one place the wording
+          lives is the place it is read, which is how Scam Check's "show one adult" ending
+          is specified too. The link is the point of the second line: this page names the
+          tier, /race-control is the rule. */}
+      <h3 class="result__h">Every answer ends the same way</h3>
       <p class="result__action">
         Pick one. Do it before tomorrow night. Keep whatever it produces.
+      </p>
+      <p class="trailer">
+        Then look at its flag. Green: go. Yellow: say it out loud to one adult before you
+        start, not after. Red: an adult does it with you, not just hears about it. The rule
+        itself is on <a href="/race-control">Green, yellow, red</a>.
+      </p>
+      <p class="trailer">
+        Twenty minutes is short. Short is not the same as safe, and a first step gives you
+        proof, not payment.
       </p>
     </section>
 
     <p class="prose note">
       It never picks for you and it never tells you the goal is wrong. Three options, one
-      of which you can start now, is the entire job.
+      of which you can start now, is the entire job. The model writes the three steps and
+      tags each one green, yellow or red; the ending underneath is not its to write. This
+      page prints those lines on every answer, so there is nothing in them for it to soften
+      and no answer where it can decide an adult is not needed.
     </p>
   </section>
 
@@ -208,12 +276,18 @@ const EXAMPLE_STEPS = [
 
       <div class="pending" aria-labelledby="helpline-h">
         <p class="pending__label" id="helpline-h">Helpline finder — not in place yet</p>
+        {/* Kept factually identical to the same block on /tools/scam-check. This one used
+            to end "it will be added here before this site goes live", which the sibling
+            page contradicts — that page says plainly that the site is public today and the
+            missing finder is a gap, not a plan. Two safety notices disagreeing about
+            whether anyone can reach this page yet is the version a reader should never
+            get, and of the two claims this is the one that is safe to be wrong about. */}
         <p class="pending__note">
-          This site does not yet list a helpline you can call or message. One verified
-          finder — international, plus one for the Netherlands — is being checked with
-          someone who does safeguarding professionally, and it will be added here before
-          this site goes live. Making one up in the meantime would be the worse mistake, so
-          the routes below are the ones this page can stand behind today. Nothing here is a
+          This site does not yet list a helpline you can call or message, and it is public
+          today, so that is a gap and not a plan. One verified finder — international, plus
+          one for the Netherlands — is being checked with someone who does safeguarding
+          professionally. Making one up in the meantime would be the worse mistake, so the
+          routes below are the ones this page can stand behind today. Nothing here is a
           crisis service, including the mailbox in the footer: nobody reads that urgently.
         </p>
       </div>
@@ -268,6 +342,15 @@ const EXAMPLE_STEPS = [
         <p class="row__value">
           One goal in, three steps out. It never writes in Ryan's voice and it never
           generates content from the book.
+        </p>
+      </div>
+      <div class="row">
+        <p class="row__key">The ending is not its to write</p>
+        <p class="row__value">
+          The model writes the three steps and tags each one green, yellow or red. The
+          lines underneath — the ones that say when an adult hears about it first — are
+          printed by this page, the same on every answer. It cannot reword them, and it
+          cannot leave them off because it thinks your step is fine.
         </p>
       </div>
       <div class="row">
@@ -494,14 +577,44 @@ const EXAMPLE_STEPS = [
     color: var(--text-strong);
   }
 
+  .step__flag {
+    margin-block-start: 0.5rem;
+  }
+
+  .step__why {
+    margin-block-start: 0.2rem;
+    font-size: var(--text-meta);
+    line-height: 1.55;
+    color: var(--text-muted);
+  }
+
   .step__proof {
     margin-block-start: 0.5rem;
   }
 
+  /* Same label style as the headings inside /tools/scam-check's example output. The two
+     tool pages are siblings and a reader will land on both; the shape of the answer should
+     not change between them. */
+  .result__h {
+    margin-block-start: 1.25rem;
+    font-size: var(--text-label);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-strong);
+  }
+
+  .result__h + p {
+    margin-block-start: 0.5rem;
+  }
+
   .result__action {
-    margin-block-start: 1rem;
     font-weight: 700;
     color: var(--text-strong);
+  }
+
+  .trailer {
+    margin-block-start: 0.5rem;
   }
 
   .check {

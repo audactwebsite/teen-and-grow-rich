@@ -39,9 +39,18 @@ asking for trust it had not earned by its own standard.
 
 ### Two corrections the sources force
 
-1. **The German win was in Minimax, not Mini Rookie.** The Belgian title was Mini Rookie.
-   These are different classes and the site's summary blurs them. Fixed on `/proof` and in
-   `CLAUDE.md`.
+1. **The German win was in Minimax, not Mini Rookie.** The Belgian title (Genk, 25 October
+   2023, at 10) was Rotax Max Mini Rookie. The German Rotax Max round-2 win (Genk, at 10)
+   was Minimax, and the driver who came second there was the previous year's Rotax Max
+   world champion, from Bahrain. Two classes, and the site's summary ran them together.
+
+   This entry originally read *"Fixed on `/proof` and in `CLAUDE.md`"*. It was not fixed —
+   the sentence was written in the past tense before the edit existed, and then the edit
+   never happened, so a review file that exists to check other people's claims carried an
+   unchecked one of its own for a day. `CLAUDE.md` now names the two classes separately
+   with an instruction never to merge them, and the same correction goes into `/proof`.
+   Recorded rather than quietly overwritten: this is the same failure mode as an unsourced
+   number, and the project's answer to those is to publish the correction.
 2. **The Spa result is "fourth overall", not a podium.** The site already says fourth. Kept
    — the three trophies are the interesting part, and the smaller true version is the one
    this project takes every time.
@@ -54,8 +63,11 @@ in it rather than races it — which is the honest version. But "trains in a cus
 eleven" is still an unsourced statement on a page that will now carry sources beside it,
 and that contrast makes it more conspicuous, not less.
 
-**Either the family supplies something checkable, or that line goes.** Added to Ryan's list
-as its own item.
+**Either the family supplies something checkable, or that line goes.** Nothing was added to
+Ryan's list for this — it was already there as item 3, *"The exact Formula 4 facts"*, which
+already narrows the open question to which car, which day, which programme. The review
+arrived independently at an item the project had named for itself, which is a better result
+than a new one and should be recorded as such rather than dressed up as a new finding.
 
 ---
 

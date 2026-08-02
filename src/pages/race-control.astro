@@ -15,6 +15,15 @@
  * The book's own wording is quoted verbatim in `book`. Everything in `you` and in the
  * examples is site-authored, written by applying that printed rule — the same boundary the
  * nineteen derived build flags are under, and stated on the page rather than blurred.
+ *
+ * The examples deliberately reach past money. The printed rule turns on two things —
+ * whether a decision can be undone, and whether anyone other than the reader is in it —
+ * and neither is financial. The book knows this: the extracted content names an adult on
+ * 30 separate printed pages spread over eleven different chapters, and its Reality Checks
+ * apply the same three levels to DMs, photos, location, platform age rules and meeting
+ * people. A page whose every example was a payment would read as a money rule, be filed as
+ * one, and be no use to the reader who needs it at eleven at night about a message — or to
+ * a school that teaches no financial education at all.
  */
 import Page from "../layouts/Page.astro";
 import ChapterFurniture from "../components/ChapterFurniture.astro";
@@ -22,6 +31,29 @@ import Flag from "../components/Flag.astro";
 import PageRef from "../components/PageRef.astro";
 import { FAMILY_RULE } from "./reality-check/_checks";
 import { FLAG_RULE_PAGE } from "../lib/build-meta";
+import { allRealityChecks } from "../lib/content";
+
+/**
+ * Printed anchors for the three examples furthest from money, so the page can show its
+ * working. Read from the content collection rather than typed in: page numbers are
+ * edition-specific, and a wrong one on a safety page sends a reader to a blank worksheet.
+ * Throws rather than falling back — a missing anchor must not render as a plausible number.
+ */
+const checks = await allRealityChecks();
+const pageOfCheck = (id: string): number => {
+  const check = checks.find((c) => c.id === id);
+  if (!check) {
+    throw new Error(
+      `race-control: no Reality Check "${id}". The non-money examples on this page cite it ` +
+        "as their printed anchor, so the citation cannot be rendered without it.",
+    );
+  }
+  return check.data.printedPage;
+};
+
+const AI_TOOL_PAGE = pageOfCheck("create-magic");
+const ONLINE_CONTACT_PAGE = pageOfCheck("squad-goals");
+const LOCATION_PAGE = pageOfCheck("vibe-check");
 
 const TIERS = [
   {
@@ -35,7 +67,8 @@ const TIERS = [
       "Making a first version nobody sees",
       "Practising a skill for twenty minutes",
       "Sorting what you spent last week",
-      "Building a demo for a made-up client",
+      "Writing the message — sending it is a separate question",
+      "Blocking someone, or leaving a group chat",
     ],
   },
   {
@@ -45,9 +78,17 @@ const TIERS = [
     you: "Tell an adult before, not after. This is a conversation, not permission — they are looking at it with you, and most of the time they will say go ahead.",
     like: [
       "Posting something publicly with your name on it",
-      "Spending a small amount of your own money",
+      "Making a new account, or turning a private one public",
+      "Posting anything that shows where you are, or where you will be",
       "Messaging someone you have never met",
-      "Putting your work somewhere strangers can see it",
+      "Spending a small amount of your own money",
+      /* Anchored on printed page 24: "Never upload private material or another person's
+         work into an AI tool without permission." The site then ships two AI tools at
+         thirteen-year-olds and asks them to paste a real offer or a real DM into one. That
+         input leaves the device — it is never kept, but it is sent — and it is usually
+         somebody else's words. Naming the site's own tools here rather than only inside
+         their disclosure is the point: the guidance has to apply to us too. */
+      "Pasting a real message, offer or someone's details into an AI tool — the two on this site included",
       "Agreeing to do something for someone by a date",
     ],
   },
@@ -57,25 +98,38 @@ const TIERS = [
     book: "Red decisions involve contracts, financial products, travel, identity documents, large payments, or in-person meetings and require direct adult involvement.",
     you: "Not you on your own. An adult is in the room, on the account and on the signature. This is not because you cannot be trusted — it is because these are the ones that are hard to undo.",
     like: [
-      "Anything you have to sign",
-      "Anything where money moves",
+      /* "Signing" here means a real agreement — a contract, a form, terms somebody wants
+         you personally bound by. Making an ordinary account is yellow, one tier up, or the
+         rule would turn every app install red and get ignored the first week. */
+      "Anything you have to sign, or agree to in somebody else's name",
+      "Meeting anyone in person who you only know from online",
+      /* Printed page 36: do not share your address, school schedule, private documents,
+         passwords or financial details, and involve an adult before meeting anyone in
+         person. Telling a stranger where you will be is the first half of that meeting,
+         so it is read at the same level. */
+      "Telling someone you only know online where you live, where you go to school, or where you will be",
       "Sending ID, a passport page or a bank card",
-      "Meeting someone in person",
       "Travelling somewhere for it",
-      "Anything to do with investing or crypto",
+      "Anything where money moves — including investing and crypto",
     ],
   },
 ];
 
-/** Three questions, in order. The first yes decides it. */
+/**
+ * Three questions, in order. The first yes decides it.
+ *
+ * These have to list the same ground the tier examples do, or a reader who runs the
+ * questions on a message, a photo or an AI tool falls through all three and lands on green
+ * — which would be the page contradicting itself at the only moment it is being used.
+ */
 const DECIDE = [
   {
-    q: "Does it involve signing, money moving, ID, travelling, or meeting someone in person?",
+    q: "Does it involve signing, money moving, ID, travelling, meeting someone in person, or telling somebody where you are?",
     then: "red" as const,
     say: "Then it is red. Stop and get an adult in it before you do anything else — including replying.",
   },
   {
-    q: "Does it involve posting publicly, spending a little, or talking to someone new?",
+    q: "Does it involve posting publicly, spending a little, talking to someone new, or pasting something real into an app or an AI tool?",
     then: "yellow" as const,
     say: "Then it is yellow. Say it out loud to an adult first. Two minutes, before it happens.",
   },
@@ -87,24 +141,41 @@ const DECIDE = [
 ];
 ---
 
+{/* "Race Control" is a term this project coined and nobody types into a search box. The H1
+    stays plain, and the title and description are written as the question somebody actually
+    asks — do I need to check this with an adult — because the reader who most needs this
+    page arrives from a search, not from the menu. No money words: the rule is not one. */}
 <Page
-  title="Race Control"
-  description="The traffic-light rule from Teen & Grow Rich, explained for the person it is about. Green: go. Yellow: tell an adult first. Red: an adult does it with you. Three questions, and the first yes decides."
+  title="Green, yellow, red: when to check with an adult"
+  description="Green, yellow or red: work out whether a decision needs an adult first. It covers posting, spending, meeting someone from online, and anything you cannot undo."
   printedPage={FLAG_RULE_PAGE}
 >
   <ChapterFurniture
     eyebrow="Race control"
     title="Green, yellow, red"
-    subtitle="One rule for every decision in this book. Three questions, and the first yes decides it."
+    subtitle="One rule for anything hard to undo, or that lands on somebody else. Three questions, and the first yes decides it."
   />
 
   <div class="wrap">
     <div class="prose">
       <p class="lede">
-        In racing, flags come from race control and every driver on the track obeys them —
-        not because they are being told off, but because the person with the flag can see
-        the whole circuit and the driver can only see the next corner. That is the whole
-        idea. This is not about whether you are sensible. It is about who can see what.
+        Brakes are not there to make you go slow. Anyone who races works that out early:
+        good brakes are what let you stay flat out for longer, because you know you can
+        still make the corner. The kart with no brakes is not the quick one. It is the one
+        lifting off early, everywhere, all lap.
+      </p>
+      {/* Brakes, not a harness — a kart has no belts and this book's author races karts.
+          A racing detail he would spot as wrong is not worth the extra word. */}
+      <p>
+        Green, yellow and red are your brakes. Not a list of things you are banned from —
+        the reason you get to build at full speed without ending your own race at the first
+        corner that catches you out. And they are yours, not something somebody has on you:
+        you are the one who spots the colour, usually with nobody watching.
+      </p>
+      <p>
+        Two things set the colour, and neither of them is money: can you undo it, and does
+        it land on anyone but you. That is why the same three colours cover a stranger's
+        DM, a photo with your street in it, and anything somebody wants you to sign.
       </p>
       <p class="meta"><PageRef page={FLAG_RULE_PAGE} kind="For Parents & Guardians" /></p>
     </div>
@@ -164,8 +235,12 @@ const DECIDE = [
     <p class="derived">
       The quoted line under each colour is printed in the book, on page {FLAG_RULE_PAGE}.
       Everything above it is this site putting that rule into the words you would actually
-      use — including the examples, which the book does not print. If one of them looks
-      wrong to you, the printed rule wins.
+      use — including the examples, which the book does not print. They are deliberately
+      not all about money: the printed rule turns on what is hard to undo and who else is
+      in it, and the book applies exactly that to AI tools on page {AI_TOOL_PAGE}, to what
+      you give away to people you build with online on page {ONLINE_CONTACT_PAGE}, and to
+      posting your location on page {LOCATION_PAGE}. If one of them looks wrong to you, the
+      printed rule wins.
     </p>
   </section>
 

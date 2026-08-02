@@ -12,9 +12,50 @@
 import Page from "../layouts/Page.astro";
 import ChapterFurniture from "../components/ChapterFurniture.astro";
 import { pageIndex } from "../lib/content";
+import { SITE_HOST } from "../lib/site";
 
 const index = await pageIndex();
 const routed = [...index.keys()].filter((n) => n >= 1 && n <= 64).length;
+
+/**
+ * The errata list. One entry so far, and it is the re-issue that fixed the printed address.
+ *
+ * This is the site's own method turned on the printed object rather than only on the
+ * website: /updates says a correction gets a dated entry naming what was wrong instead of
+ * a quiet edit, and a book that was re-set is exactly that case. Writing it down also
+ * answers the practical question a reader with an older copy has — whether their page
+ * numbers still work — which nothing else on this site currently answers.
+ *
+ * The wrong address is described, never spelled. Without its hyphen it is a live domain
+ * belonging to an unrelated company, and printing it here would send readers there from
+ * the one page that exists to stop that happening.
+ */
+const ERRATUM = [
+  {
+    key: "What was wrong",
+    value:
+      "The website address printed in the book was set without its hyphen. That is not a typo you can shrug at: without the hyphen it is a different company's domain — a real business, live, nothing to do with this book — so every printed route into this site pointed at a stranger.",
+  },
+  {
+    key: "Where",
+    value:
+      "Every printed mention of the address, which is five: the Publishing Note on printed page 2, the author page on printed page 63, the back cover, and both QR codes — the one on printed page 64 and the one on the back.",
+  },
+  {
+    key: "What changed",
+    value: `All five carry ${SITE_HOST}, hyphen included. The two codes were checked by rendering every page of the print files and decoding what is actually in them, rather than by looking at them. Same edition, same 64 pages, same trim, same page numbers.`,
+  },
+  {
+    key: "What did not change",
+    value:
+      "Every other word in the book. That is checked rather than assumed: the script that pulls all 231 items out of the print file was re-run against the re-set files, and its output was identical, line for line, to what was already on this site. The whole difference between the two printings is the address.",
+  },
+  {
+    key: "If your copy has the old one",
+    value:
+      "Nothing here breaks. Not one page moved, so every page number in your copy resolves exactly as this page says it does. Type the address with the hyphen in it and you are in the right place.",
+  },
+];
 
 const EDITION_ONE = [
   { key: "Name", value: "The Condensed Gen Z Edition" },
@@ -30,7 +71,7 @@ const EDITION_ONE = [
 
 <Page
   title="Editions"
-  description="Which print run this site's page numbers refer to, and how a printed page number keeps working after a second edition moves it."
+  description="Which print run this site's page numbers refer to, how a printed page number keeps working after a second edition moves it, and the errata for the printed book."
 >
   <ChapterFurniture
     eyebrow="The record"
@@ -43,7 +84,9 @@ const EDITION_ONE = [
       <p class="lede">
         Every tool page on this site states the printed page it came from, and you can type
         a page number straight into the homepage to get there. That only works if it is
-        clear which book the number is in. This page is that record.
+        clear which book the number is in. This page is that record — and it is where the
+        <a href="#errata">errata</a> go: what was wrong in a printed copy, and what was
+        changed about it.
       </p>
     </div>
   </div>
@@ -125,6 +168,45 @@ const EDITION_ONE = [
       </ul>
       <p class="note">
         Until a second edition exists, everything on this site refers to the first.
+      </p>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="errata">
+    <h2 id="errata">Errata</h2>
+    <div class="prose">
+      <p>
+        Things that were wrong in a printed book, written down instead of quietly reprinted.
+        This site spends a whole chapter telling you to check other people's claims; it
+        would be a strange site to run if it kept its own mistakes off the page.
+      </p>
+      <p>There has been one, and it is the reason this edition was re-set.</p>
+    </div>
+
+    <div class="rows rows--errata">
+      {
+        ERRATUM.map((r) => (
+          <div class="row">
+            <p class="row__key">{r.key}</p>
+            <p class="row__value">{r.value}</p>
+          </div>
+        ))
+      }
+    </div>
+
+    <p class="prose note">
+      That is the only erratum so far — not the only one we will admit to, the only one
+      anybody has found. If you find another, the mailbox at the bottom of this page is read
+      by an adult, and it gets a dated entry here beside this one.
+    </p>
+
+    <div class="prose">
+      <p>
+        One more thing printed in the book is answered differently on this site, and it is
+        not an error in the book: printed page 63 lists six things this website was going to
+        be. Two of them are deliberately not being built, because both would mean a server
+        holding a thirteen-year-old's work. The whole list, item by item, with the reasoning:
+        <a href="/get#promise">what page 63 promised</a>.
       </p>
     </div>
   </section>
@@ -213,6 +295,25 @@ const EDITION_ONE = [
     .row {
       grid-template-columns: 10rem minmax(0, 1fr);
       align-items: baseline;
+    }
+  }
+
+  /* The errata table is the one table on this page whose values are sentences rather than
+     data: its keys are phrases ("If your copy has the old one") that need a wider column,
+     and tabular figures inside running prose space "2", "63" and "231" like a spreadsheet.
+     Both are reverted here rather than loosened for the edition table above, where the
+     numbers really are data and should still line up. */
+  .rows--errata {
+    max-inline-size: calc(13rem + 2rem + var(--container-measure));
+  }
+
+  .rows--errata .row__value {
+    font-variant-numeric: normal;
+  }
+
+  @media (min-width: 40rem) {
+    .rows--errata .row {
+      grid-template-columns: 13rem minmax(0, 1fr);
     }
   }
 

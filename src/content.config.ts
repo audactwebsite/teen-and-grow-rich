@@ -122,7 +122,48 @@ const offers = defineCollection({
   }),
 });
 
-export const collections = { chapters, builds, realityChecks, worksheets, sequences, offers };
+/**
+ * The three passages where the book stops teaching and somebody speaks: Ryan's note on
+ * printed page 3, the Afterword on 62, and the author page on 63.
+ *
+ * These were absent from the site entirely for its whole first build, because every other
+ * collection here is a *trackable item* and none of these three carries a 24-Hour Build, so
+ * the extractor never reached them. Nothing failed; the site simply had no author in it, and
+ * a careful reader ended up crediting a sentence the site had written to Ryan. The extractor
+ * now asserts five exact sentences from these pages and exits non-zero if any of them stops
+ * coming out of the PDF.
+ */
+const voice = defineCollection({
+  loader: file("src/content/data/voice.yaml"),
+  schema: z.object({
+    title: z.string(),
+    printedPage: z.number().int(),
+    /**
+     * Who is speaking, which decides how a page may attribute the words.
+     * `first`  — Ryan writing as "I". Quotable as his own words.
+     * `second` — Ryan writing to the reader as "you". His writing, but never quote it as "I".
+     * `third`  — the author page, written *about* him. Never present this as something he said.
+     */
+    person: z.enum(["first", "second", "third"]),
+    /** The one line set above body size under the heading. */
+    standfirst: z.string().min(1),
+    paragraphs: z.array(z.string().min(1)).min(1),
+    /** The Afterword's display line under the build box. Null on the other two. */
+    closingLine: z.string().nullable(),
+    /** "- Ryan". Only the note is signed. */
+    signoff: z.string().nullable(),
+  }),
+});
+
+export const collections = {
+  chapters,
+  builds,
+  realityChecks,
+  worksheets,
+  sequences,
+  offers,
+  voice,
+};
 
 /* Derived from FLAGS rather than z.infer: astro:content re-exports `z` as a value only,
    so `z.infer<...>` cannot resolve as a type namespace. Same single source, no drift. */

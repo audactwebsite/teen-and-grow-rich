@@ -22,7 +22,18 @@
  */
 import Page from "../layouts/Page.astro";
 import ChapterFurniture from "../components/ChapterFurniture.astro";
-import { allBuilds, allChapters, allWorksheets, allSequences, totals } from "../lib/content";
+import Box from "../components/Box.astro";
+import Flag from "../components/Flag.astro";
+import PageRef from "../components/PageRef.astro";
+import {
+  allBuilds,
+  allChapters,
+  allRealityChecks,
+  allWorksheets,
+  allSequences,
+  totals,
+} from "../lib/content";
+import { metaFor } from "./reality-check/_checks";
 
 const builds = await allBuilds();
 const chapters = await allChapters();
@@ -152,6 +163,77 @@ const EXAMPLES = [
     next: "Do it for six more days before deciding anything.",
   },
 ];
+
+/**
+ * The portfolio — a fifth route out, not a replacement for the four above.
+ *
+ * Those four export the RECORD: what was ticked, in this site's order, counts at the top.
+ * That is the right document for the reader and the wrong one for anybody else. Nobody
+ * deciding whether to give a fifteen-year-old a first job cares that they finished eleven
+ * of nineteen builds on a website; they care what exists. So this is the same storage read
+ * the other way round — the thing that was made first, the build it came out of underneath
+ * it as a reference, and this site's own progress nowhere on it at all.
+ *
+ * The moment a sheet is written to be sent to somebody who has never met the reader it
+ * stops being a private note and becomes the First Offer Canvas one step further on, so
+ * the Canvas's rules follow it here: its Reality Check, the red flag its contact-route
+ * field carries, and the contact line itself printed on the sheet rather than offered as
+ * advice beside it — the person receiving it is the one who has to use it.
+ */
+const OFFER_WORKSHEET = "first-offer-canvas";
+const START_WORKSHEET = "starting-point";
+
+/**
+ * Field labels are the book's own wording and are read out of the collection, never typed
+ * in here. A missing id throws: the same rule the worksheet page keeps for its Reality
+ * Checks — a renamed field has to fail the build, not quietly print a blank sheet.
+ */
+const fieldRef = (worksheetId: string, fieldId: string): { key: string; label: string } => {
+  const w = worksheets.find((x) => x.id === worksheetId);
+  const f = w?.data.fields.find((x) => x.id === fieldId);
+  if (!w || !f) {
+    throw new Error(
+      `/receipts: the portfolio reads "${fieldId}" from worksheet "${worksheetId}", which is ` +
+        "not in worksheets.yaml. A renamed field must fail the build, not print a blank sheet.",
+    );
+  }
+  return { key: `field:${worksheetId}:${fieldId}`, label: f.label };
+};
+
+const PF_NAME = fieldRef(START_WORKSHEET, "my-name");
+const PF_SINCE = fieldRef(START_WORKSHEET, "start-date");
+/* The four Canvas fields that describe the work to somebody else. THE STARTER PRICE is
+   deliberately not one of them: a price is settled with an adult in the room, not printed
+   on a sheet that arrives ahead of them. */
+const PF_OFFER = ["who-i-help", "the-result", "the-deliverable", "the-proof"].map((id) =>
+  fieldRef(OFFER_WORKSHEET, id),
+);
+const PF_CONTACT = fieldRef(OFFER_WORKSHEET, "the-safe-contact-route");
+
+/* The Canvas's own Reality Check, verbatim from the book, on the same terms it is attached
+   there: a required safety element fails the build rather than vanishing. */
+const PF_CHECK_ID = "seven-safe-offers";
+const pfCheck = (await allRealityChecks()).find((c) => c.id === PF_CHECK_ID);
+if (!pfCheck) {
+  throw new Error(
+    `/receipts: the portfolio requires Reality Check "${PF_CHECK_ID}", which is not in ` +
+      "reality-checks.yaml. A required safety element must fail the build, never vanish.",
+  );
+}
+const pfCheckFlag = metaFor(PF_CHECK_ID)?.flag ?? "yellow";
+
+/* All nineteen rows are rendered and hidden, rather than built by script, so each one
+   carries this component's scoped-style attribute and so the order is the book's order
+   without the client having to sort anything. */
+const PF_BUILDS = builds.map((b) => {
+  const chapter = chapters.find((c) => c.data.n === b.data.chapter);
+  return {
+    id: b.id,
+    n: pad(b.data.n),
+    label: chapter ? chapter.data.title : b.data.source,
+    page: b.data.printedPage,
+  };
+});
 ---
 
 <Page
@@ -271,6 +353,131 @@ const EXAMPLES = [
       </div>
     </div>
 
+    {/* The portfolio.
+
+        Outside the .js wrapper on purpose. The document itself needs script — it is read
+        out of storage — but the Reality Check attached to it does not, and a Reality Check
+        that only exists once a script has run is a Reality Check that is lazy-loaded. */}
+    <section class="portfolio" aria-labelledby="portfolio-h">
+      <h2 id="portfolio-h">Turn it into a portfolio</h2>
+      <div class="prose">
+        <p>
+          Everything above is your <b>record</b>: what you ticked, in the order this site
+          put it in. A <b>portfolio</b> is the other document — the one you attach to a
+          first job application, or hand to a first client. It opens with what you made.
+          Nobody reading it needs to know how far through a website you got.
+        </p>
+        <p>
+          It is built from what this browser is holding right now, and it is not kept
+          anywhere: print it, or copy it out, and that version is the one that lasts.
+          Because it is written to go to somebody who has never met you, show the whole
+          sheet to one adult before it goes anywhere — and read the check under it first.
+        </p>
+      </div>
+
+      <p class="portfolio__nojs">
+        Building this sheet means reading what this browser has kept, which takes a few
+        lines of script. With scripting off there is nothing to read it with — so write
+        the same three things out by hand: what you made, who you can help, and an email
+        an adult can see.
+      </p>
+
+      <article
+        class="pf"
+        data-pf
+        data-pf-name-key={PF_NAME.key}
+        data-pf-since-key={PF_SINCE.key}
+        data-pf-contact-key={PF_CONTACT.key}
+      >
+        <p class="pf__kicker">Portfolio</p>
+        <p class="pf__name" data-pf-name hidden></p>
+        <p class="pf__blank" data-pf-name-blank>
+          Name <span class="pf__rule"></span>
+        </p>
+        <p class="pf__since" data-pf-since hidden></p>
+
+        <section class="pf__block">
+          <h3 class="pf__h">What I built</h3>
+          <ol class="pf__list">
+            {
+              PF_BUILDS.map((b) => (
+                <li class="pf__item" data-pf-build={b.id} hidden>
+                  <p class="pf__made" data-pf-made={b.id} />
+                  <p class="pf__ref">
+                    Build {b.n} · {b.label} · book page {b.page}
+                  </p>
+                </li>
+              ))
+            }
+          </ol>
+          <p class="pf__none" data-pf-none>
+            Nothing in this browser yet. Do one build, write one line about what now
+            exists, and it turns up here.
+          </p>
+        </section>
+
+        <section class="pf__block" data-pf-offer hidden>
+          <h3 class="pf__h">What I can do for someone</h3>
+          <dl class="pf__fields">
+            {
+              PF_OFFER.map((f) => (
+                <div class="pf__field" data-pf-field={f.key} hidden>
+                  <dt class="pf__field-k">{f.label}</dt>
+                  <dd class="pf__field-v" data-pf-value={f.key} />
+                </div>
+              ))
+            }
+          </dl>
+        </section>
+
+        <section class="pf__block">
+          <h3 class="pf__h">How to reach me</h3>
+          <p class="pf__contact" data-pf-contact hidden></p>
+          <p class="pf__blank" data-pf-contact-blank>
+            An email an adult can see <span class="pf__rule"></span>
+          </p>
+          <p class="pf__note">
+            Anything about money, meetings or personal details goes through the adult on
+            that line first.
+          </p>
+        </section>
+      </article>
+
+      {/* Printed with the sheet, not hidden from it. A Reality Check is never dropped from
+          a surface, and print is a surface — a portfolio that arrives carrying the standard
+          it was built to is not weaker for it. The check's own subject is an adult-approved
+          contact route, which is the line directly above it. */}
+      <div class="portfolio__before">
+        <p class="portfolio__before-h">Before this goes anywhere</p>
+        <p class="portfolio__flag">
+          <Flag level="red" size="sm" label="Red · one adult reads it before you send it" />
+        </p>
+        <Box kind="check" class="check">
+          <p class="check__flag"><Flag level={pfCheckFlag} size="sm" /></p>
+          <p>{pfCheck.data.text}</p>
+          <p class="check__ref"><PageRef page={pfCheck.data.printedPage} /></p>
+        </Box>
+      </div>
+
+      <div class="portfolio__actions" data-print="hide">
+        <button type="button" class="btn btn--primary" data-pf-copy>
+          Copy my portfolio as text
+        </button>
+        <button type="button" class="btn" data-pf-print>Print my portfolio</button>
+      </div>
+      <p class="portfolio__status" role="status" data-pf-status data-print="hide"></p>
+
+      {/* Its own fallback rather than the one in the actions block above, which is inside a
+          section that is hidden until this browser is holding something. */}
+      <div class="fallback" data-pf-fallback hidden data-print="hide">
+        <label class="fallback__label" for="pf-fallback-text">
+          Copying automatically did not work here. Select this and copy it yourself.
+        </label>
+        <textarea id="pf-fallback-text" class="fallback__field" rows="10" readonly data-pf-fallback-field
+        ></textarea>
+      </div>
+    </section>
+
     {/* The paper index.
 
         Build 01 is the backbone of the book: start a folder called REAL RICH RECEIPTS and
@@ -330,7 +537,10 @@ const EXAMPLES = [
           been cleared. That is the point of it.
         </p>
         <p class="paper__cta" data-print="hide">
-          <button type="button" class="btn btn--primary js" data-print-btn>
+          {/* Not class="js": that class is also the wrapper below, and its reveal rule sets
+              display:block, which breaks a .btn's inline-flex centring and stretches it to
+              the full prose column. The button gets its own pair of rules instead. */}
+          <button type="button" class="btn btn--primary paper__btn" data-print-btn>
             Print this sheet
           </button>
           <span class="paper__nojs">Use your browser's print command — File, then Print.</span>

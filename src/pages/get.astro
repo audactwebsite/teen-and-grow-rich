@@ -12,6 +12,7 @@
  */
 import Page from "../layouts/Page.astro";
 import ChapterFurniture from "../components/ChapterFurniture.astro";
+import PageRef from "../components/PageRef.astro";
 import { Image } from "astro:assets";
 /**
  * The composed cover, with its type layer — design-system.md §7 nominates this file for
@@ -19,10 +20,17 @@ import { Image } from "astro:assets";
  * background photograph only: the title is vector text and never came out with it.
  */
 import cover from "../assets/photos/book-cover.jpg";
-import { totals } from "../lib/content";
+import { allSequences, totals } from "../lib/content";
 import { book, jsonLd } from "../lib/schema";
 
 const t = await totals();
+
+/* The 90-day path's own shape, folded from the collection rather than typed into the
+   prose below it — page 63 promised a 90-day plan, so the row that answers that promise
+   is the last place on the site that should carry a number nobody re-counted. */
+const ninetyDay = (await allSequences()).find((s) => s.id === "ninety-day");
+const NINETY_PHASES = ninetyDay?.data.groups.length ?? 0;
+const NINETY_ACTIONS = ninetyDay?.data.groups.reduce((n, g) => n + g.items.length, 0) ?? 0;
 
 /**
  * Measured from 03_Teen_and_Grow_Rich_DIGITAL_READING_EDITION_66P_NEW_DOMAIN.pdf: body text blocks
@@ -88,6 +96,25 @@ const PRINT_ONLY = [
   },
 ];
 
+/**
+ * Printed page 63, "THE COMPANION BUILD", verbatim.
+ *
+ * This is the book making a promise about this website, in sixty-four pages that are
+ * already in people's hands. Two of the six things on the list are barred outright by
+ * non-negotiables 1 and 5 — both would need a server holding a thirteen-year-old's work —
+ * and one is simply not finished. A reader who checks the list item by item and finds
+ * three gaps has caught the book overclaiming, unless the site says it first. Silence is
+ * the only option here that makes the book look dishonest.
+ *
+ * Quoted rather than summarised, and hard-coded rather than read from a collection,
+ * because the extraction script drops this block: voice.yaml's `about-ryan` carries the
+ * three body paragraphs of printed page 63 and not the boxed panel beside them. /terms
+ * quotes the Publishing Note inline for the same reason. If the panel ever lands in the
+ * content pipeline, this constant should be deleted and read from there instead.
+ */
+const COMPANION_BUILD =
+  "The strongest business around this book is not only the PDF. It is the experience: a free starter chapter, an AI-powered 90-day plan, safe project challenges, worksheets, portfolio pages, and a parent-visible progress system.";
+
 const NOT_FOR = [
   "Anyone who wants a number. There are no income figures in the book and none on this site.",
   "Anyone who wants it done for them. Every chapter ends in a build you have to actually do.",
@@ -102,7 +129,7 @@ const jsonLdText = jsonLd({ ...book, url: "/get" }, Astro.site);
 
 <Page
   title="Get the book"
-  description="Teen & Grow Rich is 64 printed pages, about 10,600 words. What is in it, what is on this site for free instead, and who the book is not for."
+  description="Teen & Grow Rich is 64 printed pages, about 10,600 words, and the whole text is free here. What printed page 63 promised, what this site does instead, and why."
   jsonLdText={jsonLdText}
 >
   <ChapterFurniture
@@ -245,6 +272,110 @@ const jsonLdText = jsonLd({ ...book, url: "/get" }, Astro.site);
     </div>
   </section>
 
+  {/* The book's own promise about this site, checked line by line.
+
+      No flags on the six rows, deliberately. Green/yellow/red on this site means go, tell
+      an adult first, or an adult does it with you — an approval level, not a delivery
+      status. Borrowing the atom to mean "shipped / not shipped" would teach the reader a
+      second, contradictory code for the same three colours. The status here is a word. */}
+  <section class="wrap section" aria-labelledby="promise">
+    <h2 id="promise">What page 63 promised</h2>
+    <div class="prose">
+      <p class="meta"><PageRef page={63} kind="The Companion Build" /></p>
+      <p>
+        Near the back, the book says what this website was going to be. It was written
+        before the site existed. Here is that sentence, exactly as printed:
+      </p>
+      <blockquote><p>{COMPANION_BUILD}</p></blockquote>
+      <p>
+        Three of those six are here. One is bigger than promised. One is not finished. Two
+        are never going to exist, and that is a decision rather than a delay. All six,
+        against what is actually on this domain today:
+      </p>
+    </div>
+
+    <ul class="promise">
+      <li class="promise__item">
+        <p class="promise__phrase">&ldquo;a free starter chapter&rdquo;</p>
+        <p class="promise__status">Bigger than that</p>
+        <p class="promise__text">
+          One free chapter was the plan. You get all fifteen — the stories, the Hill Remix
+          essays, What It Means Now — plus the whole book as a PDF. No account, no email
+          address, nothing to unlock. <a href="/c/01">Start at chapter one.</a>
+        </p>
+      </li>
+      <li class="promise__item">
+        <p class="promise__phrase">&ldquo;an AI-powered 90-day plan&rdquo;</p>
+        <p class="promise__status">The plan yes, the AI not yet</p>
+        <p class="promise__text">
+          <a href="/path/ninety-day">The 90-day path</a> is here: {NINETY_ACTIONS} dated
+          actions in {NINETY_PHASES} phases, straight out of the book, with the ones that
+          ask for an adult flagged yellow. No AI wrote it and none is needed for it to work.
+          The two AI tools are a separate thing and they are
+          <b>not live yet</b> — <a href="/tools/scam-check">Scam Check</a> and{" "}
+          <a href="/tools/shrink">Shrink My First Step</a> are shells that show you exactly
+          what they will ask for and give back, and the code behind them does not exist. Both
+          pages say so on themselves.
+        </p>
+      </li>
+      <li class="promise__item">
+        <p class="promise__phrase">&ldquo;safe project challenges&rdquo;</p>
+        <p class="promise__status">Here</p>
+        <p class="promise__text">
+          <a href="/builds">{t.builds} 24-hour builds</a> and{" "}
+          <a href="/offers">{t.offers} safe first offers</a>. Every one carries a green,
+          yellow or red flag telling you whether to go, check in with an adult first, or get
+          an adult involved before you start. That is the &ldquo;safe&rdquo; part, and it is
+          the book's rule, not ours.
+        </p>
+      </li>
+      <li class="promise__item">
+        <p class="promise__phrase">&ldquo;worksheets&rdquo;</p>
+        <p class="promise__status">Here</p>
+        <p class="promise__text">
+          Four of them, {t.worksheetFields} fields, starting with{" "}
+          <a href="/worksheet/starting-point">Your Starting Point</a>. They fill in on a
+          screen and they print blank, so you can do the whole thing with a pen and no
+          device at all.
+        </p>
+      </li>
+      <li class="promise__item">
+        <p class="promise__phrase">&ldquo;portfolio pages&rdquo;</p>
+        <p class="promise__status">Not being built</p>
+        <p class="promise__text">
+          A portfolio page means this site putting your work on the internet, under your
+          name, where anyone can read it. You are thirteen. So your proof goes where you can
+          actually keep it instead: <a href="/receipts">copy it out as text in one tap</a>,
+          or print it and put it in the REAL RICH RECEIPTS folder Build 01 asks you to
+          start. It stays on your device unless you move it, and nothing you type here is
+          ever sent anywhere.
+        </p>
+      </li>
+      <li class="promise__item">
+        <p class="promise__phrase">&ldquo;a parent-visible progress system&rdquo;</p>
+        <p class="promise__status">Not being built</p>
+        <p class="promise__text">
+          A dashboard a parent can open is a server holding a thirteen-year-old's work: an
+          account, a password, and a copy of everything you typed sitting on a computer you
+          do not own. We picked the other thing. <b>A receipt you print and hand over</b> —
+          a parent can read it in ten seconds, it works with no wifi, nobody else can log
+          into it, and you decide what goes on it. The adult side of this book is{" "}
+          <a href="/parents">a conversation and a one-sheet agreement</a>, not a feed of you.
+        </p>
+      </li>
+    </ul>
+
+    <p class="prose note">
+      Two of six is not a small gap and it is not closing. Both of them need this site to
+      keep your work somewhere other than your own browser, and that is the one thing it
+      will never do — it is why there is no account, no login and no email field anywhere on
+      this domain. See <a href="/privacy">privacy</a>. The AI tools are the only item on the
+      list that is genuinely unfinished; when they land they get a dated line on{" "}
+      <a href="/updates">the changelog</a>, like everything else. Page 63 stays printed and
+      this stays here, so you can check both.
+    </p>
+  </section>
+
   <section class="wrap section" aria-labelledby="not-for">
     <h2 id="not-for">Who it is not for</h2>
     <div class="prose">
@@ -280,6 +411,45 @@ const jsonLdText = jsonLd({ ...book, url: "/get" }, Astro.site);
       </p>
     </div>
   </section>
+
+  {/* The class-set boundary, stated once and in one place.
+
+      Four reviewers asked how a school buys thirty copies and got four different answers,
+      which is what happens when the answer lives nowhere. It lives here now, under the
+      section about buying, and it does not invent a price, a discount or an order flow —
+      none of the three exists and the retailer link is not even confirmed. The whole
+      answer follows from non-negotiable 7: the words are free, so a bulk deal on the words
+      would be a deal on nothing. */}
+  <section class="wrap section" aria-labelledby="class-sets">
+    <h2 id="class-sets">Class sets, and buying more than one</h2>
+    <div class="prose">
+      <p>
+        There is no bulk route on this site. No class-set price, no school discount, no site
+        licence, no order form, no invoice — because this site does not sell anything at
+        all. It has no checkout and no way to take a payment. When the retailer link lands,
+        ordering thirty is a question for the retailer, the same as ordering one, and nobody
+        here can change the terms of it.
+      </p>
+      <p>
+        You almost certainly do not need thirty anyway. <b>Everything a class works from is
+        already free, and already licensed for exactly this:</b> the whole book as a PDF,
+        all four worksheets, all {t.realityChecks} Reality Checks, the 90-day path. Print
+        them, photocopy them, put them on a shared drive, hand them out. You do not have to
+        ask, and there is nobody to ask. The one restriction is that the Reality Checks may
+        be copied but never edited.
+      </p>
+      <p>
+        So what would a class set actually be? Thirty copies of the object — thirty things a
+        student can keep, mark up and take home. That is a real thing to want, and it is a
+        different thing from access. Nothing in a printed copy is missing from this site.
+      </p>
+      <p class="aside">
+        The teacher version of all of this, including what prints and what does not, is on{" "}
+        <a href="/teachers">the teachers page</a>. The licences themselves are on{" "}
+        <a href="/terms#licence">the terms page</a>.
+      </p>
+    </div>
+  </section>
 </Page>
 
 <style>
@@ -294,7 +464,9 @@ const jsonLdText = jsonLd({ ...book, url: "/get" }, Astro.site);
   }
 
   .prose p + p,
-  .prose ul {
+  .prose ul,
+  .prose blockquote,
+  .prose blockquote + p {
     margin-block-start: 0.9em;
   }
 
@@ -399,6 +571,20 @@ const jsonLdText = jsonLd({ ...book, url: "/get" }, Astro.site);
     color: var(--text-muted);
   }
 
+  .meta {
+    color: var(--text-muted);
+  }
+
+  /* The same mark /terms puts on the Publishing Note: a quotation from a printed page is
+     flagged by the spine, not wrapped in a box. It is not one of the three semantic boxes
+     and it must not start looking like a fourth. */
+  blockquote {
+    margin: 0;
+    padding-inline-start: 1rem;
+    border-inline-start: 3px solid var(--accent-spine);
+    color: var(--text-strong);
+  }
+
   .tally,
   .plain {
     list-style: none;
@@ -452,6 +638,42 @@ const jsonLdText = jsonLd({ ...book, url: "/get" }, Astro.site);
   a {
     text-decoration-color: currentColor;
     text-underline-offset: 3px;
+  }
+
+  /* --- What page 63 promised ---------------------------------------------------- */
+
+  .promise {
+    max-inline-size: var(--container-measure);
+    margin-block-start: 1.5rem;
+    padding: 0;
+    list-style: none;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .promise__item {
+    padding-block: 0.9rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .promise__phrase {
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  .promise__status {
+    margin-block-start: 0.15rem;
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    /* Muted, never tinted. The status is a word on purpose: green/yellow/red on this site
+       already means go / ask an adult / adult required, and colouring a delivery status
+       with the same three would teach a second, contradictory code for one palette. */
+    color: var(--text-muted);
+  }
+
+  .promise__text {
+    margin-block-start: 0.35rem;
   }
 
   /* --- Two ways to read it ---------------------------------------------------- */

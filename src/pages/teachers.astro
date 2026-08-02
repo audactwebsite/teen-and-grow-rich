@@ -17,14 +17,189 @@
  * everything is copyable, but the nineteen Reality Checks are the one thing that may not be
  * edited. A safety warning with a teacher's edits and Ryan's name on it is the only object
  * this project can produce that could genuinely hurt somebody.
+ *
+ * ---------------------------------------------------------------------------
+ * Three things this page carries that nothing else on the site does.
+ *
+ * 1. THE RUBRIC. Schools do not buy motivation, they buy material they can assess, and the
+ *    page had no assessment language at all. The six criteria below are the ordinary ones —
+ *    problem clarity, skill practice, evidence, acting on feedback, safety decisions,
+ *    reflection — and every one of them already has an artefact on this site, because a
+ *    receipt IS the evidence a rubric asks for. Nothing new had to be built for it; the
+ *    mapping was the work.
+ *
+ *    Its levels describe the ARTEFACT, never the student, and there are no rank names.
+ *    "It exists" is a fact about a thing in a folder. A grade band would be non-negotiable 3
+ *    wearing a mortarboard. The racing flags are deliberately NOT reused as a scale either:
+ *    green/yellow/red means "who has to be in the room", and a scale that borrowed those
+ *    three colours for quality would quietly break the one atom the whole site rests on.
+ *
+ * 2. THE CERTIFICATE. A site-issued certificate of completion was rejected — it is a badge
+ *    with a longer name. What is here instead is a blank sheet a teacher fills in and signs,
+ *    which is ordinary classroom practice and does not tie a reader's worth to a website's
+ *    approval. It reads no storage, it is identical for every visitor, and it says so on its
+ *    own foot line.
+ *
+ * 3. FINDABILITY. A teacher searching "entrepreneurship", "digital skills" or "money
+ *    mindset" could not reach this page: the title said "For teachers" and the body was
+ *    about photocopier logistics. The vocabulary added below is the book's own — printed
+ *    page 63 names websites, future skills, entrepreneurship and "from consuming to
+ *    creating"; printed page 3 names goals, skills, decisions, persistence, teamwork,
+ *    attention and basic money habits. No curriculum standard is invented and no framework
+ *    alignment is claimed, because neither would be true.
+ *
+ * ---------------------------------------------------------------------------
+ * Print. This page deliberately prints as exactly two sheets — the rubric and the blank
+ * certificate — and nothing else. The Q&A, the print index and the licence are screen
+ * material for a teacher planning; five pages of them ahead of the sheet somebody actually
+ * wanted to mark up is not a print stylesheet, it is a dump. Both sheets carry their own
+ * source and licence line so a photocopy still says where it came from.
  */
 import Page from "../layouts/Page.astro";
 import ChapterFurniture from "../components/ChapterFurniture.astro";
 import Box from "../components/Box.astro";
+import Flag from "../components/Flag.astro";
 import { totals } from "../lib/content";
 import { FLAG_RULE_PAGE } from "../lib/build-meta";
+import { SITE_HOST } from "../lib/site";
 
 const t = await totals();
+
+/**
+ * What this material actually is, in the words a teacher would type into a search box.
+ *
+ * Every topic below is a description of content that exists, mapped to where it exists. It
+ * is not a syllabus mapping and the page says so underneath: claiming alignment with a
+ * named framework nobody has checked would be the same defect as an unsourced number.
+ */
+const COVERS = [
+  {
+    topic: "Entrepreneurship and enterprise",
+    body: "Finding a problem worth solving, turning a skill into one clear offer, scope, deadlines and starter pricing set with an adult.",
+    where: [
+      { href: "/worksheet/first-offer-canvas", label: "Your First Offer Canvas" },
+      { href: "/offers", label: "Seven Safe First Offers" },
+      { href: "/path/ninety-day", label: "The 90-day path" },
+    ],
+  },
+  {
+    topic: "Digital and future skills",
+    body: "Websites, AI tools, editing, design and research — used to make something, not to consume something. The book's own phrase for this is moving “from consuming to creating”.",
+    where: [
+      { href: "/c/04", label: "Chapter 4 — Level Up" },
+      { href: "/c/14", label: "Chapter 14 — Mindful Tech" },
+      { href: "/builds", label: `All ${t.builds} builds` },
+    ],
+  },
+  {
+    topic: "Money habits and money mindset",
+    body: "Where money actually goes, the difference between revenue and profit, splitting what you earn, and why a young person's time is real.",
+    where: [
+      { href: "/c/11", label: "Chapter 11 — Money Mindset" },
+      { href: "/c/15", label: "Chapter 15 — Real Rich" },
+    ],
+  },
+  {
+    topic: "Online safety, scams and pressure",
+    body: `The ${t.realityChecks} Reality Checks are the safety layer: what a fake offer looks like, what secrecy means, and why an adult review is a test a real opportunity survives.`,
+    where: [
+      { href: "/reality-check", label: `All ${t.realityChecks} Reality Checks` },
+      { href: "/race-control", label: "Green, yellow, red" },
+      { href: "/tools/scam-check", label: "Scam Check" },
+    ],
+  },
+  {
+    topic: "Decision-making and risk",
+    body: "One rule for anything hard to undo or landing on somebody else, three questions, and the habit of naming what you decided not to do.",
+    where: [
+      { href: "/c/07", label: "Chapter 7 — Boss Decisions" },
+      { href: "/race-control", label: "The traffic-light rule" },
+    ],
+  },
+  {
+    topic: "Working with people, and sticking at it",
+    body: "Asking a real person what they need, reading a room, recovering from a no, and keeping a promise for seven days without a streak that punishes you for missing one.",
+    where: [
+      { href: "/c/09", label: "Chapter 9 — Squad Goals" },
+      { href: "/c/08", label: "Chapter 8 — Unstoppable" },
+      { href: "/c/12", label: "Chapter 12 — Vibe Check" },
+    ],
+  },
+];
+
+/**
+ * The rubric.
+ *
+ * Six criteria, each mapped to an artefact this site already produces. Two written levels
+ * per criterion; the third level is "nothing to look at yet" and needs no words, because a
+ * missing artefact describes itself.
+ *
+ * `changed` is always about what the work did, never about how the student seemed. That is
+ * the only way this stays assessable from a folder rather than from a mood.
+ */
+const RUBRIC = [
+  {
+    name: "Problem clarity",
+    question: "Can they say who it is for, and what was wrong before they started?",
+    sources: [{ href: "/worksheet/first-offer-canvas", label: "Your First Offer Canvas" }],
+    note: "The fields WHO I HELP, THE PROBLEM and THE RESULT. Book page 58.",
+    exists: "All three fields are filled in, in their own words.",
+    changed:
+      "The person named is one specific group rather than “everyone”, and the result is something you could photograph.",
+  },
+  {
+    name: "Skill practice",
+    question: "Did they practise a skill, or read about one?",
+    sources: [{ href: "/builds", label: `The ${t.builds} builds` }],
+    note: "Each build is one short piece of work with something at the end of it — twenty minutes to an evening. Mark from the printed folder index, not from the ticks on a screen: ticks are kept in one browser and a school laptop clears them at sign-out.",
+    exists: "At least one build is finished and the thing it asked for exists.",
+    changed:
+      "The same skill turns up in two builds, and the later one is visibly better than the earlier one.",
+  },
+  {
+    name: "Evidence",
+    question: "Is there proof, or a description of proof?",
+    sources: [{ href: "/receipts", label: "The REAL RICH RECEIPTS folder index" }],
+    note: "Build 01 is starting the physical folder. The printable index is the cover sheet that goes in the front of it.",
+    exists: "The folder exists and has a line per build naming what is inside it.",
+    changed:
+      "The folder holds the thing itself — a file, a page, a printout, a message somebody sent back — not a plan to make it.",
+  },
+  {
+    name: "Acting on feedback",
+    question: "Did they ask a real person, and then change something because of the answer?",
+    sources: [
+      { href: "/path/tiny-launch", label: "The 30-Day Tiny Launch" },
+      { href: "/path/ninety-day", label: "The 90-day path" },
+    ],
+    note: "Both plans build the asking in: “Ask ten people about the problem”, “Finish and ask for honest feedback”.",
+    exists: "They asked somebody outside the room, and can say what that person actually said.",
+    changed:
+      "Two versions are in the folder, and they can point at the line that changed and name who caused it.",
+  },
+  {
+    name: "Safety decisions",
+    question: "Do they know which of their own decisions needed an adult — and did they get one?",
+    sources: [
+      { href: "/race-control", label: "The green, yellow, red rule" },
+      { href: "/reality-check", label: `The ${t.realityChecks} Reality Checks` },
+    ],
+    note: "Plus the STOP RULES and SAFE CONTACT ROUTE fields on the First Offer Canvas. The rule is printed on book page 61; the flag on each build is this site applying it.",
+    flags: true,
+    exists: "They can say which colour their build was, and why it was that one.",
+    changed:
+      "A yellow or red decision genuinely waited for an adult, and they can name the adult and roughly when. Being able to name one thing they decided not to do counts double here.",
+  },
+  {
+    name: "Reflection",
+    question: "Can they say what did not work, without being asked to sound positive about it?",
+    sources: [{ href: "/c/01", label: "The debrief questions" }],
+    note: `Three at the end of every chapter, ${t.debriefQuestions} in all — on each chapter page, /c/01 to /c/${String(t.chapters).padStart(2, "0")}.`,
+    exists: "The questions are answered in their own words rather than the book's.",
+    changed:
+      "One answer names something that failed, and a later build shows they did something about it.",
+  },
+];
 
 /** Print routes that exist today. Each one was opened in print emulation and measured. */
 const PRINTABLE = [
@@ -32,6 +207,16 @@ const PRINTABLE = [
     href: "/teen-and-grow-rich.pdf",
     label: "The whole book, as a PDF",
     note: "66 pages, 2.6 MB, the same file the print run was set from. Free, no email address, no sign-up. Print it, put it on a shared drive, or send it to a class — the licence below allows all three.",
+  },
+  {
+    href: "#rubric",
+    label: "The rubric, on one sheet",
+    note: "On this page, below. Six criteria, each pointing at something the student already has to show you. Prints with tick boxes and a notes line.",
+  },
+  {
+    href: "#certificate",
+    label: "A blank certificate for you to sign",
+    note: "On this page, below. Nothing on it is filled in by us — that is the whole point of it.",
   },
   {
     href: "/reality-check",
@@ -100,16 +285,16 @@ const BEFORE = [
 ---
 
 <Page
-  title="For teachers"
-  description="Teen & Grow Rich for a classroom: what prints, what you may photocopy, what the site collects (nothing), and what to check before you use it with a class."
+  title="For teachers: entrepreneurship and digital skills"
+  description={`Free classroom material on entrepreneurship, digital skills and money habits for teens: ${t.builds} short builds, a printable rubric, a certificate you sign, no accounts.`}
 >
   <ChapterFurniture
     eyebrow="For teachers, youth workers and librarians"
     title="Using this with a class"
-    subtitle="What prints, what you may copy, and what to check before Monday."
+    subtitle="Entrepreneurship, digital skills and money habits — as short builds a class can actually finish."
   />
 
-  <div class="wrap">
+  <div class="wrap" data-print="hide">
     <div class="prose">
       <p class="lede">
         <b>The complete book is free</b> — readable on this site and downloadable as a PDF,
@@ -117,14 +302,52 @@ const BEFORE = [
         and you do not need to ask permission to print any of it.
       </p>
       <p>
-        The five answers below are the ones worth having before you put it in front of a
-        class; the print routes underneath are the ones that actually exist and have been
-        checked on paper.
+        Fifteen chapters, {t.builds} short builds, {t.realityChecks} Reality Checks and a rubric
+        that marks the work a student already has to show you. Written for ages 13 and up, in
+        English, by a thirteen-year-old.
       </p>
     </div>
   </div>
 
-  <section class="wrap section" aria-labelledby="before">
+  <section class="wrap section" aria-labelledby="covers" data-print="hide">
+    <h2 id="covers">What it covers</h2>
+    <div class="prose">
+      <p>
+        Enterprise and entrepreneurship with a money-habits and digital-skills spine, shaped
+        as practical tasks rather than lessons. The book's own words for its subject, on
+        printed page 63, are websites, future skills, entrepreneurship, and helping young
+        people move “from consuming to creating”.
+      </p>
+    </div>
+
+    <ul class="covers">
+      {
+        COVERS.map((c) => (
+          <li class="covers__item">
+            <p class="covers__topic">{c.topic}</p>
+            <p class="covers__body">{c.body}</p>
+            <p class="covers__where">
+              {c.where.map((w, i) => (
+                <>
+                  {i > 0 && <span class="covers__sep" aria-hidden="true"> · </span>}
+                  <a href={w.href}>{w.label}</a>
+                </>
+              ))}
+            </p>
+          </li>
+        ))
+      }
+    </ul>
+
+    <p class="qa__more">
+      That is a description of the content, not an accreditation. This material is not
+      written to a national curriculum and does not claim to match one — if it fits a scheme
+      of work you are running, that is your judgement to make, and the licence below lets you
+      cut it up to fit.
+    </p>
+  </section>
+
+  <section class="wrap section" aria-labelledby="before" data-print="hide">
     <h2 id="before">Before you use it</h2>
     <dl class="qa">
       {
@@ -142,7 +365,7 @@ const BEFORE = [
     </p>
   </section>
 
-  <section class="wrap section" aria-labelledby="print">
+  <section class="wrap section" aria-labelledby="print" data-print="hide">
     <h2 id="print">What prints</h2>
     <div class="prose">
       <p>
@@ -163,11 +386,13 @@ const BEFORE = [
     </ul>
     <p class="qa__more">
       There is no single “print the whole site” button, and that is deliberate: it would be
-      well over a hundred pages, and almost none of it is what any one lesson needs.
+      well over a hundred pages, and almost none of it is what any one lesson needs. Printing
+      <em>this</em> page gives you two sheets and nothing else — the rubric and the blank
+      certificate.
     </p>
   </section>
 
-  <section class="wrap section" aria-labelledby="licence">
+  <section class="wrap section" aria-labelledby="licence" data-print="hide">
     <h2 id="licence">What you may do with it</h2>
 
     <div class="lic">
@@ -199,7 +424,7 @@ const BEFORE = [
     </p>
   </section>
 
-  <section class="wrap section" aria-labelledby="shape">
+  <section class="wrap section" aria-labelledby="shape" data-print="hide">
     <h2 id="shape">How the material is shaped</h2>
     <div class="prose">
       <p>
@@ -224,7 +449,200 @@ const BEFORE = [
       </p>
     </div>
   </section>
+
+  {/* The rubric.
+
+      Nothing here is new material — every criterion points at a sheet, a tick or a folder
+      the reader already has to produce. That is the whole reason this is cheap to add and
+      honest to publish: a receipt already is the evidence a rubric asks for.
+
+      The levels are facts about the artefact. There is no grade band and no rank name,
+      because a website inventing one is exactly what non-negotiable 3 rules out — and the
+      racing flags are not borrowed as a scale either, since green/yellow/red already means
+      "who has to be in the room". */}
+  <section class="wrap section rubric-section print-sheet" aria-labelledby="rubric">
+    <h2 id="rubric">A rubric, if you need to mark it</h2>
+
+    <div class="prose" data-print="hide">
+      <p>
+        Six criteria, and every one of them is assessed from something the student already
+        has: a canvas, a folder, a tick, a flag, an answer. Nothing extra has to be made for
+        the marking.
+      </p>
+      <p>
+        Two levels are written out. The third is “nothing to look at yet”, which needs no
+        words. They describe the <em>work</em>, not the student, on purpose — the book's whole
+        argument is that proof is a fact about what exists, not a rank handed to a person.
+      </p>
+      <p class="sheet-actions">
+        <button type="button" class="btn btn--primary print-action" data-print-page>
+          Print both sheets
+        </button>
+        <span class="sheet-actions__nojs">
+          Use your browser's print command — File, then Print. You get the rubric and the
+          blank certificate, and nothing else from this page.
+        </span>
+      </p>
+    </div>
+
+    <p class="sheet-head">
+      Teen &amp; Grow Rich — rubric
+      <span class="sheet-head__fill">
+        Student <span class="sheet__rule"></span> Class <span class="sheet__rule sheet__rule--short"></span>
+        Date <span class="sheet__rule sheet__rule--short"></span>
+      </span>
+    </p>
+
+    <ol class="rubric">
+      {
+        RUBRIC.map((r) => (
+          <li class="rubric__row">
+            <div class="rubric__what">
+              <h3 class="rubric__name">{r.name}</h3>
+              <p class="rubric__q">{r.question}</p>
+              <p class="rubric__look">
+                <span class="rubric__k">Look at</span>
+                {r.sources.map((s, i) => (
+                  <>
+                    {i > 0 && <span aria-hidden="true"> · </span>}
+                    <a href={s.href}>{s.label}</a>
+                  </>
+                ))}
+              </p>
+              <p class="rubric__note">{r.note}</p>
+              {r.flags && (
+                <p class="rubric__flags">
+                  <Flag level="green" size="sm" />
+                  <Flag level="yellow" size="sm" />
+                  <Flag level="red" size="sm" />
+                </p>
+              )}
+            </div>
+
+            <div class="rubric__levels">
+              <p class="rubric__level">
+                <span class="rubric__box" aria-hidden="true" />
+                <span class="rubric__k">It exists</span>
+                {r.exists}
+              </p>
+              <p class="rubric__level rubric__level--more">
+                <span class="rubric__box" aria-hidden="true" />
+                <span class="rubric__k">And something changed because of it</span>
+                {r.changed}
+              </p>
+              <p class="rubric__notes">Notes</p>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+
+    <p class="sheet__foot">
+      Teen &amp; Grow Rich by Ryan Rijvers. The criteria are ordinary classroom ones; the
+      sheets, folders and flags they point at are all free at {SITE_HOST}. Copy this rubric,
+      change it, use it — CC BY-NC-SA 4.0. The {t.realityChecks} Reality Checks are the one
+      thing on the site that may be copied but not altered.
+    </p>
+  </section>
+
+  {/* The certificate.
+
+      A site-issued certificate of completion was proposed and rejected: it is a badge with a
+      longer name, and a rank invented by a website is worth nothing. What survives the
+      objection is the ordinary classroom object — a blank sheet an adult fills in and signs,
+      because the signature is the part that carries the meaning.
+
+      It reads no storage and takes no props. Every visitor prints the identical blank page,
+      which is what makes it honest: the site cannot know whether anybody did the work, and
+      it does not pretend to. */}
+  <section class="wrap section certificate print-sheet" aria-labelledby="certificate">
+    <h2 id="certificate">The certificate this site will not issue</h2>
+
+    <div class="prose" data-print="hide">
+      <p>
+        There is no automatic certificate here and there will not be. A website telling a
+        thirteen-year-old their work was good is a badge with a longer name, and this book
+        argues against exactly that.
+      </p>
+      <p class="certificate__line">
+        <b>The site confers nothing. A teacher in the room does.</b>
+      </p>
+      <p>
+        So the sheet below prints blank, identically, for everybody. You fill it in, you sign
+        it, and it means something because you saw the work — which is the only reason a
+        certificate has ever meant anything.
+      </p>
+      <p class="sheet-actions">
+        <button type="button" class="btn btn--primary print-action" data-print-page>
+          Print both sheets
+        </button>
+        <span class="sheet-actions__nojs">
+          Use your browser's print command — File, then Print.
+        </span>
+      </p>
+    </div>
+
+    <div class="sheet">
+      <p class="sheet__title">Certificate</p>
+      <p class="sheet__kicker">Teen &amp; Grow Rich — work seen, and signed for</p>
+
+      <p class="sheet__sub">
+        Name <span class="sheet__rule"></span>
+        Class or group <span class="sheet__rule sheet__rule--short"></span>
+      </p>
+      <p class="sheet__sub">
+        <span class="sheet__pair">
+          Builds finished <span class="sheet__rule sheet__rule--tiny"></span> of {t.builds}
+        </span>
+        <span class="sheet__pair">
+          Between <span class="sheet__rule sheet__rule--short"></span> and{" "}
+          <span class="sheet__rule sheet__rule--short"></span>
+        </span>
+      </p>
+
+      <dl class="sheet__fields">
+        <div class="sheet__field">
+          <dt>What they made</dt>
+          <dd><span class="sheet__rule sheet__rule--wide"></span><span class="sheet__rule sheet__rule--wide"></span></dd>
+        </div>
+        <div class="sheet__field">
+          <dt>What is in the folder</dt>
+          <dd><span class="sheet__rule sheet__rule--wide"></span><span class="sheet__rule sheet__rule--wide"></span></dd>
+        </div>
+        <div class="sheet__field">
+          <dt>The one thing I would point at</dt>
+          <dd><span class="sheet__rule sheet__rule--wide"></span><span class="sheet__rule sheet__rule--wide"></span></dd>
+        </div>
+      </dl>
+
+      <p class="sheet__sign">
+        Signed <span class="sheet__rule"></span>
+        Role <span class="sheet__rule sheet__rule--short"></span>
+      </p>
+      <p class="sheet__sign">
+        School, club or group <span class="sheet__rule"></span>
+        Date <span class="sheet__rule sheet__rule--short"></span>
+      </p>
+
+      <p class="sheet__foot">
+        Nothing on this sheet was filled in, checked, counted or recorded by {SITE_HOST}. It
+        printed blank, and it is worth exactly as much as the person who signed it. Teen
+        &amp; Grow Rich by Ryan Rijvers.
+      </p>
+    </div>
+  </section>
 </Page>
+
+<script>
+  /* Progressive enhancement only. Both sheets are complete and printable without this, and
+     the buttons stay invisible until ThemeScript has set data-js on <html> — a print button
+     that does nothing is worse than the browser's own print command, which every teacher
+     already has. Two buttons, one per sheet, doing the identical thing: WCAG 2.2 3.2.6
+     wants the same help in the same place, and both sheets come off the same print run. */
+  for (const btn of document.querySelectorAll<HTMLButtonElement>("[data-print-page]")) {
+    btn.addEventListener("click", () => window.print());
+  }
+</script>
 
 <style>
   .wrap {
@@ -288,6 +706,40 @@ const BEFORE = [
     margin-block-start: 1rem;
     font-size: var(--text-meta);
     color: var(--text-muted);
+  }
+
+  /* --- What it covers ------------------------------------------------------ */
+
+  .covers {
+    max-inline-size: var(--container-measure);
+    margin-block-start: 1.25rem;
+    padding: 0;
+    list-style: none;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .covers__item {
+    padding-block: 0.9rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .covers__topic {
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  .covers__body {
+    margin-block-start: 0.25rem;
+  }
+
+  .covers__where {
+    margin-block-start: 0.4rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .covers__where a {
+    color: var(--text-default);
   }
 
   .printable {
@@ -362,5 +814,357 @@ const BEFORE = [
   a {
     text-decoration-color: currentColor;
     text-underline-offset: 3px;
+  }
+
+  /* --- The two printable sheets: shared furniture -------------------------- */
+
+  /* Hidden until scripting has proved it can work. Same rule the Reality Check index
+     uses — the printed hint beside it is what a no-JS reader gets instead. */
+  .print-action {
+    display: none;
+  }
+
+  :global(:root[data-js]) .print-action {
+    display: inline-flex;
+  }
+
+  :global(:root[data-js]) .sheet-actions__nojs {
+    display: none;
+  }
+
+  .sheet-actions {
+    margin-block-start: 1.25rem;
+  }
+
+  .sheet-actions__nojs {
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .sheet__rule {
+    flex: 1 1 7rem;
+    min-inline-size: 5rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .sheet__rule--short {
+    flex-basis: 4rem;
+  }
+
+  .sheet__rule--tiny {
+    flex: 0 0 2.5rem;
+    min-inline-size: 2.5rem;
+  }
+
+  .sheet__rule--wide {
+    display: block;
+    flex: none;
+    block-size: 1.5rem;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  .sheet__foot {
+    max-inline-size: var(--container-measure);
+    margin-block-start: 1.25rem;
+    padding-block-start: 0.8rem;
+    border-block-start: 1px solid var(--rule-hairline);
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  /* --- The rubric ---------------------------------------------------------- */
+
+  /* Screen readers get the sheet's own title from the h2; this line is the paper header,
+     so it only earns its space on paper. */
+  .sheet-head {
+    display: none;
+  }
+
+  .rubric {
+    margin-block-start: 1.5rem;
+    padding: 0;
+    list-style: none;
+    counter-reset: crit;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .rubric__row {
+    padding-block: 1.1rem;
+    border-block-end: 1px solid var(--rule-hairline);
+    counter-increment: crit;
+    /* A criterion split over a page turn is a criterion nobody marks. */
+    break-inside: avoid;
+  }
+
+  /* Two columns only where there is genuinely room for two 40-character lines. Below
+     that it stacks, and the page body never scrolls sideways. */
+  @media (min-width: 60rem) {
+    .rubric__row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 0 2.5rem;
+      align-items: start;
+    }
+  }
+
+  .rubric__name {
+    font-size: var(--text-label);
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-strong);
+  }
+
+  /* Decorative numbering: it helps a teacher say "criterion four" out loud, and the
+     criterion name carries the meaning without it. */
+  .rubric__name::before {
+    content: counter(crit, decimal-leading-zero) " ";
+    color: var(--text-muted);
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+
+  .rubric__q {
+    margin-block-start: 0.35rem;
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
+  .rubric__look {
+    margin-block-start: 0.5rem;
+    font-size: var(--text-meta);
+  }
+
+  .rubric__note {
+    margin-block-start: 0.25rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .rubric__k {
+    display: block;
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  .rubric__flags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1rem;
+    margin-block-start: 0.6rem;
+  }
+
+  .rubric__levels {
+    margin-block-start: 0.9rem;
+  }
+
+  @media (min-width: 60rem) {
+    .rubric__levels {
+      margin-block-start: 0;
+    }
+  }
+
+  .rubric__level {
+    font-size: var(--text-meta);
+    line-height: 1.5;
+  }
+
+  .rubric__level + .rubric__level {
+    margin-block-start: 0.7rem;
+  }
+
+  .rubric__level--more {
+    padding-inline-start: 0.8rem;
+    border-inline-start: 3px solid var(--accent-spine);
+  }
+
+  .rubric__level--more .rubric__k {
+    color: var(--text-strong);
+  }
+
+  /* Print only. On screen an empty square reads as a checkbox that does nothing, and a
+     control that ignores you is worse than no control; on paper it is the thing the
+     teacher actually marks. Same reasoning as the receipts folder's proof column. */
+  .rubric__box,
+  .rubric__notes {
+    display: none;
+  }
+
+  /* --- The certificate ----------------------------------------------------- */
+
+  .certificate__line {
+    color: var(--text-strong);
+  }
+
+  .sheet {
+    max-inline-size: var(--container-measure);
+    margin-block-start: 1.5rem;
+    padding: 1.25rem;
+    background: var(--surface-card);
+    border: 1px solid var(--rule-hairline);
+  }
+
+  .sheet__title {
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 6vw, 2rem);
+    line-height: 1.1;
+    color: var(--text-strong);
+  }
+
+  .sheet__kicker {
+    margin-block-start: 0.2rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .sheet__sub,
+  .sheet__sign {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.4rem 0.8rem;
+    margin-block-start: 0.9rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .sheet__sign {
+    margin-block-start: 1.25rem;
+  }
+
+  .sheet__fields {
+    margin-block-start: 1.5rem;
+  }
+
+  .sheet__field + .sheet__field {
+    margin-block-start: 1.1rem;
+  }
+
+  .sheet__field dt {
+    font-size: var(--text-meta);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-strong);
+  }
+
+  .sheet__field dd {
+    margin: 0.5rem 0 0;
+  }
+
+  .sheet__field dd .sheet__rule--wide + .sheet__rule--wide {
+    margin-block-start: 0.9rem;
+  }
+
+  /* --- Print: two sheets, and nothing else --------------------------------- */
+
+  @media print {
+    /* .print-sheet in global.css fixes the width; these two carry the whole print output,
+       so they also drop the screen container's padding. */
+    .rubric-section,
+    .certificate {
+      margin-block-start: 0;
+      padding-inline: 0;
+    }
+
+    /* The sheets carry their own headings on paper. The h2s are navigation for someone
+       reading the page and on paper they argue with the sheet title underneath. */
+    #rubric,
+    #certificate {
+      display: none;
+    }
+
+    .sheet-head {
+      display: block;
+      margin-block-end: 0.5rem;
+      font-weight: 700;
+      color: var(--text-strong);
+    }
+
+    .sheet-head__fill {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0.4rem 0.8rem;
+      margin-block-start: 0.5rem;
+      font-size: 9pt;
+      font-weight: 400;
+      color: var(--text-muted);
+    }
+
+    .rubric__row {
+      padding-block: 0.55rem;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 0 8mm;
+      align-items: start;
+    }
+
+    .rubric__levels {
+      margin-block-start: 0;
+    }
+
+    .rubric__level {
+      /* Room for the tick box in the margin, so the descriptor text still lines up. */
+      position: relative;
+      padding-inline-start: 7mm;
+      font-size: 9pt;
+    }
+
+    .rubric__level--more {
+      /* The teal keyline is a screen affordance; on paper the box is the affordance. */
+      border-inline-start: 0;
+    }
+
+    .rubric__box {
+      display: block;
+      position: absolute;
+      inset-inline-start: 0;
+      inset-block-start: 0.15em;
+      inline-size: 4mm;
+      block-size: 4mm;
+      border: 1px solid var(--text-default);
+    }
+
+    .rubric__notes {
+      display: block;
+      margin-block-start: 0.8rem;
+      padding-block-end: 0.9rem;
+      border-block-end: 1px solid #999;
+      font-size: 8pt;
+      color: #767676;
+    }
+
+    .rubric__q,
+    .rubric__note,
+    .rubric__look {
+      font-size: 9pt;
+    }
+
+    .sheet {
+      background: none;
+      border: 0;
+      padding: 0;
+      max-inline-size: none;
+      /* Its own page. A signature block sharing a sheet with somebody else's marking grid
+         is a certificate nobody would hand over. */
+      break-before: page;
+    }
+
+    .sheet__field,
+    .sheet__sign {
+      break-inside: avoid;
+    }
+
+    /* More room to write than a screen needs. */
+    .sheet__rule--wide {
+      block-size: 2.2rem;
+    }
+
+    .sheet__rule,
+    .sheet__rule--wide {
+      border-block-end-color: #444;
+    }
   }
 </style>

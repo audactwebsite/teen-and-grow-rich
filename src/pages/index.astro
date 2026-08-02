@@ -4,9 +4,10 @@
  * phone. Both QR codes in the book encode the bare root, so the first thing on screen is
  * the page-number field — not a pitch, not a hero, not a value proposition.
  *
- * The order is a priority list, not a layout: page number, then where you got to, then
- * the chapters, then the adult doors, then the book. The book is last because a reader
- * who is here already owns it.
+ * The order is a priority list, not a layout: page number, then Ryan's own sentence, then
+ * the doors for someone without the book, then where you got to, then the chapters, the
+ * ninety days, the adult doors and the book. The book is last because a reader who is
+ * here already owns it.
  *
  * The hero is hand-rolled rather than reusing ChapterFurniture because the one hard
  * constraint on this page is that the Go button is visible at 390 x 844 without
@@ -14,6 +15,7 @@
  * bar, teal spine, orange dot, teal rule then a short orange rule.
  */
 import { Image } from "astro:assets";
+import { getEntry } from "astro:content";
 import Page from "../layouts/Page.astro";
 import Flag from "../components/Flag.astro";
 import SafetyNotice from "../components/SafetyNotice.astro";
@@ -35,6 +37,42 @@ const builds = await allBuilds();
 const worksheets = await allWorksheets();
 const sequences = await allSequences();
 const t = await totals();
+
+/* Ryan's own sentence, for a visitor who has never heard of any of this.
+   Read out of the `voice` collection rather than typed in here, because it is book text and
+   book text does not live in .astro files. getEntry, not the accessors in lib/content.ts:
+   there is no voice accessor there yet and that file is not this page's to change. D20's
+   objection is to getCollection() re-walking a large collection on every one of hundreds of
+   page builds; this is one lookup in a three-entry collection on a single page.
+
+   `person` is checked because the schema makes it the rule for attribution: only the
+   first-person note may be quoted as something Ryan said. The slice is taken on the opening
+   words rather than on a sentence index, and it throws rather than falling back — a hero
+   that silently drops his one sentence, or ships a paraphrase of it, is the exact failure
+   the voice collection was added to stop. */
+const note = await getEntry("voice", "note-from-ryan");
+const THESIS_OPENS = "Your future is not built";
+
+if (!note) {
+  throw new Error(
+    'index.astro: the voice collection has no "note-from-ryan". The homepage quotes it.',
+  );
+}
+if (note.data.person !== "first") {
+  throw new Error(
+    "index.astro: A Note From Ryan is no longer first person, so it can no longer be attributed to Ryan as his own words.",
+  );
+}
+
+const thesisSource = note.data.paragraphs.find((p) => p.includes(THESIS_OPENS));
+
+if (!thesisSource) {
+  throw new Error(
+    `index.astro: no paragraph of A Note From Ryan contains "${THESIS_OPENS}". The hero quote is his wording or it does not ship.`,
+  );
+}
+
+const thesis = thesisSource.slice(thesisSource.indexOf(THESIS_OPENS)).trim();
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -181,6 +219,34 @@ const description =
     </div>
   </section>
 
+  {/* ------------------------------------------------------------- 1a. Ryan's own line
+
+      Four reviews said the same thing from different angles: a visitor who has never heard
+      of this book meets a number field, a chapter list and a lot of careful editorial, and
+      the thirteen-year-old who wrote it says nothing anywhere on the page. One reviewer
+      then credited a sentence this site wrote — the stopwatch line on /proof — to Ryan,
+      which is what happens when the author is missing: readers assign the voice to whoever
+      the book is by.
+
+      So this is his, verbatim, and it is the sentence the whole site is an argument for.
+
+      It sits BELOW the page-number field, deliberately. Both printed QR codes encode the
+      bare root and neither deep-links, so that field is the only route from a printed page
+      to its tool; it is the first thing on screen and nothing goes in above it. The hero's
+      vertical budget is measured, not styled. */}
+  <div class="thesis">
+    <div class="wrap">
+      <figure class="thesis__fig">
+        <blockquote class="thesis__quote">
+          <p>{thesis}</p>
+        </blockquote>
+        <figcaption class="thesis__by">
+          Ryan Rijvers, who wrote the book, from his note on page {note.data.printedPage}.
+        </figcaption>
+      </figure>
+    </div>
+  </div>
+
   {/* ----------------------------------------------------------- 1b. No book? Start here.
 
       Four reviews said the homepage opens as if everyone already owns the book. Reading
@@ -189,9 +255,15 @@ const description =
       adult. The teenager, who is the reader, got a number field and nothing else.
 
       So this is the missing door, and it is deliberately the shortest section on the page.
-      Three things to do, one line each, no explanation of the philosophy first. A reader
-      this age does not need to be sold the method before being allowed to try it, and
-      non-negotiable 7 says nothing here is locked anyway. */}
+      Four cards, one line each, no explanation of the philosophy first. A reader this age
+      does not need to be sold the method before being allowed to try it, and
+      non-negotiable 7 says nothing here is locked anyway.
+
+      Green, yellow, red is the fourth card and the newest. /race-control is the traffic
+      light written for the reader rather than the parent, and this page linked it nowhere
+      at all — so the only way to meet the rule was as a coloured label on a build card,
+      after opening the build, which is to say after the decision. It is on the front door
+      now, before anything is at stake. */}
   <section class="start" aria-labelledby="start-title">
     <div class="wrap">
       <p class="eyebrow">No book in your hand?</p>
@@ -222,6 +294,18 @@ const description =
               Someone offered you money for a "simple task", a brand deal, a job that starts
               with buying your own gear. There are nineteen checks here for exactly that,
               and none of them need you to sign up for anything.
+            </span>
+          </a>
+        </li>
+
+        <li class="start__card">
+          <a class="start__link" href="/race-control">
+            <span class="start__kicker">Before you say yes</span>
+            <b class="start__title">Green, yellow, red</b>
+            <span class="start__body">
+              One rule covers every decision in this book. Green means go. Yellow means say
+              it out loud to an adult first. Red means an adult does it with you. Three
+              questions, and the first yes you give decides which one you are in.
             </span>
           </a>
         </li>
@@ -316,6 +400,31 @@ const description =
           </a>
         </li>
       </ol>
+
+      {/* The Hill audit, moved here out of "For the adults".
+
+          It used to be filed between the schools privacy page and the author page, which is
+          where a thirteen-year-old stops reading — and it is the one page on this site that
+          demonstrates the method instead of describing it. "The man who wrote the book this
+          one is named after was charged by the FTC" is also the most interesting sentence on
+          the homepage, which is a strange thing to hide under a heading aimed at parents.
+
+          Here it sits directly under fifteen rows that each say "Hill remix", which is where
+          the question it answers actually gets raised. The adults keep their own route to it
+          at the end of their section. */}
+      <div class="hillcall">
+        <p class="hillcall__lede">
+          Fifteen of those rows say <b>Hill remix</b>. That is Napoleon Hill, who wrote the
+          book this one is named after — so it is fair to ask whether he was any good.
+        </p>
+        <p class="hillcall__body">
+          Short version: a motor-trade magazine described his automobile college as a scam,
+          and the Federal Trade Commission brought charges against him. This site publishes
+          the whole record anyway, dated, with the sources, because a book that says no fake
+          case studies has to start by checking its own.
+        </p>
+        <p class="hillcall__cta"><a class="link" href="/hill">Read the Napoleon Hill audit</a></p>
+      </div>
     </div>
   </section>
 
@@ -411,18 +520,22 @@ const description =
           </a>
         </li>
         <li>
-          <a class="door" href="/hill">
-            <b>The Napoleon Hill audit</b>
-            <span>What is checkable about Hill's own story, and what is not.</span>
-          </a>
-        </li>
-        <li>
           <a class="door" href="/proof">
             <b>About Ryan</b>
             <span>Thirteen. Karting across Europe since he was eight, and an F4 car built to fit him at eleven.</span>
           </a>
         </li>
       </ul>
+
+      {/* The Hill audit is no longer in this list — it is up with the chapter index, where
+          the reader meets the name. Adults still need it, though: "is the source of this
+          book any good?" is the first question a careful parent asks. So the route stays,
+          as a sentence rather than a door. */}
+      <p class="prose note doors__hill">
+        Checking the book's own source before you hand it to anyone is a reasonable thing to
+        do. <a href="/hill">The Napoleon Hill audit</a> sets out what is verifiable about
+        Hill's story and what is not, with dates and sources.
+      </p>
     </div>
   </section>
 
@@ -446,10 +559,17 @@ const description =
       <div class="book__body">
         <p class="eyebrow">The book</p>
         <h2 id="book-title" class="h2">Teen &amp; Grow Rich</h2>
+        {/* This used to say the book had the fifteen stories, the Hill Remix essays and
+            What It Means Now and the site did not. That was true once and has not been
+            since the book was made free: /c/[n] renders all three on every chapter page.
+            What is left to say for the printed copy is the object, which is the argument
+            /get makes at length. Never sell it as access to words that are two clicks
+            away and free. */}
         <p class="prose lede">
-          {LAST_PRINTED_PAGE} pages. Everything on this site is free and open on your first
-          visit — every build, every Reality Check, every worksheet. What the book has that
-          this site does not is the 15 stories, the Hill Remix essays and What It Means Now.
+          {LAST_PRINTED_PAGE} pages, and every word of them is already on this site for
+          nothing. What the printed copy is for is the object: something you can put in
+          somebody's hands, that no notification can close halfway through, and that is
+          still there after a browser has thrown everything else away.
         </p>
         <p><a class="link" href="/get">About the book</a></p>
       </div>
@@ -834,6 +954,35 @@ const description =
     color: var(--text-strong);
   }
 
+  /* --- 1a. Ryan's own line ---------------------------------------------------------
+     A quoted passage, set the way every other quoted passage on this site is set: no
+     quote marks, no display face, a 3px teal spine on the leading edge. It is one
+     sentence at subtitle size, so it needs room around it rather than decoration. */
+
+  .thesis {
+    margin-block-start: 2rem;
+  }
+
+  .thesis__fig {
+    margin: 0;
+    max-inline-size: var(--container-measure);
+    padding-inline-start: 1rem;
+    border-inline-start: 3px solid var(--accent-spine);
+  }
+
+  .thesis__quote {
+    margin: 0;
+    font-size: var(--text-subtitle);
+    line-height: var(--text-subtitle--line-height);
+    color: var(--text-strong);
+  }
+
+  .thesis__by {
+    margin-block-start: 0.6rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
   /* --- 2. Where you got to --------------------------------------------------------- */
 
   .kept {
@@ -1010,6 +1159,33 @@ const description =
     }
   }
 
+  /* The Hill call-out under the chapter list. Same vocabulary as the reader's cards above
+     and the ninety-day phases below — card surface, 3px teal spine — so it reads as one
+     more place to go rather than a new kind of object. */
+
+  .hillcall {
+    max-inline-size: var(--container-measure);
+    margin-block-start: 1.75rem;
+    padding: 1rem 1.1rem 1.1rem;
+    background: var(--surface-card);
+    border-inline-start: 3px solid var(--accent-spine);
+  }
+
+  .hillcall__lede {
+    color: var(--text-strong);
+  }
+
+  .hillcall__body {
+    margin-block-start: 0.6rem;
+    font-size: var(--text-meta);
+    line-height: 1.55;
+    color: var(--text-muted);
+  }
+
+  .hillcall__cta {
+    margin-block-start: 0.8rem;
+  }
+
   /* --- 4. The adult doors ---------------------------------------------------------- */
 
   /* ---- 1b. The reader's own door -------------------------------------------------
@@ -1035,9 +1211,13 @@ const description =
     list-style: none;
   }
 
-  @media (min-width: 52rem) {
+  /* Two columns, not the three this had when there were three cards. Four cards in a
+     three-column grid strand one on a second row looking like an afterthought, and four
+     across leaves each body paragraph wrapping inside about 28 characters on a laptop.
+     Two by two is the only arrangement of four that keeps a readable measure. */
+  @media (min-width: 46rem) {
     .start__list {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 
@@ -1148,6 +1328,18 @@ const description =
       column-gap: 1.5rem;
       align-items: baseline;
     }
+  }
+
+  /* Clear of the last hairline in the door list, or it reads as one more row of it. */
+  .doors__hill {
+    margin-block-start: 1.25rem;
+  }
+
+  .doors__hill a {
+    font-weight: 700;
+    color: var(--text-strong);
+    text-decoration-color: var(--accent-spine);
+    text-underline-offset: 3px;
   }
 
   /* --- 5. The book ----------------------------------------------------------------- */

@@ -413,10 +413,32 @@ stale testifies that nobody is home, which is worse than having no table at all.
   outrank everyone, and it sidesteps the YMYL credential wall because it is
   consumer-protection content, not financial advice.
 - Print run two: design QR payloads first. **QR alphanumeric mode is uppercase-only**
-  at 5.5 bits/char versus 8 for byte mode, so `TEENANDGROWRICH.COM/C7` encodes into a
+  at 5.5 bits/char versus 8 for byte mode, so `TEEN-ANDGROWRICH.COM/C7` encodes into a
   smaller, more robustly scannable symbol than a lowercase slug. Keep every printed URL
   under ~25 characters, print the human-readable short URL next to every QR, and treat
   printed targets as immutable forever.
+
+  **Uppercasing is the only thing that changes — the payload is still the hyphenated
+  domain.** The hyphen is one of the nine punctuation characters alphanumeric mode
+  permits, so keeping it costs nothing at all in symbol size and there is never an
+  encoding argument for dropping it. Drop it anyway and the payload becomes a different
+  company's address, which is the exact mistake the whole re-issue was made to undo —
+  and this entry carried the hyphen-free form as its own example until 2 August 2026.
+  Anything typed into a QR generator gets read back character by character against
+  `astro.config.mjs` before it goes near a printer, and the printed short URL beside it
+  gets the same check.
+- Print run two, second requirement: **every printed page carries its own QR**, deep-linking
+  to that page's tool rather than to the root. The first run has exactly two codes and both
+  encode the bare root, so a reader who scans from page 41 lands on the homepage and still
+  has to go looking for the thing page 41 was about. One code per page removes that step,
+  which is the whole reason deep links were retro-fitted in the first place.
+
+  **This never makes `/p/1`–`/p/65` removable.** Three reasons, and each one is enough on
+  its own: the first print run exists forever and its two codes will never deep-link; Dutch
+  classrooms have banned phones since 1 January 2024, so the reader most likely to be
+  holding the book cannot scan anything; and school Chromebooks have no camera workflow.
+  A typeable page number is the only route that survives all three. Per-page QR is an
+  addition to `/p/[n]`, never a replacement for it.
 - **Never put an affiliate-tagged link in the printed book or the free chapter PDF** —
   the Amazon Associates agreement prohibits offline promotion. Route everything through
   an on-site buy page and use Amazon Attribution (free via Author Central) on the
@@ -486,7 +508,10 @@ adding decorative human shapes is the generic move this design system exists to 
 - **Chapter 16 text** — Ryan writes "what I learned after the book". Brief to be
   supplied with the structure the other 15 chapters use.
 - **Ryan's filled-in worksheets** — his real First Offer Canvas and One-Page Real
-  Rich Plan, with real numbers, as the earned unlock.
+  Rich Plan, with real numbers. Open to everyone from the first visit, like everything
+  else: D19 and non-negotiable 7 removed earned unlocks entirely, and this entry still
+  said "as the earned unlock" long after D14 was superseded. Blocked on Ryan supplying
+  the pages, never on the reader doing anything to deserve them.
 - **The exact F4 facts** — what actually happened at Zolder, so it can be stated
   precisely and truthfully. See `CLAUDE.md`.
 - **Retailer link** — where the book is sold.

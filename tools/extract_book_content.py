@@ -489,6 +489,106 @@ def parse_bulleted_groups(
     return groups
 
 
+# Ryan's own voice. Every other parser in this file chases a trackable item — a build, a
+# Reality Check, a worksheet field, an offer — and that is exactly why these three passages
+# reached the site as nothing at all. None of them carries a 24-Hour Build, so no parser ever
+# looked at them, and the omission never produced an error. It surfaced only after the site was
+# finished, when readers could not tell the site's editorial voice from its author's and one of
+# them nominated a sentence the *site* had written as Ryan's best line. For a book whose whole
+# claim is that a peer wrote it, that is the failure to design against, so every anchor below
+# raises rather than quietly returning something shorter.
+#
+# ident, PDF page, the heading block that opens the passage, whose voice it is, the block that
+# ends the body, and whether a display line closes the page below that block.
+VOICE_PASSAGES = [
+    ("note-from-ryan", 4, "A Note From Ryan", "first", (), False),
+    ("afterword", 63, "Afterword: Build The First Version", "second", ("YOUR 24-HOUR BUILD",), True),
+    ("about-ryan", 64, "About Ryan Rijvers", "third", ("THE COMPANION BUILD",), False),
+]
+
+# Exact sentences that have to survive every future run. Counts alone would not catch this
+# failure mode: three passages of the right length can still have lost the one sentence the
+# site quotes. Two of these were named by reviewers as the lines that carry the book's voice
+# ("Real talk" and "Your future is not built"); one is the closing line parse_extra_build used
+# to swallow into a build instruction; one is the phrase the author page turns on. Adding a
+# sentence here is cheap. Losing one silently cost the site its author.
+VOICE_SENTINELS = [
+    ("note opening", "note-from-ryan", "Real talk: I am not writing this from the finish line."),
+    (
+        "note closing",
+        "note-from-ryan",
+        "Your future is not built by how inspired you feel while reading. It is built by what "
+        "exists after you close the book.",
+    ),
+    ("note signature", "note-from-ryan", "- Ryan"),
+    ("afterword closing line", "afterword", "START TINY. STAY HONEST. BUILD RECEIPTS."),
+    ("consuming to creating", "about-ryan", "from consuming to creating"),
+]
+
+
+def parse_voice(doc) -> list[dict]:
+    """The three passages where the book stops teaching and somebody speaks.
+
+    All three are typeset identically: heading, one standfirst set about two points above body
+    size, then body paragraphs. Only the Note is signed. Only the Afterword closes with a
+    display line, and that line sits *below* the 24-Hour Build box — parse_extra_build stops the
+    build body at the first step up in size precisely so the line stops reading as part of the
+    build instruction, which is what left it belonging to nothing at all.
+
+    about-ryan stops at THE COMPANION BUILD deliberately. What follows it describes an earlier
+    business model built around a free starter chapter, and the site has since made the entire
+    book free, so extracting it would put a contradiction of the site's own terms into typed
+    data. It is also not voice; it is a plan.
+    """
+    out: list[dict] = []
+    for ident, pdf_page, heading, person, stop, has_closing in VOICE_PASSAGES:
+        items = blocks(doc, pdf_page)
+        # split_at raises if the heading is ever reworded or moved, which is the point.
+        _, rest = split_at(items, heading)
+        body, _tail = take_until(rest, stop)
+        if len(body) < 3:
+            raise ValueError(f"{ident}: expected standfirst + body on PDF page {pdf_page}, got {body}")
+
+        standfirst, paragraphs = body[0], body[1:]
+
+        # "- Ryan" is a signature, not a paragraph. Nothing else on these pages opens with a dash.
+        signoff = paragraphs.pop() if paragraphs[-1].startswith("- ") else None
+
+        closing = None
+        if has_closing:
+            # blocks() is in reading order, so the closing line is simply the last one on the
+            # page. Checking that it is still display-set and still all caps re-checks the
+            # typographic boundary parse_extra_build depends on: if this line ever dropped to
+            # body size it would fold back into the build box and disappear from here again.
+            closing = items[-1]
+            size = next(s for t, s in sized_blocks(doc, pdf_page) if t == closing)
+            if size < 10.0 or closing != closing.upper():
+                raise ValueError(
+                    f"{ident}: closing line no longer reads as a display line: {closing!r} at {size}pt"
+                )
+
+        out.append(
+            {
+                "id": ident,
+                "title": heading,
+                "printedPage": pdf_page - 1,
+                "person": person,
+                "standfirst": standfirst,
+                "paragraphs": paragraphs,
+                "closingLine": closing,
+                "signoff": signoff,
+            }
+        )
+    return out
+
+
+def voice_text(entry: dict) -> str:
+    """Everything a voice entry publishes, joined, for the verbatim sentinel checks."""
+    parts = [entry["standfirst"], *entry["paragraphs"]]
+    parts += [entry[key] for key in ("closingLine", "signoff") if entry[key]]
+    return " ".join(parts)
+
+
 def main() -> None:
     if not PDF.exists():
         sys.exit(f"book PDF not found at {PDF}")
@@ -642,12 +742,15 @@ def main() -> None:
 
     offers = parse_offers(doc, 58)
 
+    voice = parse_voice(doc)
+
     dump("chapters.yaml", chapters)
     dump("builds.yaml", builds)
     dump("reality-checks.yaml", reality_checks)
     dump("worksheets.yaml", worksheets)
     dump("sequences.yaml", sequences)
     dump("offers.yaml", offers)
+    dump("voice.yaml", voice)
 
     play_total = sum(len(c["play"]) for c in chapters)
     debrief_total = sum(len(c["debrief"]) for c in chapters)
@@ -656,6 +759,14 @@ def main() -> None:
     ws = {w["id"]: len(w["fields"]) for w in worksheets}
     seq = {s["id"]: sum(len(g["items"]) for g in s["groups"]) for s in sequences}
     seq_groups = {s["id"]: len(s["groups"]) for s in sequences}
+
+    vc = {v["id"]: v for v in voice}
+    vp = {ident: len(v["paragraphs"]) for ident, v in vc.items()}
+    sentinel_misses = [
+        f"{label} ({ident})"
+        for label, ident, needle in VOICE_SENTINELS
+        if ident not in vc or needle not in voice_text(vc[ident])
+    ]
 
     rows = [
         ("chapters", len(chapters), 15),
@@ -672,6 +783,11 @@ def main() -> None:
         ("tiny launch weeks", seq_groups.get("tiny-launch", 0), 4),
         ("tiny launch tasks", seq.get("tiny-launch", 0), 21),
         ("safe first offers", len(offers), 7),
+        ("ryan voice passages", len(voice), 3),
+        ("note paragraphs", vp.get("note-from-ryan", 0), 4),
+        ("afterword paragraphs", vp.get("afterword", 0), 6),
+        ("bio paragraphs", vp.get("about-ryan", 0), 3),
+        ("voice sentinels", len(VOICE_SENTINELS) - len(sentinel_misses), len(VOICE_SENTINELS)),
     ]
     ok = True
     for label, got, want in rows:
@@ -679,6 +795,13 @@ def main() -> None:
         if got != want:
             ok = False
         print(f"  [{flag}] {label:<20} {got:>4} / {want}")
+
+    # Which sentinel, not just how many. A count tells you the voice went missing; this tells
+    # you which sentence, which is the difference between a five-minute fix and a re-read of
+    # the whole book.
+    for miss in sentinel_misses:
+        ok = False
+        print(f"  [FAIL] missing verbatim line: {miss}")
 
     for c in chapters:
         problems = []

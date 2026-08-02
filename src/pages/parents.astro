@@ -57,9 +57,13 @@ const QUESTIONS = [
 ];
 ---
 
+{/* Titled for what a parent actually types into a search box. "Race Control" is the
+    book's name for this page and is still the H1, but nobody searches for it — they
+    search for the arrangement they are trying to make with a teenager who has started
+    doing things online, and the sheet at the bottom of this page is that arrangement. */}
 <Page
-  title="Race Control — for parents and guardians"
-  description="The green, yellow and red approval system from Teen & Grow Rich, the six questions worth asking, and what a reader does when there is no adult available."
+  title="A family agreement for a teen working online"
+  description="A printable one-page family agreement for a teenager working online: the green, yellow and red rule, the six questions to ask, and what needs an adult in the room."
   printedPage={61}
 >
   <ChapterFurniture
@@ -92,6 +96,25 @@ const QUESTIONS = [
       and printed, not stored by us. The verifiable version of that claim, written for a
       school IT reviewer, is on <a href="/schools/privacy">the schools privacy page</a>.
     </p>
+
+    {/* The single most reassuring thing this project can say to an adult, and until now
+        the parents page never said it: the book's definition of wealth is six axes, not
+        one. Stated here as the book's argument, not as a promise about outcomes. */}
+    <h2 class="section">What this book means by rich</h2>
+    <p>
+      Not money on its own. The last chapter defines wealth as six things, scored
+      separately: skills, health, time, people, money and impact. The build for it is a
+      one-page dashboard with all six on it. That is the book's own answer to the thing
+      most adults worry about here — a plan that pushes one number up while five go down
+      is not a good plan — and a reader meets it as the point of the whole book rather
+      than as a warning from a parent.
+    </p>
+    <p>
+      <a href="/worksheet/real-rich-scoreboard">The Real Rich Scoreboard</a> is where they
+      score the six from one to ten and pick one action for the lowest area. It prints, and
+      the answers copy out as plain text.
+    </p>
+    <p class="attribution">Chapter 15, book page 54.</p>
   </div>
 
   <section class="tiers" aria-labelledby="tiers-h">
@@ -160,6 +183,40 @@ const QUESTIONS = [
     </p>
     <p>
       <a class="cta" href="/reality-check" data-tap>Read all {checks.length} Reality Checks</a>
+    </p>
+
+    {/* The most common real situation for the adult who bought the book, and the page had
+        nothing for it. Written without a compliance technique on purpose: there isn't an
+        honest one, and inventing one would be the exact hustle-adjacent move the book
+        argues against. What is true — and is a property of how this site is built, not a
+        line of comfort — is that nothing here is sequential or gated, so a teenager who
+        never opens chapter one has lost nothing. Two entry points, both of which make
+        sense to somebody who has read none of it. */}
+    <h2 class="section">If your teen does not want to read it</h2>
+    <p>
+      Common, and there is no technique on this page for changing it. There is also
+      nothing here that depends on it. Nothing is sequential and nothing is locked: no
+      chapter has to be read before another one works, no build waits for the build before
+      it, and starting in the middle costs a reader nothing.
+    </p>
+    <p>So the useful thing is not a reading plan. It is one page that stands on its own:</p>
+    <ul class="entries">
+      <li>
+        <a href="/tools/scam-check">Scam Check</a> — paste the actual thing: the "job", the
+        offer in the DMs, the message that felt off. It comes back with a flag, which red
+        flags matched, and the page of the book that covers it. It asks for nothing except
+        the message they were already looking at, and nothing pasted into it is stored.
+      </li>
+      <li>
+        <a href="/worksheet/real-rich-scoreboard">The Real Rich Scoreboard</a> — six scores
+        out of ten and one action for the lowest one. It takes a few minutes, it needs no
+        context from the book, and it is the argument above in one sheet.
+      </li>
+    </ul>
+    <p>
+      The book works the same way. If it is open on the table, type the page number into
+      the field on <a href="/">the home page</a> and this site opens the tool for that
+      page. No chapter first, no order, no starting point.
     </p>
   </div>
 
@@ -438,6 +495,35 @@ const QUESTIONS = [
     text-decoration: none;
   }
 
+  /* Same dash marker as the .who list further down, on purpose: both are "here are the
+     concrete options" lists, and giving them two different bullets on one page would
+     imply a distinction that is not there. */
+  .entries {
+    margin-block-start: 0.9em;
+    padding-inline-start: 1.1rem;
+    list-style: none;
+  }
+
+  .entries li {
+    position: relative;
+    margin-block-start: 0.6rem;
+  }
+
+  .entries li::before {
+    content: "";
+    position: absolute;
+    inset-inline-start: -1.1rem;
+    inset-block-start: 0.62em;
+    inline-size: 0.5rem;
+    block-size: 2px;
+    background: var(--accent-spine);
+  }
+
+  /* `.prose p + p` cannot reach the paragraph after the list. */
+  .entries + p {
+    margin-block-start: 0.9em;
+  }
+
   /* --- No adult available -------------------------------------------------- */
 
   .no-adult {
@@ -506,7 +592,8 @@ const QUESTIONS = [
     }
 
     .tier,
-    .rule-box {
+    .rule-box,
+    .entries li {
       break-inside: avoid;
     }
 

@@ -13,10 +13,25 @@
  * numeric claim, and the page tells the reader where to go and look instead, which is the
  * behaviour the book spends fifteen chapters arguing for.
  *
+ * Sourced. This was the one page on the site that broke non-negotiable 10 — it stated a
+ * racing record, linked to nothing, and carried a paragraph admitting the gap. The gap is
+ * closed: every dated result now carries a link to the Dutch motorsport report of it,
+ * published years before this book existed by people with no stake in it, and the
+ * admission paragraph is deleted because it is no longer true. The sources and how they
+ * were checked are in docs/reviews/05-the-sources-exist.md.
+ *
+ * Those sources also forced a correction. The Belgian title (Genk, October 2023) was Rotax
+ * Max Mini Rookie; the German round-2 win at Genk was Minimax. They sat in one card here,
+ * which read as one class. They are two cards now, and CLAUDE.md carries the instruction
+ * never to merge them again.
+ *
  * The Formula 4 line is now stated, because the exact facts came from the family: at eleven
  * he drove an F4 car built to his measurements, and he trains in it rather than racing it.
  * That is smaller than the rumour and more interesting than it, so it gets its own section
- * instead of a disclaimer.
+ * instead of a disclaimer. It is also the only claim on the page with nothing published
+ * behind it, and now that every line around it carries a link that contrast is visible —
+ * so the timeline marks it "No source" where the claim sits, rather than leaving a reader
+ * to notice the blank and guess why.
  *
  * D34: he is a minor. Achievements, results and what he likes building are public. School,
  * address, training schedule, race calendar and any way to contact him directly are not,
@@ -34,25 +49,105 @@ import portraitIllustrated from "../assets/photos/ryan-portrait-illustrated.jpg"
 import { author, book, jsonLd } from "../lib/schema";
 
 /**
+ * When the source links were last opened and confirmed to resolve (D29). A dated claim
+ * carries a verification date and goes stale visibly rather than quietly, because a date
+ * that has drifted testifies that nobody is home.
+ *
+ * The same mechanic as /hill, written out again rather than pulled into a helper: two
+ * pages is not a pattern. The day a third page needs it, it becomes one.
+ */
+const VERIFIED_ON = "2026-08-02";
+const verifiedOn = new Date(VERIFIED_ON);
+const daysSince = Math.floor((Date.now() - verifiedOn.getTime()) / 86_400_000);
+const stale = daysSince > 180;
+const verifiedLabel = verifiedOn.toLocaleDateString("en-GB", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
+
+/**
  * The timeline. Ages are the spine of it, because the single most useful fact for a reader
  * of this book is how old he was — "he was your age when he did this" is the whole point,
  * and it is the one thing a wall of results never says out loud.
+ *
+ * `sources` is the citation, sitting on the claim rather than in a footnote block at the
+ * end. /hill puts its two links under the table because two links cover every row there;
+ * here each result has its own report, and a link a reader has to go hunting for is a
+ * weaker version of "go and check it yourself".
+ *
+ * `unsourced` is the opposite field and it exists for exactly one entry. A step with
+ * neither field makes no checkable claim; a step with `unsourced` makes one and cannot
+ * back it.
+ *
+ * The links carry rel="external" — they are links, not subresources, so nothing is fetched
+ * until a reader chooses to leave and the "open the network tab, we load nothing" claim on
+ * /schools/privacy still holds. Base.astro's speculation rules exclude them from
+ * prerendering for the same reason. They need adding to ALLOWED_TEXT in
+ * tools/verify-no-external-hosts.mjs, the way the /hill and Vercel citations are.
+ *
+ * No hreflang on them, even though the targets are Dutch and that is what the attribute is
+ * for. Non-negotiable 11 says "no hreflang" flatly, and the next person checking that rule
+ * will grep for the word, not read the context. The language is stated in words instead,
+ * above the timeline and again under it, which a reader can actually see.
  */
-const TIMELINE = [
+interface Step {
+  age: string;
+  title: string;
+  body: string;
+  sources?: { label: string; href: string }[];
+  unsourced?: string;
+}
+
+const TIMELINE: Step[] = [
   {
     age: "8",
     title: "First time in a kart",
     body: "Then, almost straight away, his first race ever: Spa, Micromax class, round two of the Dutch Rotax Max championship. He came fourth, was named best rookie, and was voted driver of the day. First race. Ever.",
+    sources: [
+      {
+        label: "RaceXpress, 27 May 2022",
+        href: "https://www.racexpress.nl/formule-1/karttalent-ryan-rijvers-uit-schimmert-imponeert-tijdens-eerste-wedstrijd-ooit-en-pakt-drie-bekers/n/121318",
+      },
+      {
+        label: "Parkstad Actueel, 26 May 2022",
+        href: "https://parkstadactueel.nl/2022/05/26/karttalent-ryan-rijvers-8-uit-schimmert-imponeert-tijdens-eerste-wedstrijd-ooit-en-pakt-drie-bekers/",
+      },
+    ],
   },
   {
     age: "8–10",
     title: "Racing across Europe",
     body: "For Strawberry Racing and for François Slangen. Wins, and a lot of podiums. The results are published — you can go and look them up, and you should, because that is exactly what Chapter 7 tells you to do with anyone's claims.",
   },
+  /* Two cards, not one. The Belgian title and the German round-2 win happened in different
+     classes and this page used to state them in a single card headed "Rotax Max Mini
+     Rookie", which reads as though beating a world champion happened in the class he was
+     champion of. It did not. Never merge these again — CLAUDE.md says so too. */
   {
     age: "10",
     title: "Belgian champion",
-    body: "Rotax Max Mini Rookie. The same year, he won round two of the German Rotax Max championship at Genk — finishing ahead of a driver who had won a Rotax world title.",
+    body: "The class was Rotax Max Mini Rookie. It came down to the last round, at Genk, in October 2023. He finished third in that final, ahead of the one driver who could still have taken the title off him — and that was the championship. His first.",
+    sources: [
+      {
+        label: "RaceXpress, October 2023",
+        href: "https://www.racexpress.nl/rotax-euro/ryan-rijvers-10-wint-titanenstrijd-in-genk-en-wordt-belgisch-kampioen-ik-was-heel-blij-dat-voelt-zo-goed/n/131801",
+      },
+    ],
+  },
+  {
+    age: "10",
+    title: "A win in Germany, in a different class",
+    body: "Minimax this time, not the Mini Rookie class he took the Belgian title in. Round two of the German Rotax Max championship, at Genk again, and he won the final. Second place went to the driver who had been Rotax Max world champion the year before. Third was the German Minimax champion. Two classes, two results — worth keeping apart, because they get run together.",
+    sources: [
+      {
+        /* No date in this label. It is the one source whose publication date has not been
+           confirmed, and a guessed date on a page about checkable claims is worse than no
+           date at all. The publication and his name are enough to find it. */
+        label: "RaceXpress",
+        href: "https://www.racexpress.nl/rotax-euro/karttalent-ryan-rijvers-bluft-iedereen-af-in-genk-en-wint-duitse-rotax-max-fijn-weer-eens-te-winnen/n/136219",
+      },
+    ],
   },
   {
     age: "10–11",
@@ -63,6 +158,8 @@ const TIMELINE = [
     age: "11",
     title: "A Formula 4 car, built to fit him",
     body: "Not a race. See below — this is the part people usually get wrong, and the true version is better.",
+    unsourced:
+      "It is not a race, so there is no results sheet and no report to link to. This one comes from Ryan's family. That is weaker evidence than everything above it, and you should read it that way.",
   },
   {
     age: "13",
@@ -125,6 +222,15 @@ const jsonLdText = jsonLd({ ...author, url: "/proof", nationality: "NL", knowsAb
   <section class="wrap section" aria-labelledby="timeline-title">
     <h2 id="timeline-title">Eight to thirteen</h2>
 
+    {/* Said before the first link rather than after the last one. A reader who taps a
+        source and lands on a page of Dutch should have been told a paragraph earlier, not
+        in a note further down the page they have now left. */}
+    <p class="prose timeline-note">
+      Where there is a date and a result, there is a link to the report of it, written at
+      the time by somebody with no stake in this book. Every one of those reports is in
+      Dutch, because that is where he races. There is more about that below.
+    </p>
+
     <ol class="timeline">
       {
         TIMELINE.map((t) => (
@@ -138,6 +244,29 @@ const jsonLdText = jsonLd({ ...author, url: "/proof", nationality: "NL", knowsAb
                 {t.title}
               </h3>
               <p class="step__text">{t.body}</p>
+
+              {t.sources && (
+                <p class="step__source">
+                  <span class="step__source-label">Source:</span>
+                  {t.sources.map((s) => (
+                    <span class="step__source-item">
+                      <a href={s.href} rel="external noreferrer">
+                        {s.label}
+                      </a>
+                    </span>
+                  ))}
+                </p>
+              )}
+
+              {/* The other half of the same rule. A blank where a source line would be says
+                  "nothing to check here"; this says "something to check, and we cannot".
+                  Only the Formula 4 step uses it. */}
+              {t.unsourced && (
+                <p class="step__source">
+                  <span class="step__source-label">No source:</span>
+                  <span class="step__source-item">{t.unsourced}</span>
+                </p>
+              )}
             </div>
           </li>
         ))
@@ -147,34 +276,53 @@ const jsonLdText = jsonLd({ ...author, url: "/proof", nationality: "NL", knowsAb
 
   {/* Where the timeline comes from.
 
-      /hill sets this site's own rule in its own words: every number links to a primary
-      source, or it gets cut. This page is full of results and carries no links, which made
-      it the one place the site broke a rule it enforces on a dead author — two separate
-      reviewers noticed, and they were right.
+      This section used to contain a paragraph in bold admitting that the results were not
+      linked, and asking the reader to treat the page as reported rather than verified. It
+      is gone, and so is the reason for it: the reports were found, checked and linked on
+      the claims themselves. Do not reinstate a version of that paragraph — the honest move
+      when a source is missing is to cut the claim, not to keep it with an apology.
 
-      The fix is not to bolt the audit table back on; that table was what made this page
-      unreadable to the person it is for. It is to say in four lines which of these you can
-      go and check, and which you are taking on our word. Delete this note the day the
-      links land (docs/for-ryan.md, item 4). */}
+      What is left here is the part a link cannot say: who these outlets are, why they are
+      in a language most readers of this book do not have, and which single claim on the
+      page still has nothing behind it. */}
   <section class="wrap section" aria-labelledby="sources">
     <h2 id="sources">Where all that comes from</h2>
     <div class="prose">
       <p>
-        The racing results are published. They were reported at the time by Dutch motorsport
-        press and they sit in the classification sheets for those rounds — so you can go and
-        find them, and if you cannot find one, that is worth knowing too.
+        None of those links are ours. RaceXpress is a Dutch motorsport site and Parkstad
+        Actueel is a local news site near where he lives. Both of them reported the races
+        at the time, years before this book existed, so there was nothing in it for them
+        either way.
       </p>
       <p>
-        <b>They are not linked here yet, and that is a gap.</b> This site's own rule, on
-        <a href="/hill">the Napoleon Hill page</a>, is that every number links to a primary
-        source or gets cut. Holding a dead author to a rule we have not met on our own page
-        would be the cheap version of that argument, so: the links are coming, and until
-        they do, treat this page as reported rather than verified.
+        They are in Dutch. That is worth saying out loud rather than letting you find out
+        by clicking: your browser will offer to translate them, and even if it does not,
+        the part you came for — the date, the class, the finishing position — is readable
+        anyway.
       </p>
       <p>
-        The Formula 4 part is different. That came from Ryan's family rather than from a
-        results sheet, because it is not a race and there is nothing to publish — which is
-        exactly why it says he trains in the car instead of racing it.
+        This site's rule, set out on <a href="/hill">the Napoleon Hill page</a>, is that
+        every number links to a primary source or it gets cut. That rule is aimed at a dead
+        author with a famous name, so it has to apply here first. If you click one of these
+        and it is dead, tell us — the mailbox at the bottom of this page is read by an
+        adult, and a broken source on this page is a real problem, not a typo.
+      </p>
+      <p class="sources__date">
+        Links checked on {verifiedLabel}.
+        {
+          stale && (
+            <span class="sources__stale">
+              We have not re-checked them since then — open them yourself before relying on
+              this page.
+            </span>
+          )
+        }
+      </p>
+      <p>
+        The Formula 4 part is different, and the timeline says so where the claim sits.
+        That came from Ryan's family rather than from a results sheet, because it is not a
+        race and there is nothing to publish — which is exactly why it says he trains in
+        the car instead of racing it.
       </p>
     </div>
   </section>
@@ -350,6 +498,13 @@ const jsonLdText = jsonLd({ ...author, url: "/proof", nationality: "NL", knowsAb
      dot reused rather than a new device. The age is set in the book's display face,
      because the age is the fact worth reading from across the room. */
 
+  .timeline-note {
+    margin-block-start: 1.25rem;
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
+    color: var(--text-muted);
+  }
+
   .timeline {
     margin-block-start: 1.75rem;
     padding: 0;
@@ -428,6 +583,50 @@ const jsonLdText = jsonLd({ ...author, url: "/proof", nationality: "NL", knowsAb
   .step__text {
     margin-block-start: 0.45rem;
     max-inline-size: var(--container-measure);
+  }
+
+  /* ---- Source lines -------------------------------------------------------------------
+     Metadata, not prose: the same meta size and muted colour as the /hill citation block,
+     so a citation reads the same wherever it appears on the site. */
+
+  .step__source {
+    margin-block-start: 0.6rem;
+    max-inline-size: var(--container-measure);
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
+    color: var(--text-muted);
+  }
+
+  /* "SOURCE:" / "NO SOURCE:" — the /hill sources label, reused. The word is what tells a
+     reader which of the two this is; there is no colour difference to miss, and no flag,
+     because a citation is not a Reality Check. */
+  .step__source-label {
+    margin-inline-end: 0.35rem;
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-strong);
+  }
+
+  /* The separator sits on the wrapper, never inside the anchor: content generated on an
+     <a> lands in that link's accessible name, and no screen-reader user needs to hear
+     "middle dot" as part of a publication title.
+
+     Both gaps are margins rather than markup whitespace. The compiler strips the newlines
+     between these spans, so a layout that assumed a collapsed space between them would
+     render "RaceXpress·Parkstad Actueel" in production and be fine in dev. */
+  .step__source-item + .step__source-item::before {
+    content: "·";
+    margin-inline: 0.3rem;
+  }
+
+  /* WCAG 2.2 target size. Meta text at 14px on a 1.45 line box gives a 20px-tall anchor,
+     which is under 24 — and these are standalone links in a metadata line, not links
+     inside a sentence, so leaning on the inline exception would be a stretch. The padding
+     is on the anchor rather than the line so it is the hit area that grows. */
+  .step__source a {
+    display: inline-block;
+    padding-block: 0.16rem;
   }
 
   /* From this width there is room to set the age beside its step rather than above it,
@@ -510,6 +709,22 @@ const jsonLdText = jsonLd({ ...author, url: "/proof", nationality: "NL", knowsAb
     color: var(--text-muted);
   }
 
+  /* D29's staleness line, matched to /hill so a reader who has seen one recognises the
+     other. The stale sentence is bold and full-strength text because it is a warning, not
+     a footnote — the whole point is that it stops looking like small print. */
+  .sources__date {
+    margin-block-start: 1rem;
+    font-size: var(--text-meta);
+    line-height: var(--text-meta--line-height);
+    color: var(--text-muted);
+  }
+
+  .sources__stale {
+    display: block;
+    font-weight: 700;
+    color: var(--text-strong);
+  }
+
   /* An inline link is identified by its underline, so the underline has to be as visible
      as the text. --rule-hairline is a divider colour and cannot carry that job. */
   a {
@@ -518,7 +733,12 @@ const jsonLdText = jsonLd({ ...author, url: "/proof", nationality: "NL", knowsAb
   }
 
   /* The rail and dots are ink on a page nobody asked to print in colour. The ages carry
-     the structure on paper. */
+     the structure on paper.
+
+     The source URLs are deliberately not expanded into the printout with attr(href).
+     They run past 140 characters each, they would wrap across three lines apiece, and an
+     adult holding this page has "RaceXpress, 27 May 2022" plus his name, which finds the
+     article in one search. A citation that is legible beats a locator that is not. */
   @media print {
     .step::before,
     .step::after {

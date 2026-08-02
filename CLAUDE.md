@@ -28,6 +28,18 @@ Publishing Note on page 3, the author page and the back cover all carry
 codebase; the origin is read once from `astro.config.mjs` through
 `src/lib/site.ts` and everything else derives from it.
 
+## The changelog test
+
+Before any new tool, partner, product, page or interview, ask one question: **could this
+be written up in the append-only changelog without contradicting the method?** If not,
+do not do it.
+
+It works because this site already publishes its own reversals — non-negotiable 7 below
+is a public U-turn, printed as one. A decision that cannot survive that treatment is a
+decision that creates a gap between what the site says and what it does, and that gap is
+the only thing that can actually kill this project. This is not a twelfth rule; it is the
+test that guards the eleven.
+
 ## Non-negotiables
 
 These come from the book itself. Breaking one breaks the product.
@@ -200,10 +212,15 @@ options and the chosen route.
 
 Publicly reported and safe to state: from Schimmert (NL); first time in a kart at
 8; first race ever (Spa, Micromax, Dutch Rotax Max round 2) took 4th, best rookie
-and driver of the day; Belgian champion Rotax Max Mini Rookie at 10; won round 2
-of the German Rotax Max championship at Genk at 10, ahead of a Rotax world
-champion; teams Strawberry Racing and François Slangen; Rotax Max Euro Trophy and
-the Le Mans international finals; inspired by Max Verstappen.
+and driver of the day; teams Strawberry Racing and François Slangen; Rotax Max
+Euro Trophy and the Le Mans international finals; inspired by Max Verstappen.
+
+**Mini Rookie and Minimax are two different classes — never merge them into one
+claim.** The Belgian championship (Genk, 25 October 2023, at 10) was **Rotax Max
+Mini Rookie**. The win in round 2 of the German Rotax Max championship (Genk, at
+10) was **Minimax**, and the driver who finished second there was the previous
+year's Rotax Max world champion, from Bahrain. Both are in the Dutch motorsport
+press; neither is "Belgian champion in the class he beat a world champion in".
 
 **Not verified: any claim of competing in Formula 4 at age 11.** No source found.
 Zolder sells an "F4 Experience" via the ERA Racing School, which is not the same
