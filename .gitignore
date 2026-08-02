@@ -48,3 +48,7 @@ __pycache__/
 .claude/scheduled_tasks.lock
 .og-tmp.html
 .review/
+
+# Stray agent screenshots
+/*-desktop.png
+/*-mobile.png
