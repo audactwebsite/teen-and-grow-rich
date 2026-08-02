@@ -394,7 +394,11 @@ const prefill =
 
           {/* Where to go for it. All six are listed and always visible, for two reasons:
               without scripting nothing computes a lowest area, and knowing which chapter
-              owns which area is worth having on its own. The script only marks the row. */}
+              owns which area is worth having on its own. The script only marks the row.
+
+              Every row therefore ships the word "Lowest" and CSS hides it until the row
+              is marked. Without that rule all six rows announce themselves as the lowest,
+              which is the opposite of the one fact this section exists to state. */}
           <section class="routes" aria-labelledby="routes-h">
             <h3 class="routes__heading" id="routes-h">
               Where the book answers each area
@@ -532,18 +536,22 @@ const prefill =
           <h3 class="ask__heading">Ask your safe witness</h3>
           <p class="ask__note">
             A parent, a teacher, a coach, a librarian, a youth worker or a sibling over 18
-            — the one you would actually tell the truth to. This writes the message out of
-            what you typed above. It does not send anything; you copy it and send it
-            yourself, in whatever app you already use.
+            — the one you would actually tell the truth to.
           </p>
+          {/* Gated on scripting, exactly like the button it describes. A page that
+              explains a control the reader cannot see is the same defect as a control
+              that does nothing. */}
+          <p class="ask__note ask__note--js">
+            This writes the message out of what you typed above. It does not send it, and it
+            never asks who they are — you copy the text and send it yourself, in whatever app
+            you already use.
+          </p>
+          <p class="ask__note">However you send it, end with these two questions.</p>
           <ol class="ask__questions">
             {ask.questions.map((q) => (
               <li>{q}</li>
             ))}
           </ol>
-          <p class="ask__note">
-            Change any of it. The questions at the end are the part worth keeping.
-          </p>
 
           <div class="actions__row">
             <button type="button" class="btn" data-ask-copy>
@@ -552,6 +560,12 @@ const prefill =
           </div>
 
           <p class="ask__status" role="status" data-ask-status />
+
+          <p class="ask__nojs">
+            Nothing writes this for you without JavaScript, and nothing here is locked: the
+            message is what you have typed above, plus those two questions. Copying it out by
+            hand takes a minute.
+          </p>
         </div>
       )
     }
@@ -561,12 +575,11 @@ const prefill =
       <textarea readonly rows="8" data-fallback-text></textarea>
     </label>
 
+    {/* Only about the two buttons above it now. The safe-witness block carries its own
+        no-JS line, next to the thing it is about (WCAG 2.2 3.2.6 Consistent Help). */}
     <p class="actions__nojs">
       Without JavaScript this worksheet still prints and still fills in by hand. Nothing
-      here is locked.{
-        ask &&
-          " The message for your safe witness is only what is already on this page plus the questions above, so you can write it out yourself in a minute."
-      }
+      here is locked.
     </p>
   </div>
 </Page>
@@ -814,11 +827,13 @@ const prefill =
       return lines.join("\n");
     };
 
-    document.querySelector<HTMLButtonElement>("[data-copy]")?.addEventListener("click", async () => {
-      const text = asText();
+    /* Two buttons copy now, so the clipboard call and its fallback are written once. The
+       fallback textarea is shared: whichever button was pressed, its text is the one
+       sitting in it, and the label above it says the same thing either way. */
+    const copyOut = async (text: string, ok: string, into: HTMLElement | null) => {
       try {
         await navigator.clipboard.writeText(text);
-        say("Copied. Paste it into your notes, or send it to yourself.");
+        say(ok, into);
       } catch {
         const box = document.querySelector<HTMLElement>("[data-fallback]");
         const area = document.querySelector<HTMLTextAreaElement>("[data-fallback-text]");
@@ -828,13 +843,81 @@ const prefill =
           area.focus();
           area.select();
         }
-        say("This browser blocked the clipboard, so the text is below instead.");
+        say("This browser blocked the clipboard, so the text is below instead.", into);
       }
+    };
+
+    document.querySelector<HTMLButtonElement>("[data-copy]")?.addEventListener("click", () => {
+      void copyOut(asText(), "Copied. Paste it into your notes, or send it to yourself.", status);
     });
 
     document
       .querySelector<HTMLButtonElement>("[data-print-btn]")
       ?.addEventListener("click", () => window.print());
+
+    /* --- The ask to a safe witness ----------------------------------------- */
+
+    /* The message is composed here and nowhere else: built in the browser out of the
+       fields already on this page, handed to the reader, sent by the reader. record() is
+       deliberately never called in this block — no address is asked for and the ask is
+       not a receipt, so there is nothing here to keep. */
+    type Ask = { opening: string; lines: [string, string][]; questions: string[] };
+
+    const askBox = document.querySelector<HTMLElement>("[data-ask]");
+    const askBtn = document.querySelector<HTMLButtonElement>("[data-ask-copy]");
+    const askStatus = document.querySelector<HTMLElement>("[data-ask-status]");
+
+    const readAsk = (el: HTMLElement): Ask | null => {
+      try {
+        return JSON.parse(el.dataset.ask ?? "") as Ask;
+      } catch {
+        return null;
+      }
+    };
+
+    const askSpec = askBox ? readAsk(askBox) : null;
+
+    if (askBtn && askSpec) {
+      const askText = () => {
+        const said: string[] = [];
+        for (const [id, opener] of askSpec.lines) {
+          const el = sheet.querySelector<Field>(`[data-field="${id}"]`);
+          /* .value, not the kept copy: a reader who types and presses the button without
+             leaving the field has not written anything to storage yet, and the message
+             has to say what is on the screen. */
+          const value = el?.value.trim();
+          /* An empty field is left out rather than sent as a dash. "The skill I want to
+             build: —" looks like an answer, and it is not one. */
+          if (value) said.push(`${opener}: ${value}`);
+        }
+
+        const lines = [askSpec.opening, ""];
+        if (said.length > 0) lines.push(...said, "");
+        lines.push(...askSpec.questions, "");
+        lines.push(
+          `This is from Teen & Grow Rich, book page ${sheet.dataset.page}. ` +
+            `The worksheet is at ${SITE_HOST}.`,
+        );
+        return { text: lines.join("\n"), filled: said.length };
+      };
+
+      askBtn.addEventListener("click", () => {
+        const { text, filled } = askText();
+        void copyOut(
+          text,
+          filled === 0
+            ? "Copied — but nothing above is filled in yet, so it is only the two questions."
+            : "Copied. Paste it into a message and send it to them yourself.",
+          askStatus,
+        );
+      });
+    } else if (askBtn) {
+      /* data-ask did not parse, so there is no message to compose. The button goes rather
+         than sitting there focusable and doing nothing; .remove() rather than hidden,
+         because .btn sets its own display and would beat [hidden]. The questions above it
+         stay — they are readable and sayable on their own. */
+      askBtn.remove();
+    }
 
     const note = document.querySelector<HTMLElement>("[data-keep-note]");
     if (note && !canKeep()) {
@@ -1143,6 +1226,96 @@ const prefill =
     color: var(--text-strong);
   }
 
+  /* --- Where the book answers each area ------------------------------------ */
+
+  .routes {
+    margin-block-start: 2.5rem;
+    max-inline-size: 34rem;
+  }
+
+  .routes__heading {
+    font-size: var(--text-label);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-strong);
+  }
+
+  .routes__note {
+    margin-block-start: 0.5rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .routes__list {
+    list-style: none;
+    margin: 1rem 0 0;
+    padding: 0;
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .route {
+    padding: 0.7rem 0 0.8rem 0.75rem;
+    /* Reserved on all six rows, so marking one does not shove the other five sideways. */
+    border-inline-start: 6px solid transparent;
+    border-block-end: 1px solid var(--rule-hairline);
+  }
+
+  /* The same orange spine the seed banner uses. It is decoration only: the word "Lowest"
+     is what states the fact, and a word survives a mono photocopier (WCAG 1.4.1). */
+  .route[data-route-lowest] {
+    border-inline-start-color: var(--accent-dot);
+  }
+
+  .route__area {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    /* Also what keeps "Skills" off "Lowest" — they are adjacent in the markup. */
+    gap: 0.5rem;
+    font-size: var(--text-label);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    color: var(--text-strong);
+  }
+
+  /* Hidden until the script marks a row. Which area is lowest is only knowable in the
+     browser, so every row ships the word and this rule is what stops all six of them
+     claiming it at once. */
+  .route__tag {
+    display: none;
+    padding: 0.05rem 0.4rem;
+    font-size: var(--text-meta);
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    /* Orange is a border here, never the text — in light mode it may not carry text. The
+       word itself inherits --text-strong from the row. */
+    border: 1px solid var(--accent-dot);
+  }
+
+  .route[data-route-lowest] .route__tag {
+    display: inline-block;
+  }
+
+  /* Stacked, always. The note above says "the build under it", so under it is where the
+     build goes; two adjacent inline anchors were also one run-together string and a pair
+     of targets too small to hit apart. As flex items the anchors are blockified, which is
+     what makes the 44px coarse-pointer minimum in global.css apply at all — on an inline
+     anchor a min-block-size does nothing. */
+  .route__where {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-block-start: 0.2rem;
+    font-size: var(--text-meta);
+  }
+
+  .route__where a {
+    display: flex;
+    align-items: center;
+    color: var(--text-default);
+  }
+
   /* --- Reality Check + actions --------------------------------------------- */
 
   .check__flag {
@@ -1267,6 +1440,75 @@ const prefill =
     }
   }
 
+  /* --- Ask your safe witness ------------------------------------------------ */
+
+  /* Deliberately not one of the three semantic boxes — there is no fourth variant. This
+     is a second job inside .actions, so a rule and a heading are the separation. */
+  .ask {
+    margin-block-start: 2rem;
+    padding-block-start: 1.5rem;
+    max-inline-size: var(--container-measure);
+    border-block-start: 1px solid var(--rule-hairline);
+  }
+
+  .ask__heading {
+    font-size: var(--text-label);
+    font-weight: 700;
+    letter-spacing: var(--text-label--letter-spacing);
+    text-transform: uppercase;
+    color: var(--text-strong);
+  }
+
+  .ask__note,
+  .ask__status,
+  .ask__nojs {
+    font-size: var(--text-meta);
+    color: var(--text-muted);
+  }
+
+  .ask__note {
+    margin-block-start: 0.6rem;
+  }
+
+  /* Body ink, not meta grey: these two are the safety half of the ask, and a reader with
+     nobody to send a message to still has to be able to read them out loud. */
+  .ask__questions {
+    margin: 0.9rem 0 0;
+    padding-inline-start: 1.2rem;
+    font-size: var(--text-meta);
+    color: var(--text-default);
+  }
+
+  .ask__questions li + li {
+    margin-block-start: 0.45rem;
+  }
+
+  .ask__status {
+    margin-block-start: 0.75rem;
+    /* Reserved, so the first confirmation does not push the page under the thumb. */
+    min-block-size: 1.45em;
+  }
+
+  .ask__nojs {
+    margin-block-start: 1.25rem;
+  }
+
+  /* The same gate as .actions__row above: the sentence describing the button, and the
+     button's own live region, exist only where the button does. */
+  .ask__note--js,
+  .ask__status {
+    display: none;
+  }
+
+  :global(:root[data-js]) .ask__note--js,
+  :global(:root[data-js]) .ask__status {
+    display: block;
+  }
+
+  :global(:root[data-js]) .ask__nojs {
+    display: none;
+  }
+
   /* --- Print: the sheet becomes the book page ------------------------------ */
 
   @media print {
@@ -1370,6 +1612,24 @@ const prefill =
       margin-block-start: 0;
       max-inline-size: none;
       break-inside: avoid;
+    }
+
+    /* The six routes are worth having on paper: all three parts of a row — the area, the
+       chapter that answers it and the build to do about it — are references to the
+       printed book, so they stay usable without an address. A marked row keeps its spine
+       and its word; on a mono photocopier the word is the one that arrives. */
+    .routes {
+      margin-block-start: 8mm;
+      max-inline-size: none;
+    }
+
+    .route {
+      break-inside: avoid;
+      border-block-end: 0.5pt solid var(--rule-hairline);
+    }
+
+    .route[data-route-lowest] {
+      print-color-adjust: exact;
     }
   }
 </style>

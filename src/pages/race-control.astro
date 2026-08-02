@@ -110,7 +110,13 @@ const TIERS = [
       "Telling someone you only know online where you live, where you go to school, or where you will be",
       "Sending ID, a passport page or a bank card",
       "Travelling somewhere for it",
-      "Anything where money moves — including investing and crypto",
+      /* Not "anything where money moves". The printed rule puts small spending in yellow
+         and large payments in red, so the broader wording contradicted the yellow card
+         one column over — and a rule that turns red on a three-euro purchase is a rule a
+         reader switches off in the first week. Investing and crypto stay red at any size:
+         the book files those under financial products, which it flags without a
+         threshold, and losing the money is the reversible part of crypto anyway. */
+      "A large payment — and investing or crypto, whatever the amount",
     ],
   },
 ];
@@ -118,18 +124,44 @@ const TIERS = [
 /**
  * Three questions, in order. The first yes decides it.
  *
- * These have to list the same ground the tier examples do, or a reader who runs the
- * questions on a message, a photo or an AI tool falls through all three and lands on green
- * — which would be the page contradicting itself at the only moment it is being used.
+ * These have to name the same ground the tier examples do AND draw the lines in the same
+ * places. Two ways to get that wrong, and both matter:
+ *
+ *  - Too narrow, and a reader who runs the questions on a message, a photo or an AI tool
+ *    falls through all three and lands on green.
+ *  - Too broad, and the question sends them to a colour the list six centimetres further
+ *    down puts them in anyway — the page contradicting itself at the only moment it is
+ *    being used, which is worse than either half alone.
+ *
+ * The two lines that are easy to blur, written out because both had been:
+ *
+ *  - Location. Posting something publicly that shows where you are is yellow: the printed
+ *    rule puts public posting in yellow and the fix is a check-in before it goes out.
+ *    Telling a person you only know online where you live, go to school or will be is red:
+ *    the printed rule puts in-person meetings in red, and page 36 treats handing over that
+ *    detail as the first half of one. A question asking "telling somebody where you are"
+ *    collapsed the two and made telling your own mother a red decision.
+ *  - Money. Small spending is yellow in the printed rule; large payments and financial
+ *    products are red. A question asking about "money moving" overruled the yellow example
+ *    directly underneath it.
+ *
+ * `covers` carries the rest of that colour's list, so each question stays short enough to
+ * answer in ten seconds and is still exhaustive. The invariant: every yellow and every red
+ * example above must appear in a `q` or a `covers`, because anything missing from both
+ * falls through to green, and green is the answer with no adult in it.
  */
 const DECIDE = [
   {
-    q: "Does it involve signing, money moving, ID, travelling, meeting someone in person, or telling somebody where you are?",
+    q: "Does it involve signing something, a large payment, ID or bank details, travelling, or meeting someone you only know online?",
+    covers:
+      "Telling someone you only know online where you live, where you go to school or where you will be is the same answer — that is the first half of meeting them. Investing and crypto count at any amount. Signing means a real agreement, including one in somebody else's name; making an ordinary app or game account is question 2, not this one.",
     then: "red" as const,
     say: "Then it is red. Stop and get an adult in it before you do anything else — including replying.",
   },
   {
-    q: "Does it involve posting publicly, spending a little, talking to someone new, or pasting something real into an app or an AI tool?",
+    q: "Does it involve posting publicly, spending a small amount of your own money, or messaging someone you have never met?",
+    covers:
+      "It also covers making an account, or turning a private one public. Anything you post that shows where you are, or where you will be. Pasting a real message, offer or somebody's details into an app or an AI tool, the two on this site included. And promising to do something for someone by a date.",
     then: "yellow" as const,
     say: "Then it is yellow. Say it out loud to an adult first. Two minutes, before it happens.",
   },
@@ -192,6 +224,7 @@ const DECIDE = [
             <p class="decide__n" aria-hidden="true">{i + 1}</p>
             <div class="decide__body">
               <h3 class="decide__q">{d.q}</h3>
+              {d.covers && <p class="decide__covers">{d.covers}</p>}
               <p class="decide__flag"><Flag level={d.then} size="sm" /></p>
               <p class="decide__say">{d.say}</p>
             </div>
@@ -200,9 +233,11 @@ const DECIDE = [
       }
     </ol>
     <p class="decide__note">
-      Answer them in order and stop at the first yes. If you are not sure which one
-      something is, treat it as the more careful colour — that costs you a conversation,
-      and being wrong the other way costs a lot more.
+      Answer them in order and stop at the first yes. The lists under each colour below are
+      the long version of these same three questions, so look there if your exact thing is
+      not named. If you are still not sure which one something is, treat it as the more
+      careful colour — that costs you a conversation, and being wrong the other way costs a
+      lot more.
     </p>
   </section>
 
@@ -352,6 +387,15 @@ const DECIDE = [
     font-size: var(--text-heading);
     line-height: 1.3;
     color: var(--text-strong);
+  }
+
+  /* The exhaustive half of the question, set smaller than it so the ten-second reader can
+     skip it and the reader whose exact case is not in the question still finds it here. */
+  .decide__covers {
+    margin-block-start: 0.4rem;
+    font-size: var(--text-meta);
+    line-height: 1.6;
+    color: var(--text-muted);
   }
 
   .decide__flag {

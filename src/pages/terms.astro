@@ -9,6 +9,19 @@
  *
  * The Publishing Note's Reality Check is rendered in full from the content collection,
  * like every other Reality Check on this site — never collapsed, never truncated.
+ *
+ * This page said, until now, that the book's stories, essays and illustrations "are not
+ * published here". That was true under D4 and it stopped being true when non-negotiable 7
+ * reversed it: /c/01 … /c/15 render The Story, The Hill Remix and What It Means Now in
+ * full, and /teen-and-grow-rich.pdf is the whole book. A terms page is the one page a
+ * school, a parent or a lawyer reads to find out what is actually true, so a stale
+ * sentence here costs more than a stale sentence anywhere else on the site.
+ *
+ * Two things had to stay separate while fixing it, because collapsing them is the easy
+ * mistake: **free to read** and **licensed** are not the same grant. The CC BY-NC-SA
+ * material is the site's own — worksheets, builds, printables — and a teacher may remix
+ * it. The book's text is given away, not licensed away; copyright is still Ryan's. /get
+ * and /teachers both link here for the licences, so this page has to be the precise one.
  */
 import Page from "../layouts/Page.astro";
 import ChapterFurniture from "../components/ChapterFurniture.astro";
@@ -19,10 +32,18 @@ import { allRealityChecks } from "../lib/content";
 const note = (await allRealityChecks()).find((c) => c.id === "publishing-note")!;
 
 /** D27: licence by content type. Safety text is no-derivatives so an altered warning
- *  cannot legally circulate; everything a teacher needs to remix is share-alike. */
+ *  cannot legally circulate; everything a teacher needs to remix is share-alike.
+ *
+ *  The third row is the one that used to be wrong. It said the stories were "not published
+ *  here", which described the site as it was before the whole book went free. What is
+ *  actually true is stranger and needs saying in two halves: the text is free to read AND
+ *  the copyright is unchanged. So it keeps "all rights reserved" — the honest legal
+ *  position — and then spells out, in plain words, the permission actually being given.
+ *  It is deliberately not relabelled CC: a Creative Commons grant is irrevocable, and
+ *  handing the book's text away under one is a decision for the owner, not for a page. */
 const LICENCES = [
   {
-    what: "Worksheets, builds, tools and templates",
+    what: "This site's worksheets, builds, tools and templates",
     licence: "CC BY-NC-SA 4.0",
     means:
       "Copy them, print them, photocopy them for a class, remix them. Credit the book, do not resell them, and keep anything you make from them just as open.",
@@ -35,15 +56,16 @@ const LICENCES = [
   },
   {
     what: "The book's stories, essays and illustrations",
-    licence: "All rights reserved",
-    means: "They are the book. They are not published here and they are not licensed.",
+    licence: "All rights reserved — and free to read",
+    means:
+      "All 15 chapters are published on this site, and the whole book is here as a PDF. Read it, print it for yourself, put the PDF on a school drive, hand it to a class — all of that is fine and you do not have to ask. Copyright is still Ryan's, though: this row is not a Creative Commons licence. You may not sell the text, put it inside anything anyone pays for, or publish it under another name.",
   },
 ];
 ---
 
 <Page
   title="Terms"
-  description="The book's own educational-content-only disclaimer, verbatim from printed page 2, plus how this site may be used, copied and printed."
+  description="The book's own educational-content-only disclaimer, verbatim from printed page 2, plus what this site publishes, what it costs, and how it may be copied, printed and taught."
   printedPage={note.data.printedPage}
 >
   <ChapterFurniture
@@ -100,11 +122,23 @@ const LICENCES = [
     <h2 id="using">Using this site</h2>
     <div class="rows">
       <div class="row">
-        <p class="row__key">It is free</p>
+        <p class="row__key">It is all free</p>
         <p class="row__value">
           Every build, Reality Check, worksheet, template and chapter tool is open on your
-          first visit. No account, no email address, no paywall, no earned unlock, no
-          progress gate. The book is the only thing you can buy.
+          first visit — and so is the book itself. All 15 chapters, with the story, the Hill
+          Remix and What It Means Now, are on the chapter pages, and the whole thing is a{" "}
+          <a href="/teen-and-grow-rich.pdf" download>PDF you can download</a>. No account,
+          no email address, no paywall, no earned unlock, no progress gate, and no sample
+          that stops halfway.
+        </p>
+      </div>
+      <div class="row">
+        <p class="row__key">What costs money</p>
+        <p class="row__value">
+          The printed copy, and what you are paying for is the object, not the words. Every
+          word in it is on this site for nothing. A printed book is a thing you can hand to
+          somebody, mark up, finish without a notification closing it, and still have when a
+          browser clears itself. This site has no checkout and cannot take a payment.
         </p>
       </div>
       <div class="row">
@@ -174,9 +208,26 @@ const LICENCES = [
       }
     </div>
 
+    <div class="prose">
+      <p>
+        Those three rows are three different grants, and the difference is worth thirty
+        seconds. <b>Free to read is not the same as licensed.</b> The Creative Commons
+        licence covers the material this site made — the worksheets, the builds, the
+        printables — and a teacher may genuinely remix those. It does not stretch over the
+        book's text or the PDF. Being able to download something for nothing has never been
+        permission to sell it.
+      </p>
+      <p>
+        The plain version, if you only read one line: copy anything here for a class, for
+        free, forever. Sell none of it, and put none of it inside a course, a coaching
+        programme or anything else somebody pays for. If another page on this site sounds
+        looser than that, this page is the one that counts.
+      </p>
+    </div>
+
     <p class="prose note">
-      Licence texts:
-      <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="external noreferrer">CC BY-NC-SA 4.0</a>
+      Licence texts:{" "}
+      <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="external noreferrer">CC BY-NC-SA 4.0</a>{" "}
       and{" "}
       <a href="https://creativecommons.org/licenses/by-nc-nd/4.0/" rel="external noreferrer">CC BY-NC-ND 4.0</a>.
     </p>
