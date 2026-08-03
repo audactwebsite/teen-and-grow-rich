@@ -17,6 +17,7 @@
  */
 import Page from "../layouts/Page.astro";
 import ChapterFurniture from "../components/ChapterFurniture.astro";
+import { CONTACT_EMAIL } from "../lib/site";
 
 /* D29: dated claims carry a verification date, and go stale visibly rather than
    quietly. A date that has drifted testifies that nobody is home. */
@@ -38,9 +39,13 @@ const RECORD = [
       "The commission. Hill said Andrew Carnegie handed him the assignment that became his life's work: interview the men who had built America's fortunes and reduce what they did to a set of principles. David Nasaw, who wrote the standard biography of Carnegie and worked through his papers, found no evidence that Hill and Carnegie ever met.",
   },
   {
-    when: "The same years",
+    when: "1908-1912",
+    /* This row used to read "While he places the Carnegie commission, Hill was on the run
+       over a lumber fraud in Alabama." — a subordinate clause with no object, in the only
+       ungrammatical line on the page. The date moved into the key so the sentence can
+       carry its own subject. */
     what:
-      "While he places the Carnegie commission, Hill was on the run over a lumber fraud in Alabama.",
+      "In the same years he says he was working for Carnegie, Hill was on the run over a lumber fraud in Alabama.",
   },
   {
     when: "April 1912",
@@ -49,11 +54,13 @@ const RECORD = [
   },
   {
     when: "June 1918",
-    what: "Illinois issued warrants for Hill under the state's blue-sky securities laws.",
+    what:
+      "Illinois issued warrants for Hill under its blue-sky laws — the laws that exist to stop people selling worthless shares.",
   },
   {
     when: "1919",
-    what: "The Federal Trade Commission brought charges against him.",
+    what:
+      "The Federal Trade Commission, the US government body that polices dishonest selling, brought charges against him.",
   },
   {
     when: "Throughout",
@@ -67,7 +74,7 @@ const MYTHS = [
   {
     claim: "The 1953 Yale goal-setting study",
     story:
-      "Three per cent of Yale's class of 1953 wrote their goals down, and twenty years later that three per cent was worth more than the other ninety-seven per cent combined.",
+      "3% of Yale's class of 1953 wrote their goals down, and twenty years later that 3% was worth more than the other 97% combined.",
     why:
       "Yale has no record of such a study. A 1996 Fast Company investigation went looking for it and could not find anyone able to produce it, at Yale or anywhere else. It survives because it is useful, not because it happened.",
   },
@@ -76,7 +83,7 @@ const MYTHS = [
     story:
       "You are 65% more likely to reach a goal if you tell someone, and 95% more likely if you book a regular check-in with them.",
     why:
-      "Usually credited to a training-industry body. No study, no sample size and no method has ever been produced. The underlying idea — a witness helps — is in this book as Chapter 1's fourth Play step, stated without a fake number attached.",
+      "Nobody can say where these came from. There is no study, no sample size and no method behind them — just the numbers, passed from book to book. The idea underneath them — telling one person helps — is in this book as step four of Chapter 1's Play, Choose one witness, with no invented number attached.",
   },
 ];
 
@@ -92,10 +99,16 @@ const MYTHS = [
   title="Is Napoleon Hill's story true? The checkable record, with dates"
   description="Napoleon Hill's principles are worth testing; his own stories were not checkable. The record, with dates and sources, and why this book uses labelled composites instead."
 >
+  {/* The H1 used to be "The Napoleon Hill audit" — a finance word, twice in the first two
+      lines, never glossed anywhere in the rendered text. The plain-English version of the
+      page existed only in the browser tab. An eyebrow is allowed to be a label, so the
+      brand term stays there and the H1 is the question the reader already has.
+      The subtitle was two abstractions: "remaps" is design vocabulary and "inherit his
+      authority" is an idea a thirteen-year-old has to reverse-engineer. */}
   <ChapterFurniture
     eyebrow="The audit"
-    title="The Napoleon Hill audit"
-    subtitle="This book remaps Napoleon Hill's ideas. It does not inherit his authority. Here is the difference, with dates."
+    title="Is Napoleon Hill's story true?"
+    subtitle="This book rebuilds Napoleon Hill's ideas for you. It does not ask you to trust him. Here is the difference, with dates."
   />
 
   <div class="wrap">
@@ -104,8 +117,8 @@ const MYTHS = [
         Hill's principles are worth testing. His biography is not. Historians and
         journalists who went looking for the meetings, the interviews and the credentials
         behind <i>Think and Grow Rich</i> did not find them — and they did find fraud
-        charges. This page says so plainly, because a book that promises no fake case
-        studies cannot quietly stand on some.
+        charges. This page says so plainly, because a book that says it will never pass off
+        an invented story as real cannot quietly do it.
       </p>
     </div>
   </div>
@@ -162,14 +175,14 @@ const MYTHS = [
       <p>
         Because the principles and the man are two different things. Desire, decision,
         planning, persistence, a small honest team, paying attention to where your
-        attention goes — none of that is exotic, and all of it can be tested by one person
-        in ninety days. That part survives the audit intact. You do not have to trust Hill
-        to run it. You run it and look at what exists afterwards.
+        attention goes — none of that is magic, and you can test all of it yourself in
+        ninety days. Those ideas hold up. You do not have to trust Hill to try them. You
+        try them, and then you look at what you actually made.
       </p>
       <p>
-        What does not survive is Hill's method of proof: unverifiable stories about famous
-        men, told as evidence. So this book does the opposite, and says so on printed page
-        2 rather than in a footnote:
+        What does not hold up is how Hill proved things: stories about famous men that
+        nobody can check, used as evidence. So this book does the opposite, and says so on
+        printed page 2 rather than in a footnote:
       </p>
       <blockquote>
         <p>
@@ -182,9 +195,9 @@ const MYTHS = [
       </blockquote>
       <p>
         That is the whole trade. The stories in the book are labelled as invented, so
-        nothing rests on them. The claims that are meant to be believed — the record on
-        the <a href="/proof">proof page</a>, every number anywhere on this site — carry a
-        source, or they are not here.
+        nothing rests on them. Everything you are actually meant to believe —{" "}
+        <a href="/proof">Ryan's race results, with the sources</a>, every number anywhere
+        on this site — has a source next to it, or it is not here.
       </p>
     </div>
   </section>
@@ -193,8 +206,8 @@ const MYTHS = [
     <h2 id="myths">Statistics you will not find on this site</h2>
     <div class="prose">
       <p>
-        These two are quoted constantly in books like this one. Both are unsourced. They
-        are named here so that their absence reads as a decision rather than an oversight.
+        These two are quoted constantly in books like this one. Both are unsourced. We are
+        naming them so you know we left them out on purpose, not because we missed them.
       </p>
     </div>
 
@@ -212,11 +225,33 @@ const MYTHS = [
       }
     </div>
 
+    {/* This section had no sources at all, on the page whose rule is that claims carry
+        them — and the Sources block above scopes itself explicitly to the other section.
+        The 65/95 figures get no link because there is nothing to link to, which is the
+        row's own finding; the row now says that in those words rather than hedging it as
+        "a training-industry body". */}
+    <div class="prose sources">
+      <p class="sources__label">Sources</p>
+      <ul>
+        <li>
+          Lawrence Tabak,{" "}
+          <a
+            href="https://www.fastcompany.com/27953/if-your-goal-success-dont-consult-these-gurus"
+            rel="external noreferrer"
+          >
+            If Your Goal Is Success, Don't Consult These Gurus
+          </a>, Fast Company, 1996 — the investigation that went looking for the Yale study,
+          asked Yale, and found no record of it or of anyone who remembered it.
+        </li>
+      </ul>
+    </div>
+
     <div class="prose rule-note">
       <p>
-        <strong>The rule that follows:</strong> every number on this site links to a primary
-        source, or it gets cut. If you find one that does not, the mailbox at the bottom of
-        this page is the route — it is read by an adult, and a correction is a favour.
+        <strong>So here is the rule:</strong> every number on this site links to a primary
+        source, or it gets cut. Found one that does not? Email{" "}
+        <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a> — an adult reads it, and
+        telling us is a favour.
       </p>
     </div>
   </section>

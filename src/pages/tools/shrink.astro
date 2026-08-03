@@ -96,29 +96,36 @@ const EXAMPLE_STEPS = [
   <div class="wrap">
     <p class="status" role="note">
       <span class="status__badge">Not live yet</span>
-      The tool has not been switched on. Everything below shows exactly what it will ask
-      for and exactly what it will give back — nothing you type here goes anywhere today.
+      {/* "This tool is not built yet", matching /get, which says the code behind it does
+          not exist. "Not switched on" implies it is built and waiting for a flag, and a
+          reader who checked both pages was told two different things. */}
+      This tool is not built yet. Everything below shows exactly what it will ask for and
+      exactly what it will give back — nothing you type here goes anywhere today.
     </p>
 
     <div class="prose">
       <p class="lede">
-        Goals rarely stall because they are too small. They stall because the first
-        move is enormous, public, and embarrassing to get wrong. This tool does one thing:
+        You do not get stuck because your idea is too small. You get stuck because the
+        first move feels huge, everyone will see it, and you will look stupid if it goes
+        wrong. This tool does one thing:
         it cuts the goal down until the first step fits in twenty minutes and leaves
         something behind that you can point at.
       </p>
       <p class="meta">
-        <PageRef page={chapter.data.printedPage} kind={`Chapter ${chapter.data.n} · The Play`} />
+        {/* No middot inside `kind`. PageRef appends its own separator with no leading
+            space and relies on the flex gap for the other side, so a kind that already
+            contained one rendered "Chapter 1 · The Play· Book page 10". Every other caller
+            passes a single label. */}
+        <PageRef page={chapter.data.printedPage} kind={`Chapter ${chapter.data.n} Play`} />
       </p>
     </div>
   </div>
 
   <section class="wrap section" aria-labelledby="from-book">
-    <h2 id="from-book">The step it automates</h2>
+    <h2 id="from-book">Where this comes from</h2>
     <div class="prose">
       <p>
-        This is not a new idea bolted onto the book. It is the third step of Chapter 1's
-        Play, and the whole step reads:
+        This is step 3 of Chapter 1's Play, word for word:
       </p>
       <blockquote>
         <p><b>{step.n}. {step.title}</b> {step.text}</p>
@@ -137,7 +144,9 @@ const EXAMPLE_STEPS = [
       <div class="field">
         <label class="field__label" for="goal">The goal that feels too big</label>
         <p class="field__hint" id="goal-hint">
-          <b class="field__ai">An AI model reads what you type. Nothing is stored.</b>
+          <b class="field__ai">
+            When it is live, an AI model will read what you type. Nothing will be stored.
+          </b>
           One sentence is enough. No names, no school, no address — it does not need them
           and the answer is no better with them in.
         </p>
@@ -148,9 +157,11 @@ const EXAMPLE_STEPS = [
           disabled
           aria-describedby="goal-hint goal-status"
           placeholder="The tool is not live yet."></textarea>
+        {/* Not "disabled rather than hidden" — the reader does not have "hidden" as an
+            alternative and does not care which was picked. */}
         <p class="field__status" id="goal-status">
-          Disabled until the tool is live. It is disabled rather than hidden so you can see
-          the whole thing before you decide whether you would ever use it.
+          You cannot type in this box yet. It is here so you can see what the tool will ask
+          for before you decide whether you would ever use it.
         </p>
       </div>
       <button type="button" class="cta" disabled>Shrink it — not live yet</button>
@@ -166,11 +177,10 @@ const EXAMPLE_STEPS = [
         that leaves nothing behind is a step you cannot tell you took.
       </p>
       <p>
-        Each one also carries a flag, because a twenty-minute step is not automatically
-        yours to take on your own. A first step can mean posting something with your name
-        on it, messaging somebody you have never met, or charging money for something, and
-        those are yellow and red on the book's own rule. The answer says which before you
-        start, not after.
+        Each one also gets a flag, because some twenty-minute steps are not yours to
+        take alone. Posting something with your name on it, messaging somebody you have
+        never met, or charging money for something are yellow or red under the book's own
+        rule. You get told which one before you start, not after.
       </p>
       <p>Then every answer ends the same way, in the same words, whatever you typed.</p>
     </div>
@@ -219,8 +229,8 @@ const EXAMPLE_STEPS = [
       </p>
       <p class="trailer">
         Then look at its flag. Green: go. Yellow: say it out loud to one adult before you
-        start, not after. Red: an adult does it with you, not just hears about it. The rule
-        itself is on <a href="/race-control">Green, yellow, red</a>.
+        start, not after. Red: an adult does it with you, not just hears about it. The whole
+        rule is on the <a href="/race-control">Green, yellow, red page</a>.
       </p>
       <p class="trailer">
         Twenty minutes is short. Short is not the same as safe, and a first step gives you
@@ -228,12 +238,13 @@ const EXAMPLE_STEPS = [
       </p>
     </section>
 
+    {/* The guarantee about the closing lines used to be stated here as well as in
+        "About the AI, plainly" one screen down, in near-identical words — so a reader met
+        the same paragraph twice and assumed they had lost their place. It is stated once
+        now, in the row that exists for it. */}
     <p class="prose note">
-      It never picks for you and it never tells you the goal is wrong. Three options, one
-      of which you can start now, is the entire job. The model writes the three steps and
-      tags each one green, yellow or red; the ending underneath is not its to write. This
-      page prints those lines on every answer, so there is nothing in them for it to soften
-      and no answer where it can decide an adult is not needed.
+      It never picks for you and it never tells you the goal is wrong. Three options, and
+      you can start one of them right now. That is all it does.
     </p>
   </section>
 
@@ -282,33 +293,41 @@ const EXAMPLE_STEPS = [
             missing finder is a gap, not a plan. Two safety notices disagreeing about
             whether anyone can reach this page yet is the version a reader should never
             get, and of the two claims this is the one that is safe to be wrong about. */}
+        {/* Same facts, said in words a frightened reader can decode. "a gap and not a
+            plan" is roadmap vocabulary, "someone who does safeguarding professionally" is
+            a job description, and "the routes below are the ones this page can stand
+            behind" is institutional — in the one block where a reader is least able to
+            work any of it out. "and it is public today" also had an ambiguous "it": a
+            reader could read it as the helpline. */}
         <p class="pending__note">
-          This site does not yet list a helpline you can call or message, and it is public
-          today, so that is a gap and not a plan. One verified finder — international, plus
-          one for the Netherlands — is being checked with someone who does safeguarding
-          professionally. Making one up in the meantime would be the worse mistake, so the
-          routes below are the ones this page can stand behind today. Nothing here is a
-          crisis service, including the mailbox in the footer: nobody reads that urgently.
+          There is no helpline listed here yet. This page is already online, so that is a
+          real gap, not something we are pretending is finished. We are checking one with
+          an adult who does this for a living — one for anywhere, one for the Netherlands.
+          Putting up a number we had not checked would be worse than having none. The list
+          below is what this page can promise today. None of it is a crisis service,
+          including the mailbox in the footer: nobody reads that quickly.
         </p>
       </div>
 
       <ul class="help">
         <li>
-          Tell one adult today — a parent or guardian, a teacher, or your school's
-          safeguarding lead. If the first adult does not act, tell a second one.
+          Tell one adult today — a parent or guardian, a teacher, or whoever your school
+          says to go to when something is wrong. If the first adult does not act, tell a
+          second one.
         </li>
         <li>
           The police, or your local emergency number, if you have been threatened or you
           are frightened for your safety.
         </li>
         <li>
-          A family doctor if sleep or eating has changed, and a school counselor is a
+          A family doctor if sleep or eating has changed, and a school counsellor is a
           reasonable first stop when the worry is at home.
         </li>
         <li>
+          Read{" "}
           <a href="/reality-check/mindful-tech">
-            What to do about threats, sexual messages or blackmail
-          </a>, in full. It does not need this tool to be running.
+            what to do about threats, sexual messages or blackmail
+          </a>. That page works whether or not this tool is running.
         </li>
       </ul>
       <p class="note">
@@ -345,7 +364,7 @@ const EXAMPLE_STEPS = [
         </p>
       </div>
       <div class="row">
-        <p class="row__key">The ending is not its to write</p>
+        <p class="row__key">The last lines are not the AI's</p>
         <p class="row__value">
           The model writes the three steps and tags each one green, yellow or red. The
           lines underneath — the ones that say when an adult hears about it first — are

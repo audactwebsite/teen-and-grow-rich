@@ -10,7 +10,7 @@
  * way for a 13-year-old to send us personal data, which is the thing this site exists
  * not to do.
  */
-import { SITE_HOST } from "../lib/site";
+import { SITE_HOST, CONTACT_EMAIL } from "../lib/site";
 
 const YEAR = new Date().getFullYear();
 
@@ -44,16 +44,12 @@ const LINKS = [
 /**
  * PLACEHOLDER — the mailbox still has to be created and given to an adult to read.
  *
- * It is built from the site's own host rather than typed out, because it had been written
- * at the hyphen-free spelling — a domain that belongs to an unrelated company, which made
- * it an address that could never receive anything no matter who was willing to read it.
- * Worse than useless: mail sent there goes to a stranger. At this domain it is at least an
- * address that can be created today.
- *
- * This is item 6 in docs/for-ryan.md and it is the most urgent one on that list. Every page
- * of this site offers it to a thirteen-year-old as the way to reach a grown-up.
+ * Derived from the site's own host in src/lib/site.ts rather than typed out here, because
+ * it had been written at the hyphen-free spelling — a domain that belongs to an unrelated
+ * company — and mail sent there goes to a stranger. It moved to site.ts when /hill started
+ * offering the same address in body copy: two hand-typed copies is how the first one drifted.
  */
-const CONTACT = `hello@${SITE_HOST}`;
+const CONTACT = CONTACT_EMAIL;
 ---
 
 <footer class="site-footer">

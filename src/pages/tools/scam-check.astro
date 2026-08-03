@@ -86,8 +86,10 @@ const BY_HAND = [
   <div class="wrap">
     <p class="status" role="note">
       <span class="status__badge">Not live yet</span>
-      The tool has not been switched on. Everything below shows exactly what it will ask
-      for and exactly what it will give back — nothing you type here goes anywhere today.
+      {/* One wording across /get, /parents, /tools/shrink and this page. "Not switched on"
+          implies it is built and waiting for a flag; /get says the code does not exist. */}
+      This tool is not built yet. Everything below shows exactly what it will ask for and
+      exactly what it will give back — nothing you type here goes anywhere today.
     </p>
 
     <div class="prose">
@@ -107,9 +109,25 @@ const BY_HAND = [
       <div class="field">
         <label class="field__label" for="offer">Paste the message, offer or DM</label>
         <p class="field__hint" id="offer-hint">
-          <b class="field__ai">An AI model reads what you paste. Nothing is stored.</b>
+          <b class="field__ai">
+            When it is live, an AI model will read what you paste. Nothing will be stored.
+          </b>
           Paste it as it arrived. Take the person's name, your name, phone numbers and
           links out first — the tool does not need them and it works fine without them.
+        </p>
+        {/* The rule this site prints on /race-control puts "pasting a real message, offer
+            or someone's details into an AI tool" in yellow, and names this tool inside the
+            example. The page it names carried no yellow flag anywhere — only two reds,
+            both about the message rather than about pasting it. Yellow is a check-in
+            before it happens, so it belongs beside the box, not after the answer. */}
+        <p class="field__flag">
+          <Flag level="yellow" size="sm" />
+        </p>
+        <p class="field__flag-note">
+          What you paste is usually somebody else's words, and it leaves this device. Say
+          out loud to an adult that you are about to paste a real message into this, before
+          you paste it. The rule is on the{" "}
+          <a href="/race-control">Green, yellow, red page</a>.
         </p>
         <textarea
           id="offer"
@@ -119,8 +137,8 @@ const BY_HAND = [
           aria-describedby="offer-hint offer-status"
           placeholder="The tool is not live yet."></textarea>
         <p class="field__status" id="offer-status">
-          Disabled until the tool is live. It is disabled rather than hidden so you can see
-          the whole thing before you decide whether you would ever use it.
+          You cannot type in this box yet. It is here so you can see what the tool will ask
+          for before you decide whether you would ever use it.
         </p>
       </div>
       <button type="button" class="cta" disabled>Check it — not live yet</button>
@@ -264,8 +282,9 @@ const BY_HAND = [
 
       <ul class="help">
         <li>
-          Tell one adult today — a parent or guardian, a teacher, or your school's
-          safeguarding lead. If the first adult does not act, tell a second one.
+          Tell one adult today — a parent or guardian, a teacher, or whoever your school
+          says to go to when something is wrong. If the first adult does not act, tell a
+          second one.
         </li>
         <li>
           The police, or your local emergency number, if you have been threatened or you
@@ -441,6 +460,18 @@ const BY_HAND = [
 
   .field__status {
     margin-block-start: 0.5rem;
+  }
+
+  /* The yellow check-in, beside the box rather than after the answer. Yellow means before
+     it happens, so it has to be readable before the reader pastes. */
+  .field__flag {
+    margin-block-start: 0.75rem;
+  }
+
+  .field__flag-note {
+    margin-block-start: 0.35rem;
+    font-size: var(--text-meta);
+    color: var(--text-default);
   }
 
   .cta {

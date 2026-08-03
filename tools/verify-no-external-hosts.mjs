@@ -51,6 +51,12 @@ const ALLOWED_TEXT = [
   "https://en.wikipedia.org/wiki/Napoleon_Hill",
   "https://gizmodo.com/the-untold-story-of-napoleon-hill-the-greatest-self-he-1789385645",
 
+  /* The 1996 Fast Company investigation that went looking for the Yale goal-setting study
+     and could not find it. /hill asserted this in prose and linked nowhere, which is the
+     failure that page exists to warn about — refusing a famous number while asking to be
+     taken on trust for the refusal. Same shape as the two above. */
+  "https://www.fastcompany.com/27953/if-your-goal-success-dont-consult-these-gurus",
+
   /* The host's data-processing terms, cited on /schools/privacy. Same shape as the two
      above: an outbound <a rel="external noreferrer"> that fetches nothing until a reader
      follows it. A privacy page that names its processor without linking the document that

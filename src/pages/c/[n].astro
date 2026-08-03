@@ -261,11 +261,15 @@ const jsonLdText = jsonLd({
       <div class="story">
         <p>{c.whatItMeansNow}</p>
       </div>
+      {/* Not "that is the whole chapter". The Play, the build, the Reality Check and the
+          Debrief are all printed in the book too, they are all directly below this line,
+          and two of them state a later page number on the same screen — chapter 1 runs
+          pages 10 to 12, not one page. The note about the printed copy moved to the foot
+          of the page: a line about buying should not sit between the essay and the first
+          thing the reader is asked to do. */}
       <p class="section__note">
-        That is the whole chapter, exactly as it is printed on book page {c.printedPage} —{" "}
-        <a href="/get">and the whole book is free to read here</a>. What the printed copy
-        gives you that this page cannot is a thing you can hold, hand to someone, or leave
-        in a classroom.
+        That is the story and the essay, word for word from book pages {c.printedPage} to{" "}
+        {c.printedPage + 2}. The rest of this page is the part you do.
       </p>
     </section>
 
@@ -275,7 +279,10 @@ const jsonLdText = jsonLd({
     </section>
 
     <section class="section" aria-labelledby="build">
-      <h2 id="build" class="h2">Your 24-Hour Build</h2>
+      {/* Not "Your 24-Hour Build" — that is the Box label directly underneath, which
+          Box.astro also puts on aria-label, so the string was announced three times before
+          any content. /build/[n] already solved this with "Do this". */}
+      <h2 id="build" class="h2">Do this in {meta?.minutes ?? 20} minutes</h2>
 
       <Box kind="build">
         {meta && <p class="box__flag"><Flag level={meta.flag} /></p>}
@@ -294,9 +301,13 @@ const jsonLdText = jsonLd({
             ? `The book sets this build at ${meta.minutes} minutes (page ${build?.data.printedPage ?? c.printedPage}).`
             : "The book sets no length for this build, so the timer uses a 20-minute first step."
         }
-        {" "}The flag applies the family approval system printed on book page {FLAG_RULE_PAGE};
-        it is not a mark the book prints beside each build. <a href="/parents">Race Control</a>
-        {" "}explains it.
+        {" "}The flag is ours, not the book's: it applies the traffic-light rule printed
+        on book page {FLAG_RULE_PAGE}, which the book does not print beside each build.{" "}
+        {/* /race-control, not /parents. /parents is the adults' version — its eyebrow reads
+            "For parents, guardians, teachers and mentors" — and this page is read by the
+            thirteen-year-old the rule is about. The link text is the destination's own
+            title, the way /tools/shrink links it. */}
+        <a href="/race-control">Green, yellow, red</a> explains what each colour means.
       </p>
 
       {
@@ -325,8 +336,10 @@ const jsonLdText = jsonLd({
         build && (
           <p class="section__note">
             <a href={`/build/${pad(build.data.n)}`}>
-              Open build {pad(build.data.n)} on its own page
+              Open this build on its own page
             </a>
+            {" "}— it is build {pad(build.data.n)}, with a box for your proof and a version
+            that prints.
           </p>
         )
       }
@@ -334,7 +347,10 @@ const jsonLdText = jsonLd({
 
     {/* Never collapsed, never behind a tab, never truncated. It is the safety layer. */}
     <section class="section" aria-labelledby="check">
-      <h2 id="check" class="h2">Reality Check</h2>
+      {/* Same reason as the build heading above: the Box prints "Reality Check" as its
+          own label and its accessible name. The label is fixed by the book; the heading is
+          ours, so the heading is the one that changes. */}
+      <h2 id="check" class="h2">Before you start</h2>
       <Box kind="check">
         <p class="box__flag"><Flag level={checkMeta.flag} /></p>
         <p>{c.realityCheck}</p>
@@ -343,10 +359,16 @@ const jsonLdText = jsonLd({
 
     <section class="section" aria-labelledby="debrief">
       <h2 id="debrief" class="h2">Debrief</h2>
-      <p class="section__note">
-        Three questions from book page {c.printedPage + 2}. Answers are kept in this
-        browser and never sent anywhere — copy them into your Real Rich Receipts folder
-        to keep them for good.
+      {/* Static text is the honest floor; the script upgrades it, exactly as
+          Checklist.astro does. This used to assert "Answers are kept in this browser" from
+          plain HTML — before anything had checked whether this browser keeps anything —
+          and then told the reader to use a Copy button that is display:none until
+          [data-js]. Both halves were wrong in private mode, on a locked-down school
+          device, and with scripting off. CLAUDE.md calls this the whole compliance
+          strategy, so it is the one claim that cannot be made speculatively. */}
+      <p class="section__note" data-debrief-note>
+        Three questions from book page {c.printedPage + 2}. Nothing you type here leaves
+        this device.
       </p>
 
       <ol class="debrief">
@@ -421,7 +443,7 @@ const jsonLdText = jsonLd({
 </Page>
 
 <script>
-  import { record, valueOf } from "../../lib/storage";
+  import { record, valueOf, canKeep } from "../../lib/storage";
 
   /* Debrief answers. Written on blur, and on a 1s idle pause while typing — one event
      per keystroke would fill the append-only log and put synchronous localStorage on
@@ -451,6 +473,17 @@ const jsonLdText = jsonLd({
   const copyBtn = document.querySelector<HTMLButtonElement>("[data-debrief-copy]");
   const status = document.querySelector<HTMLElement>("[data-debrief-status]");
 
+  /* The keeping claim, made only once something has checked. canKeep() is false in
+     private mode and on a device with storage policy off, and the static line above says
+     nothing about keeping so that both states are honest. */
+  const note = document.querySelector<HTMLElement>("[data-debrief-note]");
+  if (note && fields.length) {
+    note.textContent = canKeep()
+      ? note.textContent + " Answers are kept in this browser as you type, never sent anywhere."
+      : note.textContent +
+        " This browser is not keeping anything, so these answers go when you leave. Copy them out before you do.";
+  }
+
   if (copyBtn && status && fields.length) {
     copyBtn.addEventListener("click", async () => {
       const heading = document.querySelector("h1")?.textContent?.trim() ?? "";
@@ -466,7 +499,7 @@ const jsonLdText = jsonLd({
 
       try {
         await navigator.clipboard.writeText(text);
-        status.textContent = "Copied. Paste it into your receipts folder.";
+        status.textContent = "Copied. Paste it somewhere that lasts.";
       } catch {
         status.textContent = "This browser would not let the page copy. Select your answers and copy them by hand.";
       }

@@ -92,10 +92,30 @@ for (const w of worksheets) {
   }
 }
 
-/* Fallback lookup. The sequences store one event per dated day and the chapter pages may
-   store debrief answers, and neither id is derivable from the YAML here — so a namespace
-   table turns "day:tiny-launch:w1d2" into "The 30-Day Tiny Launch · w1d2" rather than
-   nothing. Better a slightly technical row than a disappeared one. */
+/* The dated days on the two plans. Their ids are set by src/pages/path/[id].astro as
+   `<sequence>:<group>:<n>` and must stay in step with it.
+
+   These used to have no entry here at all, so every day a reader ticked fell through to
+   the `spaces` fallback below and printed as its own storage id — "From Skill To First
+   Honest Income · phase-1-build-proof-days-1-30:2" — on screen and in the copied record
+   this page calls the copy that lasts. A slug is not a label. */
+for (const s of sequences) {
+  for (const group of s.data.groups) {
+    group.items.forEach((item, i) => {
+      index.push({
+        key: `day:${s.id}:${group.id}:${i + 1}`,
+        label: `${s.data.title} · ${item}`,
+        note: `${group.heading} · book page ${s.data.printedPage}`,
+        href: `/path/${s.id}`,
+      });
+    });
+  }
+}
+
+/* Fallback lookup. The chapter pages may store debrief answers whose ids are not derivable
+   from the YAML here — so a namespace table turns an unknown id into "Chapter 01 · Dream
+   Big · <id>" rather than nothing. Better a slightly technical row than a disappeared one.
+   Nothing routine should reach it: everything the site writes is indexed above. */
 const spaces: { prefix: string; label: string; href: string }[] = [
   ...sequences.map((s) => ({ prefix: s.id, label: s.data.title, href: `/path/${s.id}` })),
   ...worksheets.map((w) => ({ prefix: w.id, label: w.data.title, href: `/worksheet/${w.id}` })),
@@ -222,7 +242,14 @@ const PF_CONTACT = fieldRef(OFFER_WORKSHEET, "the-safe-contact-route");
  * THE SAFE CONTACT ROUTE field carries on /worksheet/first-offer-canvas, and this sheet
  * prints that field.
  */
-const PF_FLAG_LABEL = "Red · one adult reads it before you send it";
+/* The site's one red wording, not a second one invented here. This page used to print
+   "Red · one adult reads it before you send it" — the only occurrence anywhere in the
+   build, against 44 of "Red · an adult must be involved" — and it went out in the copied
+   portfolio text too, so a stranger received the off-system version as well. The
+   page-specific instruction lives in the sentence under the flag, which is where the other
+   44 put theirs. */
+const PF_FLAG_LABEL = "Red · an adult must be involved";
+const PF_FLAG_NOTE = "One adult reads the whole sheet before you send it to anybody.";
 const PF_CONTACT_NOTE =
   "Anything about money, meetings or personal details goes through the adult on that line first.";
 
@@ -293,11 +320,12 @@ const PF_BUILDS = builds.map((b) => {
         data-total-play={t.playSteps}
       >
         <h2 id="count-h" class="visually-hidden">What is kept</h2>
+        {/* One line, not two. There used to be a second, smaller line under this one
+            repeating the same two denominators — "out of 19 builds and 75 Play steps in
+            the book" — directly under "1 of 19 builds · 0 of 75 Play steps". It was a
+            leftover from a design where the big line was numbers only, and the print
+            stylesheet had already been told to hide it, which was the tell. */}
         <p class="summary__counts" data-counts></p>
-        <p class="summary__totals">
-          out of <span class="num">{t.builds}</span> builds and{" "}
-          <span class="num">{t.playSteps}</span> Play steps in the book
-        </p>
       </section>
 
       {/* NOT hidden. Both states used to ship hidden and a deferred script revealed one,
@@ -310,13 +338,16 @@ const PF_BUILDS = builds.map((b) => {
         <h2 id="empty-h">Nothing here yet</h2>
         <p>
           This browser is not holding any receipts. That is the normal state on a first
-          visit, and it is also what you will see on a school laptop that has signed you
-          out since.
+          visit, and it is also what you will see on a school laptop that signed you out at
+          the end of the last lesson.
         </p>
         <p>
           A receipt is small on purpose: one build done, one line about what now exists.{" "}
-          <a href="/build/01">Build 01 is starting the folder</a> — it takes about ten
-          minutes and needs nobody's permission.
+          {/* The anchor is the name only. The whole clause used to be the link text, so
+              tabbing the page — or hearing the link list on a screen reader — gave
+              "Build 01 is starting the folder", which sounds like a status message. */}
+          <a href="/build/01">Build 01</a> is starting the folder — about ten minutes, and
+          it needs nobody's permission.
         </p>
         <p><a href="/builds">See all nineteen builds</a></p>
       </section>
@@ -383,17 +414,23 @@ const PF_BUILDS = builds.map((b) => {
     <section class="portfolio" aria-labelledby="portfolio-h">
       <h2 id="portfolio-h">Turn it into a portfolio</h2>
       <div class="prose">
+        {/* Not "Everything above is your record". On a first visit the record sections are
+            correctly hidden, so nothing is above; with scripting off the only thing above
+            is "This page needs JavaScript". Both are the states a first-time reader is
+            most likely to be in, and both made the sentence point at nothing. */}
         <p>
-          Everything above is your <b>record</b>: what you ticked, in the order this site
-          put it in. A <b>portfolio</b> is the other document — the one you attach to a
-          first job application, or hand to a first client. It opens with what you made.
-          Nobody reading it needs to know how far through a website you got.
+          Your <b>record</b> is the list of what you ticked. A <b>portfolio</b> is the
+          other document — the one you attach to a first job application, or hand to a
+          first client. It opens with what you made. Nobody reading it needs to know how
+          far through a website you got.
         </p>
         <p>
           It is built from what this browser is holding right now, and it is not kept
           anywhere: print it, or copy it out, and that version is the one that lasts.
-          Because it is written to go to somebody who has never met you, show the whole
-          sheet to one adult before it goes anywhere — and read the check under it first.
+        </p>
+        <p>
+          This one goes to somebody who has never met you. Show the whole sheet to one
+          adult first, and read the check under it.
         </p>
         {/* Without this a reader whose sheet comes out half empty has no idea where the
             missing halves are written. The middle block disappears entirely when the
@@ -425,7 +462,7 @@ const PF_BUILDS = builds.map((b) => {
         data-pf-name-key={PF_NAME.key}
         data-pf-since-key={PF_SINCE.key}
         data-pf-contact-key={PF_CONTACT.key}
-        data-pf-flag={PF_FLAG_LABEL}
+        data-pf-flag={`${PF_FLAG_LABEL} — ${PF_FLAG_NOTE}`}
         data-pf-check={pfCheck.data.text}
         data-pf-check-page={pfCheck.data.printedPage}
       >
@@ -496,6 +533,7 @@ const PF_BUILDS = builds.map((b) => {
         <p class="portfolio__flag">
           <Flag level="red" size="sm" label={PF_FLAG_LABEL} />
         </p>
+        <p class="portfolio__flag-note">{PF_FLAG_NOTE}</p>
         <Box kind="check" class="check">
           <p class="check__flag"><Flag level={pfCheckFlag} size="sm" /></p>
           <p>{pfCheck.data.text}</p>
@@ -584,7 +622,12 @@ const PF_BUILDS = builds.map((b) => {
           {/* Not class="js": that class is also the wrapper below, and its reveal rule sets
               display:block, which breaks a .btn's inline-flex centring and stretches it to
               the full prose column. The button gets its own pair of rules instead. */}
-          <button type="button" class="btn btn--primary paper__btn" data-print-btn>
+          {/* data-print-paper, not data-print-btn. This button used to be the second
+              [data-print-btn] on the page, so it printed exactly what "Print the whole
+              folder" prints — the hero, the record, the whole portfolio card with the
+              reader's name on it, and then this sheet fifth. The sentence two lines above
+              promises one sheet to fill in with a pen, so it prints one. */}
+          <button type="button" class="btn btn--primary paper__btn" data-print-paper>
             Print this sheet
           </button>
           <span class="paper__nojs">Use your browser's print command — File, then Print.</span>
@@ -617,8 +660,12 @@ const PF_BUILDS = builds.map((b) => {
           ))
         }
 
+        {/* The line used to be site-written copy sitting directly after the book's title,
+            which reads as a quotation from it. This one is Build 01's own wording, from
+            builds.yaml, so the byline in front of it is true. */}
         <p class="sheet__foot">
-          Teen &amp; Grow Rich · one tick per thing that exists, not per thing you meant to do.
+          Teen &amp; Grow Rich · your folder should tell a better story than your follower
+          count.
         </p>
       </div>
     </section>
@@ -732,7 +779,12 @@ const PF_BUILDS = builds.map((b) => {
 
     type Entry = { kind: string; id: string; value: string | number; when?: number } & Label;
 
-    const DATE = new Intl.DateTimeFormat(undefined, {
+    /* "en-GB", never `undefined`. `undefined` means "whatever locale this browser is set
+       to", and the book's home audience is in the Netherlands — so on a Dutch-locale
+       Chrome every date on this page, and the first line of the copied record, rendered as
+       "2 aug 2026" inside <html lang="en">. Non-negotiable 11 is English only, and that
+       includes the words a formatter chooses. */
+    const DATE = new Intl.DateTimeFormat("en-GB", {
       day: "numeric",
       month: "short",
       year: "numeric",
@@ -793,7 +845,9 @@ const PF_BUILDS = builds.map((b) => {
       const parts = [
         `${n("build")} of ${TOTAL_BUILDS} builds`,
         `${n("play")} of ${TOTAL_PLAY} Play steps`,
-        `${n("field")} written answers`,
+        /* Singularised, like the day term one line below it. This read "1 written answers"
+           for every reader whose first receipt was a written one. */
+        `${n("field")} written ${n("field") === 1 ? "answer" : "answers"}`,
       ];
       const days = n("day");
       if (days) parts.push(`${days} ${days === 1 ? "day" : "days"}`);
@@ -947,39 +1001,47 @@ const PF_BUILDS = builds.map((b) => {
     });
 
     /**
-     * Two print routes off one page, and they must not print the same thing.
+     * Three print routes off one page, and no two of them print the same thing.
      *
-     * "Print the whole folder" and "Print this sheet" are the record: everything on this
-     * page, in this site's order. "Print my portfolio" goes to somebody who has never met
-     * the reader, and sending the record with it would hand a stranger exactly the
-     * document the portfolio exists to replace — so that route flags the page first and
-     * the print stylesheet drops everything that is not the portfolio.
+     * "Print the whole folder" is the record: everything on this page, in this site's
+     * order. "Print my portfolio" goes to somebody who has never met the reader, and
+     * sending the record with it would hand a stranger exactly the document the portfolio
+     * exists to replace. "Print this sheet" is the blank REAL RICH RECEIPTS cover — the
+     * sentence above it promises one sheet to fill in with a pen, and it used to spend
+     * four before reaching it.
      *
+     * One scope variable rather than two booleans, so the three routes cannot both be on.
      * The flag is set at the click AND re-asserted on beforeprint, because Ctrl+P is a
-     * third route where no button was pressed and the flag has to be off. afterprint
-     * clears it; if a browser never fires afterprint the next beforeprint still corrects
-     * it, and the flag does nothing at all on screen.
+     * fourth route where no button was pressed and the scope has to be the whole page.
+     * afterprint clears it; if a browser never fires afterprint the next beforeprint still
+     * corrects it, and the flag does nothing at all on screen.
      */
-    let portfolioOnly = false;
+    let printScope: "all" | "portfolio" | "paper" = "all";
     const flagPrint = () => {
-      document.documentElement.toggleAttribute("data-print-portfolio", portfolioOnly);
+      const root = document.documentElement;
+      root.toggleAttribute("data-print-portfolio", printScope === "portfolio");
+      root.toggleAttribute("data-print-paper", printScope === "paper");
     };
     window.addEventListener("beforeprint", flagPrint);
     window.addEventListener("afterprint", () => {
-      portfolioOnly = false;
+      printScope = "all";
       flagPrint();
     });
 
-    /* querySelectorAll, and from the document rather than from root: there is a second
-       print button down in the paper-index section, outside the .js wrapper. It shipped
-       with no listener at all, so it was a visible, focusable button that did nothing. */
-    for (const btn of document.querySelectorAll<HTMLButtonElement>("[data-print-btn]")) {
-      btn.addEventListener("click", () => {
-        portfolioOnly = false;
-        flagPrint();
-        window.print();
-      });
-    }
+    const printWith = (selector: string, scope: typeof printScope) => {
+      /* From the document rather than from root: the paper button sits outside the .js
+         wrapper. It shipped with no listener at all — a visible, focusable button that
+         did nothing — and then with the wrong one. */
+      for (const btn of document.querySelectorAll<HTMLButtonElement>(selector)) {
+        btn.addEventListener("click", () => {
+          printScope = scope;
+          flagPrint();
+          window.print();
+        });
+      }
+    };
+    printWith("[data-print-btn]", "all");
+    printWith("[data-print-paper]", "paper");
 
     const importStatus = root.querySelector<HTMLElement>("[data-import-status]")!;
     root.querySelector<HTMLInputElement>("[data-import]")!.addEventListener("change", async (event) => {
@@ -1133,7 +1195,9 @@ const PF_BUILDS = builds.map((b) => {
         out.push(pf.dataset.pfFlag ?? "");
         out.push(`${pf.dataset.pfCheck ?? ""} (book page ${pf.dataset.pfCheckPage ?? ""})`);
 
-        out.push("", `Written out of Teen & Grow Rich by Ryan Rijvers — ${SITE_HOST}`);
+        /* "Made with", not "Written out of" — which is not idiomatic and reads as
+           "removed from", on the closing line of a document going to a first client. */
+        out.push("", `Made with Teen & Grow Rich by Ryan Rijvers — ${SITE_HOST}`);
         return out.join("\n");
       };
 
@@ -1152,7 +1216,7 @@ const PF_BUILDS = builds.map((b) => {
       });
 
       document.querySelector<HTMLButtonElement>("[data-pf-print]")!.addEventListener("click", () => {
-        portfolioOnly = true;
+        printScope = "portfolio";
         flagPrint();
         window.print();
       });
@@ -1166,29 +1230,42 @@ const PF_BUILDS = builds.map((b) => {
     const clearStatus = document.querySelector<HTMLElement>("[data-clear-status]")!;
     let armed = false;
 
+    const disarm = () => {
+      if (!armed) return;
+      armed = false;
+      clearBtn.textContent = "Delete everything";
+      clearStatus.textContent = "";
+    };
+
     clearBtn.addEventListener("click", () => {
       // Two presses rather than a dialog: a confirm() box is the one piece of UI on this
       // site a reader cannot read at their own pace.
       if (!armed) {
         armed = true;
         clearBtn.textContent = "Press again to delete everything";
-        clearStatus.textContent = "This cannot be undone. Press anything else to leave it alone.";
+        /* "Press anything else" was not true. The only thing that disarmed this was a
+           mouse or touch tap somewhere else on the document, so a reader who armed it and
+           then pressed Tab or Escape walked away with a live delete button behind them.
+           The sentence now says what it does, and the three disarm routes below make it
+           true for a keyboard as well as a finger. */
+        clearStatus.textContent =
+          "This cannot be undone. Tap or tab away, or press Escape, and nothing happens.";
         return;
       }
       clearAll();
-      armed = false;
-      clearBtn.textContent = "Delete everything";
+      disarm();
       clearStatus.textContent = "Deleted from this browser.";
       paint();
     });
 
     document.addEventListener("click", (event) => {
-      if (armed && event.target !== clearBtn) {
-        armed = false;
-        clearBtn.textContent = "Delete everything";
-        clearStatus.textContent = "";
-      }
+      if (event.target !== clearBtn) disarm();
     });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") disarm();
+    });
+    // Tabbing off the armed button is a decision to go elsewhere, same as tapping away.
+    clearBtn.addEventListener("blur", () => disarm());
 
     /* --- Keeping the page honest --------------------------------------------- */
 
@@ -1318,12 +1395,6 @@ const PF_BUILDS = builds.map((b) => {
     color: var(--text-strong);
     font-variant-numeric: tabular-nums slashed-zero;
     max-inline-size: var(--container-measure);
-  }
-
-  .summary__totals {
-    margin-block-start: 0.35rem;
-    font-size: var(--text-meta);
-    color: var(--text-muted);
   }
 
   /* --- Buttons ------------------------------------------------------------- */
@@ -1519,10 +1590,6 @@ const PF_BUILDS = builds.map((b) => {
   /* --- Print: this is the folder ------------------------------------------- */
 
   @media print {
-    .summary__totals {
-      display: none;
-    }
-
     .group {
       margin-block-start: 1.25rem;
     }
@@ -1736,6 +1803,15 @@ const PF_BUILDS = builds.map((b) => {
     margin-block-start: 0.5rem;
   }
 
+  /* The instruction the flag label used to carry. It sits under the flag rather than
+     inside it so the flag keeps the site's one red wording. */
+  .portfolio__flag-note {
+    margin-block-start: 0.35rem;
+    font-size: var(--text-meta);
+    color: var(--text-default);
+    max-inline-size: var(--container-measure);
+  }
+
   .check {
     margin-block-start: 0.9rem;
   }
@@ -1804,6 +1880,13 @@ const PF_BUILDS = builds.map((b) => {
   @media print {
     :global(:root[data-print-portfolio] .print-sheet > :not(.portfolio)),
     :global(:root[data-print-portfolio] .furniture) {
+      display: none !important;
+    }
+
+    /* Same mechanism for the blank cover sheet. .paper is a sibling of .portfolio under
+       .print-sheet, so one selector shape covers both. */
+    :global(:root[data-print-paper] .print-sheet > :not(.paper)),
+    :global(:root[data-print-paper] .furniture) {
       display: none !important;
     }
   }
