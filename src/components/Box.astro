@@ -53,16 +53,19 @@ const { kind, class: className } = Astro.props;
     margin-block-end: 0.5rem;
   }
 
+  /* --text-muted is tuned for the page background, not for a tint wash. #637386 on
+     --box-check-fill (#EDF2F9) is 4.31:1, and the PageRef under a Reality Check is 14px,
+     so it fails AA on the light/print theme — the one theme a reader switches to in order
+     to show the check to an adult.
+
+     This used to be a single rule pointing at .page-ref, which fixed the one call site
+     that had been measured and left every other muted thing slotted into a box failing in
+     the same way — the licence labels on /teachers were 4.31:1 for exactly that reason.
+     Redefining the token here fixes the class of bug rather than an instance of it: any
+     muted text inside any box, now or later, resolves against the tint. */
   .box__body {
     color: var(--text-default);
-  }
-
-  /* --text-muted is tuned for the page background, not for a tint wash. #637386 on
-     --box-check-fill (#EDF2F9) is 4.31:1 and the PageRef under a Reality Check is 14px,
-     so it fails AA on the light/print theme — the one theme a reader switches to in
-     order to show the check to an adult. Inside a box, meta text takes body ink. */
-  .box__body :global(.page-ref) {
-    color: var(--text-default);
+    --text-muted: var(--text-muted-on-tint);
   }
 
   /* Slotted markup is not scoped to this component, so spacing has to be global here. */

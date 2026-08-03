@@ -199,13 +199,20 @@ const QUESTIONS = [
       chapter has to be read before another one works, no build waits for the build before
       it, and starting in the middle costs a reader nothing.
     </p>
-    <p>So the useful thing is not a reading plan. It is one page that stands on its own:</p>
+    <p>
+      So the useful thing is not a reading plan. It is a single page that makes sense on
+      its own, with nothing read first. There are two:
+    </p>
     <ul class="entries">
       <li>
-        <a href="/tools/scam-check">Scam Check</a> — paste the actual thing: the "job", the
-        offer in the DMs, the message that felt off. It comes back with a flag, which red
-        flags matched, and the page of the book that covers it. It asks for nothing except
-        the message they were already looking at, and nothing pasted into it is stored.
+        {/* Named as not built, the way /get and /schools/privacy name it. This page was
+            recommending it in the present tense as the answer to the most common problem a
+            parent brings, and the link landed on "Not live yet". */}
+        <a href="/tools/scam-check">Scam Check</a> — not built yet. When it is, they paste
+        the actual thing: the "job", the offer in the DMs, the message that felt off, and it
+        comes back with a flag, which red flags matched, and the page of the book that
+        covers it. The page is already up and shows exactly what it will ask for and give
+        back. Nothing pasted into it will ever be stored.
       </li>
       <li>
         <a href="/worksheet/real-rich-scoreboard">The Real Rich Scoreboard</a> — six scores
@@ -281,12 +288,17 @@ const QUESTIONS = [
         sheet of paper, and that is the point of it.
       </p>
       <p>
-        <button type="button" class="btn btn--primary js" data-print-btn>Print the agreement</button>
-        <span class="agreement__nojs">Use your browser's print command — File, then Print.</span>
+        <button type="button" class="btn btn--primary print-action" data-print-page>
+          Print the agreement
+        </button>
+        <span class="agreement__nojs">
+          Use your browser's print command — File, then Print. You get the sheet, and
+          nothing else from this page.
+        </span>
       </p>
     </div>
 
-    <div class="sheet">
+    <div class="sheet print-sheet">
       <p class="sheet__title">Our agreement</p>
       <p class="sheet__sub">
         Between <span class="sheet__rule"></span> and <span class="sheet__rule"></span>,
@@ -339,6 +351,17 @@ const QUESTIONS = [
     </div>
   </section>
 </Page>
+
+<script>
+  /* Progressive enhancement only. The sheet is complete and printable without this, and
+     .print-action stays invisible until ThemeScript has set data-js on <html>. Identical
+     three lines to /teachers, deliberately not shared: two pages is not a pattern, and a
+     helper that has to be imported is a helper that can be forgotten — which is how this
+     button shipped with no script at all. */
+  for (const btn of document.querySelectorAll<HTMLButtonElement>("[data-print-page]")) {
+    btn.addEventListener("click", () => window.print());
+  }
+</script>
 
 <style>
   .prose {
@@ -577,27 +600,21 @@ const QUESTIONS = [
     background: var(--accent-spine);
   }
 
+  /* "Print the agreement" prints the agreement, and nothing else.
+
+     It used to print the whole page: roughly 1,200 words of adult guidance across three
+     sheets before reaching the sheet the button names. The guidance is written to be read
+     on screen; the thing that goes on the fridge is the last section, and the sentence
+     above the button promises exactly that — "Print this, fill it in together, and put it
+     where you will both see it."
+
+     The agreement's own intro prose already carries data-print="hide" from global.css, so
+     only the page body above it needs hiding here. */
   @media print {
     .prose,
-    .tiers__inner,
-    .no-adult__inner {
-      max-inline-size: none;
-      padding-inline: 0;
-    }
-
     .tiers,
-    .no-adult {
-      background: none;
-      border: 0;
-    }
-
-    .tier,
-    .rule-box,
-    .entries li {
-      break-inside: avoid;
-    }
-
-    .cta {
+    .no-adult,
+    #agreement-h {
       display: none;
     }
   }
@@ -617,6 +634,19 @@ const QUESTIONS = [
 
   .agreement .prose p + p {
     margin-block-start: 0.9em;
+  }
+
+  /* Hidden until scripting has proved it can work — the same rule /teachers and the
+     Reality Check index use. This button shipped once as markup with no script behind it:
+     visible, focusable, orange, and inert, with the working instruction beside it hidden
+     from everyone whose JavaScript was on. A print button that does nothing is worse than
+     the browser's own print command, which every adult already has. */
+  .print-action {
+    display: none;
+  }
+
+  :global(:root[data-js]) .print-action {
+    display: inline-flex;
   }
 
   :global(html:not([data-js])) .agreement__nojs {
@@ -711,17 +741,13 @@ const QUESTIONS = [
   }
 
   @media print {
-    /* The sheet carries its own title. The section heading above it is navigation for
-       someone reading the page, and on paper it just says the same thing twice. */
-    #agreement-h {
-      display: none;
-    }
-
+    /* No break-before any more. Everything above the sheet is hidden in print (see the
+       block further up), so a forced page break here would spend a blank sheet of paper
+       before the only sheet the reader asked for. */
     .sheet {
       background: none;
       border: 0;
       padding: 0;
-      break-before: page;
     }
 
     .sheet__terms li {

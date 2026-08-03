@@ -57,7 +57,6 @@
  */
 import Page from "../layouts/Page.astro";
 import ChapterFurniture from "../components/ChapterFurniture.astro";
-import Box from "../components/Box.astro";
 import Flag from "../components/Flag.astro";
 import { totals } from "../lib/content";
 import { FLAG_RULE_PAGE } from "../lib/build-meta";
@@ -105,7 +104,9 @@ const COVERS = [
     where: [
       { href: "/reality-check", label: `All ${t.realityChecks} Reality Checks` },
       { href: "/race-control", label: "Green, yellow, red" },
-      { href: "/tools/scam-check", label: "Scam Check" },
+      /* Named as not switched on, the way /get, /schools/privacy and /parents name it. A
+         teacher plans a lesson round this and clicks into "Not live yet". */
+      { href: "/tools/scam-check", label: "Scam Check (not switched on yet)" },
     ],
   },
   {
@@ -193,8 +194,11 @@ const RUBRIC = [
   {
     name: "Reflection",
     question: "Can they say what did not work, without being asked to sound positive about it?",
-    sources: [{ href: "/c/01", label: "The debrief questions" }],
-    note: `Three at the end of every chapter, ${t.debriefQuestions} in all — on each chapter page, /c/01 to /c/${String(t.chapters).padStart(2, "0")}.`,
+    /* The chapter index, not chapter one. Every other row in this rubric links to the
+       thing it names; this one named "the debrief questions" and opened Chapter 1, then
+       handed the teacher a route pattern to type. Nobody types /c/07. */
+    sources: [{ href: "/#chapters", label: "All fifteen chapters" }],
+    note: `Three debrief questions at the end of every chapter, ${t.debriefQuestions} in all.`,
     exists: "The questions are answered in their own words rather than the book's.",
     changed:
       "One answer names something that failed, and a later build shows they did something about it.",
@@ -231,7 +235,7 @@ const PRINTABLE = [
   {
     href: "/race-control",
     label: "The traffic-light rule",
-    note: "Green, yellow, red, with examples and the three questions. Three colours become three edge weights and three edge styles on paper, so it still works in black and white.",
+    note: "Green, yellow, red, with examples and the three questions. Each colour also has its own border thickness and style, so it still reads in a black-and-white photocopy.",
   },
   {
     href: "/receipts",
@@ -251,7 +255,10 @@ const PRINTABLE = [
   {
     href: "/path/ninety-day",
     label: "The 90-day path",
-    note: "Thirteen dated actions in three phases, three of them flagged red.",
+    /* Yellow, and not "dated". All three flagged actions on that page are yellow — there
+       are no red ones — and the path carries day ranges per phase, not a date per action.
+       The Tiny Launch below is the one with a day on every task. */
+    note: "Thirteen actions across three phases, three of them flagged yellow — check in with an adult first.",
   },
   {
     href: "/path/tiny-launch",
@@ -264,15 +271,23 @@ const PRINTABLE = [
 const BEFORE = [
   {
     q: "Do students need an account?",
-    a: "No. There is no account, no login, no email field and nowhere on this site to type a name. A class can use all of it without anyone signing up for anything.",
+    /* "Nowhere on this site to type a name" was false and disprovable in forty seconds on
+       a page whose whole method is check it yourself: the first field of Your Starting
+       Point is a text input labelled MY NAME, and the portfolio sheet on /receipts has one
+       too. Both are linked from this page. What is actually true is still reassuring. */
+    a: "No. There is no account, no login and no email field. A worksheet may ask a student to write their name on it, but that stays in their own browser and is never sent anywhere — the same as everything else they type.",
   },
   {
     q: "What does it collect?",
-    a: "Nothing. No analytics, no cookies, no third-party requests, no server-side storage. Progress is kept in the browser on that device and never sent anywhere. Open developer tools, reload, and check the network tab — it takes about two minutes.",
+    /* The AI exception, which every other page on this site states and this one did not —
+       while linking Scam Check as classroom material eight paragraphs above. A reviewer
+       who is told "nothing" here and then finds the exception on /privacy stops trusting
+       the rest of the page. */
+    a: "Nothing. No analytics, no cookies, no third-party requests, no server-side storage. Progress is kept in the browser on that device and never sent anywhere. Open developer tools, reload, and check the network tab — it takes about two minutes. The one planned exception is the two AI tools, which are not switched on yet and are covered on the schools privacy page.",
   },
   {
     q: "What happens on a shared school laptop?",
-    a: "Whatever a student ticks or writes is cleared when the device signs them out. That is why every worksheet prints and every page has a copy-as-text route: the paper is the record, and the site says so to students rather than pretending otherwise.",
+    a: "Whatever a student ticks or writes is cleared when the device signs them out. That is why every worksheet prints and every page has a copy-as-text button: the paper is the record, and the site says so to students rather than pretending otherwise.",
   },
   {
     q: "Can I photocopy it?",
@@ -318,8 +333,9 @@ const BEFORE = [
     <h2 id="covers">What it covers</h2>
     <div class="prose">
       <p>
-        Enterprise and entrepreneurship with a money-habits and digital-skills spine, shaped
-        as practical tasks rather than lessons. The book's own words for its subject, on
+        Enterprise and entrepreneurship, with money habits and digital skills running
+        through it. It is shaped as things to make, not lessons to sit through. The book's
+        own words for its subject, on
         printed page 63, are websites, future skills, entrepreneurship, and helping young
         people move “from consuming to creating”.
       </p>
@@ -374,9 +390,9 @@ const BEFORE = [
     <h2 id="print">What prints</h2>
     <div class="prose">
       <p>
-        Print stylesheets here are written, not left to the browser — several of these exist
-        specifically to be printed and worked on with a pen. Open the page and use your
-        browser's print command.
+        These pages are laid out for paper, not just squeezed onto it — several of them
+        exist specifically to be printed and worked on with a pen. Open the page and use
+        your browser's print command.
       </p>
     </div>
     <ul class="printable">
@@ -400,19 +416,27 @@ const BEFORE = [
   <section class="wrap section" aria-labelledby="licence" data-print="hide">
     <h2 id="licence">What you may do with it</h2>
 
+    {/* Not Box. Box.astro hard-codes its label from `kind` and it cannot be overridden,
+        so a copyright licence was rendering under the heading "Reality Check" — and that
+        string was the section's accessible name as well. The other one rendered under
+        "Your 24-Hour Build". Neither box contained a Reality Check or a build. "Reality
+        Check" is the book's safety label and the one phrase a reader is meant to stop at;
+        spending it on a licence notice costs the label its meaning. There is no fourth Box
+        kind and there is not going to be one, so these are ordinary content with the same
+        hairline treatment the rest of this page uses, and .lic__h is the real heading. */}
     <div class="lic">
-      <Box kind="build">
-        <p class="lic__h">Worksheets, builds, templates and tools</p>
+      <div class="lic__card">
+        <h3 class="lic__h">Worksheets, builds, templates and tools</h3>
         <p class="lic__l">CC BY-NC-SA 4.0</p>
         <p>
           Copy them, hand them out, put them in a lesson, translate them, cut them up and
           rebuild them for your group. Credit the book, do not sell them, and keep whatever
           you make from them open under the same terms.
         </p>
-      </Box>
+      </div>
 
-      <Box kind="check">
-        <p class="lic__h">The 19 Reality Checks and the safety text</p>
+      <div class="lic__card lic__card--check">
+        <h3 class="lic__h">The {t.realityChecks} Reality Checks and the safety text</h3>
         <p class="lic__l">CC BY-NC-ND 4.0 — no derivatives</p>
         <p>
           Copy them and hand them out freely. <strong>Do not edit them.</strong> This is the
@@ -421,7 +445,7 @@ const BEFORE = [
           project could produce that would genuinely hurt somebody. If a check is wrong for
           your group, print it as it is and say so out loud in the room.
         </p>
-      </Box>
+      </div>
     </div>
 
     <p class="qa__more">
@@ -437,20 +461,25 @@ const BEFORE = [
         in a lesson or an evening, a Reality Check, and three debrief questions. That
         regularity is the useful bit for planning — {t.chapters} chapters, {t.builds} builds,
         {" "}{t.realityChecks} Reality Checks, {t.playSteps} action steps and{" "}
-        {t.debriefQuestions} debrief questions, all in the same shape.
+        {t.debriefQuestions} debrief questions, all in the same shape. Fifteen of the builds
+        sit one per chapter; the other four are the opening build, the two plans and the
+        afterword.
       </p>
+      {/* The site's own three labels, which are already on this page in the rubric. The
+          gloss used to end "red is an adult does it with you", which implies the thing
+          still happens — the printed rule on page 61 is stop. A teacher who copies a gloss
+          onto a wall must not end up with wording that contradicts the poster. */}
       <p>
         The green/yellow/red rule on printed page {FLAG_RULE_PAGE} runs through all of it,
-        and it is the thing most worth putting on a wall: green is do it, yellow is tell an
-        adult first, red is an adult does it with you.{" "}
+        and it is the thing most worth putting on a wall: green is go, yellow is check in
+        with an adult first, red is stop — an adult must be involved.{" "}
         <a href="/race-control">The version written for students</a> is one page and prints
         cleanly.
       </p>
       <p class="aside">
         The flag on each build is this site applying that printed rule, not a mark printed
-        beside the build in the book. Every page carrying one says so. If you disagree with
-        one of the nineteen, the printed rule wins — please tell us, the mailbox is in the
-        footer.
+        beside the build in the book. If you disagree with one of the nineteen, the printed
+        rule wins — please tell us, the mailbox is in the footer.
       </p>
     </div>
   </section>
@@ -544,7 +573,8 @@ const BEFORE = [
 
     <p class="sheet__foot">
       Teen &amp; Grow Rich by Ryan Rijvers. The criteria are ordinary classroom ones; the
-      sheets, folders and flags they point at are all free at {SITE_HOST}. Copy this rubric,
+      sheets, folders and flags they point at are all free at{" "}
+      <span class="site-host">{SITE_HOST}</span>. Copy this rubric,
       change it, use it — CC BY-NC-SA 4.0. The {t.realityChecks} Reality Checks are the one
       thing on the site that may be copied but not altered.
     </p>
@@ -599,8 +629,10 @@ const BEFORE = [
         <span class="sheet__pair">
           Builds finished <span class="sheet__rule sheet__rule--tiny"></span> of {t.builds}
         </span>
+        {/* "From … to …", not "Between … and …". Every other field on this sheet names
+            itself; that one said between what. */}
         <span class="sheet__pair">
-          Between <span class="sheet__rule sheet__rule--short"></span> and{" "}
+          From <span class="sheet__rule sheet__rule--short"></span> to{" "}
           <span class="sheet__rule sheet__rule--short"></span>
         </span>
       </p>
@@ -630,7 +662,8 @@ const BEFORE = [
       </p>
 
       <p class="sheet__foot">
-        Nothing on this sheet was filled in, checked, counted or recorded by {SITE_HOST}. It
+        Nothing on this sheet was filled in, checked, counted or recorded by{" "}
+        <span class="site-host">{SITE_HOST}</span>. It
         printed blank, and it is worth exactly as much as the person who signed it. Teen
         &amp; Grow Rich by Ryan Rijvers.
       </p>
@@ -790,7 +823,25 @@ const BEFORE = [
     }
   }
 
+  /* The hairline treatment .qa and .covers already use on this page: a rule down the side
+     and nothing else. No fill, so it cannot be mistaken for one of the three boxes, and
+     no fourth colour. */
+  .lic__card {
+    padding-inline-start: 1rem;
+    border-inline-start: 4px solid var(--rule-hairline);
+  }
+
+  .lic__card--check {
+    border-inline-start-color: var(--accent-spine);
+  }
+
+  .lic__card > p + p {
+    margin-block-start: 0.5rem;
+  }
+
   .lic__h {
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
     font-weight: 700;
     color: var(--text-strong);
   }
@@ -804,9 +855,6 @@ const BEFORE = [
     color: var(--text-muted);
   }
 
-  .lic :global(.box__body) > p + p {
-    margin-block-start: 0.5rem;
-  }
 
   .aside {
     margin-block-start: 1.25rem;
@@ -844,6 +892,18 @@ const BEFORE = [
   .sheet-actions__nojs {
     font-size: var(--text-meta);
     color: var(--text-muted);
+  }
+
+  /* .sheet__pair shipped as markup with no rule behind it, so it stayed display:inline —
+     and a .sheet__rule inside an inline box is not a flex item, so `flex: 1 1 7rem` and
+     `min-inline-size` both did nothing and the three write-on lines collapsed to zero
+     width. The certificate printed "Builds finished  of 19   From  to" with nowhere to
+     write. It was broken on screen too; nothing failed, because nothing was wrong with
+     the HTML. */
+  .sheet__pair {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
   }
 
   .sheet__rule {

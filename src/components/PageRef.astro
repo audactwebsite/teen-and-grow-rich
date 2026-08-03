@@ -37,9 +37,13 @@ const { page, kind, class: className } = Astro.props;
   }
 
   .page-ref__kind::after {
-    /* No leading space: the flex `gap: 0 0.5em` above already sets both sides of the
-       middot, and the extra space made it read as "Reality Check ·  Book page 56". */
+    /* A margin, not a space character. The flex `gap: 0 0.5em` above only sets the side
+       AFTER the middot — the ::after sits inside the first flex item, so the separator was
+       glued to the kind and floated away from the page number: "Chapter 01· Book page 10".
+       A literal leading space is not the fix; it lands on top of the gap and renders as
+       "Reality Check ·  Book page 56". */
     content: "·";
+    margin-inline-start: 0.35em;
   }
 
   .page-ref__n {

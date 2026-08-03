@@ -88,7 +88,10 @@ const PRINT_ONLY = [
   },
   {
     title: "The illustrations at full size",
-    text: "Fifteen of them, printed at 140 x 216mm on paper chosen for it. They are on this site too, scaled to whatever screen you happen to be holding.",
+    /* No dimensions. 140 × 216 mm is the book's trim size, not the picture's — and the
+       illustrations are landscape on a portrait page, so it was geometrically impossible
+       as well as wrong. docs/design-system.md §7 measures the column at 104mm. */
+    text: "Fifteen of them, printed across the full width of the page, on paper chosen for it. They are on this site too, scaled to whatever screen you happen to be holding.",
   },
   {
     title: "It survives everything this site does not",
@@ -135,7 +138,7 @@ const jsonLdText = jsonLd({ ...book, url: "/get" }, Astro.site);
   <ChapterFurniture
     eyebrow="The book"
     title="Get the book"
-    subtitle="Read all of it free, right here. Buy the print if you want the object."
+    subtitle="Read all of it free, right here. Buy the paper copy if you want something you can hold."
   />
 
   <div class="wrap">
@@ -193,7 +196,7 @@ const jsonLdText = jsonLd({ ...book, url: "/get" }, Astro.site);
           <span class="way__kicker">PDF &middot; 2.6 MB &middot; 66 pages</span>
           <b class="way__title">Download the whole book</b>
           <span class="way__body">
-            The digital reading edition, the same file the print run was set from. For
+            The digital reading edition, the same file the printed copy was made from. For
             offline, for an e-reader, for a school laptop with no wifi, or to print
             yourself. Nothing is tracked and nothing is asked for.
           </span>
@@ -221,8 +224,8 @@ const jsonLdText = jsonLd({ ...book, url: "/get" }, Astro.site);
     </div>
     <p class="prose note">
       The word count was measured from the print file itself — every text block on all 66
-      pages of the digital edition, with the running header, the strapline and the page
-      numbers dropped — and then rounded down to the nearest hundred. The raw count was
+      pages of the digital edition, with the repeated bits at the top of each page and the
+      page numbers left out — and then rounded down to the nearest hundred. The raw count was
       10,687. The reading time is that number divided by {WORDS_PER_MINUTE}, which is an
       assumption about you rather than a fact about the book. You are welcome to check
       both.
@@ -242,9 +245,9 @@ const jsonLdText = jsonLd({ ...book, url: "/get" }, Astro.site);
       }
     </div>
     <p class="prose note">
-      Notice that none of those is information. The words are all on this site, free, and
-      they are staying that way — a thirteen-year-old should not have to ask a parent for
-      money to read a book about not needing money. What the print run sells is the object.
+      None of that is information. Every word is on this site, free, and it is staying
+      that way — a thirteen-year-old should not have to ask a parent for money to read a
+      book about not needing money. What the print run sells is the paper, not the words.
     </p>
   </section>
 
@@ -291,7 +294,7 @@ const jsonLdText = jsonLd({ ...book, url: "/get" }, Astro.site);
         Six things. Two of them are here exactly as written. One is bigger than the book
         promised. One is here without the AI in front of it. Two are never going to exist,
         and that is a decision rather than a delay. All six, against what is actually on
-        this domain today:
+        this site today:
       </p>
     </div>
 
@@ -348,8 +351,8 @@ const jsonLdText = jsonLd({ ...book, url: "/get" }, Astro.site);
           name, where anyone can read it. You are thirteen. So your proof goes where you can
           actually keep it instead: <a href="/receipts">copy it out as text in one tap</a>,
           or print it and put it in the REAL RICH RECEIPTS folder Build 01 asks you to
-          start. It stays on your device unless you move it, and nothing you type here is
-          ever sent anywhere.
+          start. It is kept in this browser, and browsers throw it away — so copy it out
+          or print it if you want to keep it. Nothing you type here is ever sent anywhere.
         </p>
       </li>
       <li class="promise__item">
@@ -370,7 +373,7 @@ const jsonLdText = jsonLd({ ...book, url: "/get" }, Astro.site);
       Two of six is not a small gap and it is not closing. Both of them need this site to
       keep your work somewhere other than your own browser, and that is the one thing it
       will never do — it is why there is no account, no login and no email field anywhere on
-      this domain. See <a href="/privacy">privacy</a>. The AI tools are the only item on the
+      this site. See <a href="/privacy">privacy</a>. The AI tools are the only item on the
       list that is genuinely unfinished; when they land they get a dated line on{" "}
       <a href="/updates">the changelog</a>, like everything else. Page 63 stays printed and
       this stays here, so you can check both.
@@ -389,10 +392,13 @@ const jsonLdText = jsonLd({ ...book, url: "/get" }, Astro.site);
   </section>
 
   <section class="wrap section" aria-labelledby="buy">
-    <h2 id="buy">Where to buy the printed copy</h2>
+    <h2 id="buy">Buying a printed copy</h2>
     <div class="prose">
       <div data-placeholder class="placeholder">
-        <p class="placeholder__label">Retailer link pending</p>
+        {/* "Retailer link pending" was a ticket status, not an answer. The note under it
+            is already honest and stays exactly as written; the label is the part that read
+            as forgotten rather than named. */}
+        <p class="placeholder__label">You cannot buy it yet</p>
         <p class="placeholder__note">
           The printed book is sold through an outside retailer and the link is not
           confirmed yet. It will appear here, plainly, with no countdown attached to it —
@@ -456,9 +462,11 @@ const jsonLdText = jsonLd({ ...book, url: "/get" }, Astro.site);
         <b>The material built around the book is yours to copy.</b> All four worksheets, the
         {" "}{t.builds} builds, the 90-day path, all {t.realityChecks} Reality Checks, the
         templates and everything else made for this site are under a Creative Commons
-        licence. Print them, photocopy them, put them on a shared drive, cut them up for your
-        group. You do not have to ask, and there is nobody to ask. The one restriction is
-        that the Reality Checks may be copied but never edited.
+        licence. Print them, photocopy them, put them on a shared drive. You do not have to
+        ask, and there is nobody to ask. Three conditions: say where they came from, do not
+        sell them, and keep whatever you make from them just as free. The{" "}
+        {t.realityChecks} Reality Checks are the exception — copy them, never change them,
+        because an edited safety warning is a dangerous thing to have circulating.
       </p>
       <p>
         <b>The book itself is not under that licence.</b> The stories, the essays and the
@@ -468,7 +476,7 @@ const jsonLdText = jsonLd({ ...book, url: "/get" }, Astro.site);
         this, because the link goes to exactly the same words.
       </p>
       <p>
-        So what would a class set actually be? Thirty copies of the object — thirty things a
+        So what would a class set actually be? Thirty printed copies — thirty things a
         student can keep, mark up and take home. That is a real thing to want, and it is a
         different thing from access. Nothing in a printed copy is missing from this site.
       </p>

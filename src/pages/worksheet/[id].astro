@@ -229,7 +229,16 @@ if (ask) {
  * Throws rather than dropping a row: an area that is named as the reader's weakest and
  * then offers nowhere to go is exactly the dead end AREA_CHAPTER exists to close.
  */
-type Route = { area: string; label: string; chapter: string; title: string; build: string };
+type Route = {
+  area: string;
+  label: string;
+  chapter: string;
+  title: string;
+  build: string;
+  /** The build's first instruction, verbatim. The chapter link says what it is; the build
+   *  link was a bare number, so the one thing the reader is told to do was unnamed. */
+  todo: string;
+};
 
 let routes: Route[] = [];
 
@@ -255,6 +264,9 @@ if (isScoreboard) {
       chapter: pad(chapter.data.n),
       title: chapter.data.title,
       build: pad(build.data.n),
+      /* First sentence only, and taken from the book's own wording rather than written
+         here. Never paraphrased: builds.yaml is generated from the print file. */
+      todo: `${build.data.build.split(". ")[0]!.replace(/\.$/, "")}.`,
     };
   });
 }
@@ -336,6 +348,12 @@ const prefill =
                   >
                     −
                   </button>
+                  {/* No aria-valuetext in the markup. It used to ship as "Not scored yet",
+                      and a range input is fully operable without scripting — so a screen
+                      reader user with JavaScript off could move the thumb to 7 and still be
+                      told "Not scored yet". A wrong accessible value is worse than none, so
+                      without scripting the native value is announced and the script owns
+                      aria-valuetext from load onwards. */}
                   <input
                     type="range"
                     id={`f-${f.id}`}
@@ -344,7 +362,6 @@ const prefill =
                     max="10"
                     step="1"
                     value="5"
-                    aria-valuetext="Not scored yet"
                     aria-describedby={`h-${f.id}`}
                     data-score={f.id}
                     data-label={f.label}
@@ -371,10 +388,17 @@ const prefill =
 
           {/* One honest bar visual: six bars, drawn from the six numbers, nothing more.
               No radar, no animation, no total, no grade. */}
+          {/* h2, not h3. The only other h2 on this page is "Get this off the device",
+              which is hidden until this browser is holding something — so on a first
+              visit the outline went h1 straight to h3 and no automated rule saw it. */}
           <section class="bars" aria-label="Your six areas as bars">
-            <h3 class="bars__heading">Your six areas</h3>
+            <h2 class="bars__heading">Your six areas</h2>
+            {/* Not "move a slider and its bar appears here" — all six bars are already on
+                screen, empty, directly underneath this sentence. Nothing appears; the
+                fills arrive. */}
             <p class="bars__empty" data-bars-empty>
-              Move a slider and its bar appears here.
+              Nothing scored yet. Every slider starts in the middle — move one, or press +
+              or −, and its bar fills in.
             </p>
             <ol class="bars__list">
               {w.fields.map((f) => (
@@ -383,6 +407,11 @@ const prefill =
                   <span class="bars__track">
                     <span class="bars__fill" data-bar={f.id} />
                   </span>
+                  {/* Print only, and only on rows nobody has scored. On paper the sliders
+                      are hidden — they are unusable with a pen — which left a blank sheet
+                      showing six empty tracks, six em-dashes and nothing anywhere saying
+                      the range is 1 to 10. This is the thing you circle. */}
+                  <span class="bars__scale" aria-hidden="true">1 2 3 4 5 6 7 8 9 10</span>
                   <span class="bars__n" data-bar-n={f.id}>
                     —
                   </span>
@@ -400,11 +429,13 @@ const prefill =
               is marked. Without that rule all six rows announce themselves as the lowest,
               which is the opposite of the one fact this section exists to state. */}
           <section class="routes" aria-labelledby="routes-h">
-            <h3 class="routes__heading" id="routes-h">
-              Where the book answers each area
-            </h3>
+            <h2 class="routes__heading" id="routes-h">
+              What to do about your lowest one
+            </h2>
+            {/* Not "the row to open" and "the build under it" — a row is not something a
+                thirteen-year-old opens, and "under it" is a fact about the stylesheet. */}
             <p class="routes__note">
-              Whichever one comes out lowest, that is the row to open. The build under it is
+              Whichever one comes out lowest, start there. Open its 24-Hour Build — that is
               the one thing to do about it.
             </p>
             <ol class="routes__list">
@@ -422,6 +453,7 @@ const prefill =
                       24-Hour Build {r.build}
                     </a>
                   </p>
+                  <p class="route__todo">{r.todo}</p>
                 </li>
               ))}
             </ol>
@@ -513,13 +545,17 @@ const prefill =
       scrolled through the sheet. */}
   <div class="wrap actions" data-print="hide">
     <h2 class="actions__heading">Get this off the device</h2>
+    {/* The scoreboard has no answers on it. Six sliders, six numbers — calling them
+        answers contradicted the band above ("6 areas") and both headings on the page. */}
     <p class="actions__note" data-keep-note>
-      Answers are kept in this browser, never sent anywhere. A browser is not a safe
-      place to leave work — copy it out or print it.
+      {isScoreboard ? "Scores are" : "Answers are"} kept in this browser, never sent
+      anywhere. A browser is not a safe place to leave work — copy it out or print it.
     </p>
 
     <div class="actions__row">
-      <button type="button" class="btn btn--primary" data-copy>Copy my answers as text</button>
+      <button type="button" class="btn btn--primary" data-copy>
+        Copy my {isScoreboard ? "scores" : "answers"} as text
+      </button>
       <button type="button" class="btn" data-print-btn>Print this worksheet</button>
     </div>
 
@@ -714,7 +750,15 @@ const prefill =
     const paintLowest = () => {
       if (!lowest) return;
       if (scored.size < ranges.length) {
-        lowest.textContent = "";
+        /* Between one and five scored this used to say nothing at all, and nothing on the
+           page stated the precondition — so a reader who scored three sat looking at a
+           silent live region wondering what they had done wrong. The site names its own
+           gaps everywhere else; this one is a gap in the reader's own sheet. */
+        lowest.textContent =
+          scored.size === 0
+            ? ""
+            : `${scored.size} of ${ranges.length} scored. Do all ${ranges.length} and this ` +
+              "line names the lowest one.";
         for (const row of routeRows) row.removeAttribute("data-route-lowest");
         return;
       }
@@ -742,6 +786,11 @@ const prefill =
         range.setAttribute("aria-valuetext", `${v} out of 10`);
         scored.set(id, v);
         paintScore(id, v);
+      } else {
+        /* Set here, never in the markup — see the comment on the input. Only scripting can
+           tell the difference between "the thumb happens to sit at 5" and "the reader has
+           chosen 5", so only scripting is allowed to claim the first one. */
+        range.setAttribute("aria-valuetext", "Not scored yet");
       }
     }
     if (scored.size > 0 && barsEmpty) barsEmpty.hidden = true;
@@ -788,6 +837,19 @@ const prefill =
       if (range) keepScore(range);
     });
 
+    /* Touching a slider scores it, even when the thumb does not move.
+
+       Every thumb sits at 5 on a fresh load while the readout says "—" and the accessible
+       value says "Not scored yet" — the thumb and the number disagreeing, and 5 being the
+       one score unreachable in a single move: the first press of + gives 6, the first
+       press of − gives 4. A click that changes nothing fires no `input` and no `change`,
+       so this is what closes both. keepScore() is idempotent, so the ordinary case where
+       the value did change costs nothing. */
+    sheet.addEventListener("click", (event) => {
+      const range = (event.target as HTMLElement | null)?.closest<HTMLInputElement>("[data-score]");
+      if (range) keepScore(range);
+    });
+
     /* WCAG 2.2 §2.5.7: dragging a slider must not be the only way to set it. Arrow keys
        already satisfy that for a keyboard; these two buttons satisfy it for a thumb. */
     sheet.addEventListener("click", (event) => {
@@ -823,6 +885,21 @@ const prefill =
         }
       }
       if (lowest?.textContent) lines.push("", lowest.textContent);
+
+      /* The action, not just the instruction to find one.
+
+         This used to end on "Choose one action for it" and never name it, while the page
+         and the printed sheet both showed the route. The copy is offered first and is the
+         one a reader pastes into their notes, so it was the one version of this sheet you
+         could not act on without coming back to the page. */
+      const marked = routeRows.filter((row) => row.hasAttribute("data-route-lowest"));
+      for (const row of marked) {
+        const where = [...row.querySelectorAll<HTMLAnchorElement>("a")]
+          .map((a) => `${a.textContent?.trim()} — ${SITE_HOST}${a.getAttribute("href")}`)
+          .join("\n  ");
+        if (where) lines.push(`Where to go for ${row.dataset.routeLabel ?? ""}:`, `  ${where}`);
+      }
+
       lines.push("", `Copied from ${SITE_HOST}. This text is the copy that lasts.`);
       return lines.join("\n");
     };
@@ -921,8 +998,12 @@ const prefill =
 
     const note = document.querySelector<HTMLElement>("[data-keep-note]");
     if (note && !canKeep()) {
+      /* Same word the rest of this sheet uses. The scoreboard has scores on it, not
+         answers — six sliders and no text box anywhere. */
+      const what = ranges.length > 0 ? "scores" : "answers";
       note.textContent =
-        "This browser is not keeping anything, so these answers go when you leave the page. Copy them out or print them now.";
+        `This browser is not keeping anything, so these ${what} go when you leave the ` +
+        "page. Copy them out or print them now.";
     }
   }
 </script>
@@ -1219,6 +1300,12 @@ const prefill =
     print-color-adjust: exact;
   }
 
+  /* Paper only. On screen the slider is the control and this would be a second, dead one;
+     the print block below is the only place it is ever shown. */
+  .bars__scale {
+    display: none;
+  }
+
   .bars__n {
     font-size: var(--text-meta);
     font-weight: 700;
@@ -1325,6 +1412,14 @@ const prefill =
     display: flex;
     align-items: center;
     color: var(--text-default);
+  }
+
+  /* The build's own first instruction, in the book's words. It is not a link — the number
+     above it is — so it carries the meaning the number could not. */
+  .route__todo {
+    margin-block-start: 0.15rem;
+    font-size: var(--text-meta);
+    color: var(--text-muted);
   }
 
   /* --- Reality Check + actions --------------------------------------------- */
@@ -1617,6 +1712,27 @@ const prefill =
        the bar and the number, so the sliders go and the bars stay. */
     .scores {
       display: none;
+    }
+
+    /* A blank scoreboard has to be fillable with a pen.
+
+       With the sliders gone and nothing scored, this sheet printed six area names, six
+       empty tracks and six em-dashes, and nowhere on the page did it say the range was 1
+       to 10 — /parents advertises this sheet as one that prints, and /proof/receipts lists
+       a filled-in one as a receipt. So an unscored row prints its scale instead of its
+       empty bar, and the reader circles a number. A row that already has a score keeps its
+       bar, because that row is a record rather than a form. */
+    .bars__row:not([data-scored]) .bars__track,
+    .bars__row:not([data-scored]) .bars__n {
+      display: none;
+    }
+
+    .bars__row:not([data-scored]) .bars__scale {
+      display: block;
+      grid-column: 2 / -1;
+      font-size: 10pt;
+      letter-spacing: 0.55em;
+      color: var(--text-default);
     }
 
     .bars {

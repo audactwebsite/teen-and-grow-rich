@@ -6,7 +6,9 @@
  * by hand, with the things that are still missing named on the same page. A site that
  * quietly stops being updated is worse than one that says what it has not done yet.
  *
- * Newest first. Entries are appended, never rewritten — the same rule as the decisions log.
+ * Newest first. Entries are appended and facts are never quietly corrected — a correction
+ * gets its own dated entry, the same rule as the decisions log. See src/lib/updates.ts for
+ * what that rule does and does not cover.
  */
 import Page from "../layouts/Page.astro";
 import ChapterFurniture from "../components/ChapterFurniture.astro";
@@ -19,24 +21,32 @@ import { ENTRIES, MISSING, fmtDate as fmt } from "../lib/updates";
   title="Updates"
   description={`A dated changelog for ${SITE_HOST} — what changed, when, and what is still missing.`}
 >
+  {/* The eyebrow used to repeat the title word for word, so the first two lines of the
+      page were the same word twice. Elsewhere on the site the eyebrow carries a second
+      piece of information — "Every build in the book" over "The 19 Builds". */}
   <ChapterFurniture
-    eyebrow="Updates"
+    eyebrow="What changed, and when"
     title="Updates"
-    subtitle="What changed on this site, and when. Newest first."
+    subtitle="Newest first."
   />
 
   <div class="wrap">
     <div class="prose">
+      {/* This used to say the printed book does not change between print runs, and then
+          tell you what to do when a page number does not match — which cannot both be
+          true. What is fixed is the copy in your hands; what moves is the numbering
+          between one print run and the next. */}
       <p class="lede">
-        This is a changelog for the website. The printed book does not change between print
-        runs — if you are holding one and a page number here does not match, that is what{" "}
-        <a href="/editions">editions</a> is for.
+        This is the list of what changed on this site, and when. The book in your hands
+        does not change — once it is printed, it is printed. But page numbers can shift
+        between print runs, so if a number here does not match your copy,{" "}
+        <a href="/editions">editions</a> tells you which run you are holding.
       </p>
     </div>
   </div>
 
   <section class="wrap section" aria-labelledby="log">
-    <h2 id="log">The log</h2>
+    <h2 id="log">What changed</h2>
 
     {
       ENTRIES.map((e) => (
@@ -59,8 +69,8 @@ import { ENTRIES, MISSING, fmtDate as fmt } from "../lib/updates";
     <h2 id="missing">What is missing right now</h2>
     <div class="prose">
       <p>
-        Named here rather than left for you to discover. Each one becomes a dated entry
-        above when it lands.
+        Named here rather than left for you to discover. Each one gets its own dated entry
+        above on the day it arrives.
       </p>
       <ul class="plain">{MISSING.map((m) => <li>{m}</li>)}</ul>
     </div>
@@ -70,17 +80,26 @@ import { ENTRIES, MISSING, fmtDate as fmt } from "../lib/updates";
     <h2 id="how">How this page works</h2>
     <div class="prose">
       <p>
-        Entries are written by hand and appended, never edited after the fact. If something
-        on this site turns out to be wrong, the correction gets its own dated entry saying
-        what was wrong — not a quiet fix.
+        Every entry is written by hand and added at the top. Nothing here gets quietly
+        edited later — if something turns out to be wrong, the correction gets its own
+        dated entry saying what was wrong.
       </p>
+      {/* The address is the link text. It used to read "the feed is here. Paste that
+          address into any feed reader" — with no address printed anywhere for "that" to
+          point at, and on a phone no way to get one except long-press and Copy link.
+
+          The certainty claim went too. "We have no way of knowing you subscribed" cannot
+          sit two sections below "what the host's access logs contain" being named as an
+          open question: a feed reader fetches the file from that same host. */}
       <p>
-        You can follow this page without giving anyone anything:{" "}
-        <a href="/updates.xml">the feed is here</a>. Paste that address into any feed
-        reader. There is no newsletter and there will not be one — a newsletter needs an
-        email address from a thirteen-year-old, which is the one thing this site exists not
-        to ask for. A feed needs no account, no address and no permission, and we have no
-        way of knowing you subscribed.
+        You can follow this page without giving anyone anything. The feed is at{" "}
+        <a href="/updates.xml">{SITE_HOST}/updates.xml</a> — copy that address into any
+        feed reader. There is no newsletter and there will not be one: a newsletter needs
+        an email address from a thirteen-year-old, which is the one thing this site exists
+        not to ask for. A feed needs no account, no address and no permission. Your feed
+        reader still asks our host for the file, the same as any page you open here, and
+        what that host writes down is one of the things named on the missing list above.
+        Nothing this site controls records that you subscribed.
       </p>
       {/* The pace note. A review asked for this and it is purely protective of the person at
           the centre of the project: a thirteen-year-old with a book out will be asked for
@@ -90,8 +109,8 @@ import { ENTRIES, MISSING, fmtDate as fmt } from "../lib/updates";
       <p>
         There is no schedule here. Ryan is thirteen, he is at school, and he races. Things
         get added when they are ready and not before, which sometimes means nothing changes
-        for weeks. That is the pace, not a backlog — and the gap between entries is not a
-        sign that something is wrong.
+        for weeks. That is the pace, not a queue of things running late — and the gap
+        between entries is not a sign that something is wrong.
       </p>
     </div>
   </section>

@@ -173,8 +173,12 @@ const description =
           field. Both printed QR codes land here, so the first thing a reader with the book
           in their hand needs is still the number they are holding. This is the second
           sentence, not the first. */}
+      {/* Points at chapter one, not at /get. "Read here" has to land somewhere a reader
+          can start reading; /get is headed "Get the book" and puts one more click between
+          them and the first sentence. /get is still reached from "About the book" at the
+          foot of this page, which is what that page is for. */}
       <p class="hero__free">
-        <a href="/get">The whole book is free to read here</a> — all fifteen chapters, no
+        <a href="/c/01">The whole book is free to read here</a> — all fifteen chapters, no
         account, no email address.
       </p>
 
@@ -207,7 +211,7 @@ const description =
         </div>
 
         <p class="pn__hint" id="pn-hint">
-          Pages 1 to {LAST_PRINTED_PAGE}. Type {LAST_PAGE} for the chapter that is not in the book.
+          Pages 1 to {LAST_PRINTED_PAGE}. Type {LAST_PAGE} for the chapter Ryan is still writing.
         </p>
 
         {/* Ships empty. The lede and the hint already say what to do, and a third
@@ -281,7 +285,8 @@ const description =
             <span class="start__body">
               Start a folder called <i>REAL RICH RECEIPTS</i> and put one real thing in it —
               a screenshot, a draft, a message someone sent back. That folder is the whole
-              idea: proof you can point at, instead of a feeling that you were productive.
+              idea: proof you can point at, instead of a vague sense that you got something
+              done.
             </span>
           </a>
         </li>
@@ -360,10 +365,12 @@ const description =
         questions.
       </p>
 
+      {/* Same disclosure, said to the reader rather than to a fact-checker: active voice,
+          and the rule explained before the page number is cited. */}
       <p class="prose note">
-        The flag on each row is this site applying the book's own traffic-light rule from
-        page {FLAG_RULE_PAGE} to that chapter's 24-Hour Build. The book does not print a
-        flag beside each chapter.
+        We put the flags there, not the book. The book has one traffic-light rule — green,
+        yellow, red, on page {FLAG_RULE_PAGE} — and we applied it to each chapter's
+        24-Hour Build. The book itself does not print a flag next to each chapter.
       </p>
 
       <ol class="chlist">
@@ -395,7 +402,11 @@ const description =
             <span class="ch__n">16</span>
             <span class="ch__title">Chapter 16</span>
             <span class="ch__hill">What Ryan learned after the book went to print</span>
-            <span class="ch__flag ch__flag--none">No build yet</span>
+            {/* "Not written yet" is what /c/16 itself says. This column used to read
+                "No build yet", which is true about the build and quietly implies the
+                chapter exists — the one place on the site where an honest empty state
+                read as finished content. */}
+            <span class="ch__flag ch__flag--none">Not written yet</span>
             <span class="ch__page">Not in the book</span>
           </a>
         </li>
@@ -444,10 +455,14 @@ const description =
       <p class="eyebrow">After the chapters</p>
       <h2 id="route-title" class="h2">{ninety?.data.title}</h2>
       <p class="route__lede">
-        Ninety days, three phases, {phases.reduce((n, p) => n + p.count, 0)} dated actions.
-        It is the back of the book, and it is the part that turns everything above into
-        something a real person would pay for — safely, with an adult on the parts that
-        need one.
+        {/* Not "three phases, 13 dated actions". "Phases" and "dated actions" are the
+            words a project plan uses about itself, and "dated" was wrong as well: the
+            three parts carry day ranges (Days 1-30 and so on), the actions inside them do
+            not carry a day each. The Tiny Launch is the one with real dates. */}
+        Ninety days, split into three parts, with {phases.reduce((n, p) => n + p.count, 0)}{" "}
+        things to do. It is the back of the book, and it is the part that turns everything
+        above into something a real person would pay for — safely, with an adult on the
+        parts that need one.
       </p>
 
       <ol class="route__list">
@@ -522,7 +537,10 @@ const description =
         <li>
           <a class="door" href="/proof">
             <b>About Ryan</b>
-            <span>Thirteen. Karting across Europe since he was eight, and an F4 car built to fit him at eleven.</span>
+            {/* Both of /proof's qualifiers, kept. This used to coordinate-join the F4 car
+                to the karting so it inherited the same evidentiary weight — and stripped
+                of "not a race" it is exactly the claim CLAUDE.md forbids publishing. */}
+            <span>Thirteen. Karting across Europe since he was eight. He trains in a Formula 4 car built to fit him — he does not race it.</span>
           </a>
         </li>
       </ul>
@@ -558,7 +576,11 @@ const description =
 
       <div class="book__body">
         <p class="eyebrow">The book</p>
-        <h2 id="book-title" class="h2">Teen &amp; Grow Rich</h2>
+        {/* Not "Teen & Grow Rich" — that is the h1 at the top of this page, and two
+            headings with identical text is what a screen-reader heading list or a browser
+            outline gives you twice with different content under each. The eyebrow
+            disambiguates visually; an eyebrow is not part of the heading. */}
+        <h2 id="book-title" class="h2">The printed book</h2>
         {/* This used to say the book had the fifteen stories, the Hill Remix essays and
             What It Means Now and the site did not. That was true once and has not been
             since the book was made free: /c/[n] renders all three on every chapter page.
@@ -567,7 +589,7 @@ const description =
             away and free. */}
         <p class="prose lede">
           {LAST_PRINTED_PAGE} pages, and every word of them is already on this site for
-          nothing. What the printed copy is for is the object: something you can put in
+          nothing. What you get for buying it is the thing itself: something you can put in
           somebody's hands, that no notification can close halfway through, and that is
           still there after a browser has thrown everything else away.
         </p>

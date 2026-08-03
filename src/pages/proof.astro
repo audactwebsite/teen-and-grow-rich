@@ -97,13 +97,17 @@ interface Step {
   body: string;
   sources?: { label: string; href: string }[];
   unsourced?: string;
+  /* An in-page link out of a step, for the one entry whose story is told further down.
+     "See below" was plain text, so on a phone it meant scrolling past a whole section
+     hunting for the thing it pointed at. The anchor already existed; nothing used it. */
+  more?: { href: string; label: string };
 }
 
 const TIMELINE: Step[] = [
   {
     age: "8",
     title: "First time in a kart",
-    body: "Then, almost straight away, his first race ever: Spa, Micromax class, round two of the Dutch Rotax Max championship. He came fourth, was named best rookie, and was voted driver of the day. First race. Ever.",
+    body: "He sat in a kart for the first time at eight. Almost straight away came his first race ever: Spa, Micromax class, round two of the Dutch Rotax Max championship. He came fourth, was named best rookie, and was voted driver of the day. First race. Ever.",
     sources: [
       {
         label: "RaceXpress, 27 May 2022",
@@ -118,7 +122,17 @@ const TIMELINE: Step[] = [
   {
     age: "8–10",
     title: "Racing across Europe",
-    body: "For Strawberry Racing and for François Slangen. Wins, and a lot of podiums. The results are published — you can go and look them up, and you should, because that is exactly what Chapter 7 tells you to do with anyone's claims.",
+    /* No count, and no "go and look them up" either. The count is cut because nobody has
+       published one we can link to (non-negotiable 10), and the instruction was a dead end:
+       it told a thirteen-year-old to go searching without naming anywhere to search.
+
+       The reason now sits in `unsourced` rather than in the body, so this step carries the
+       same visible "No source:" label the Formula 4 step does. Two steps on this page used
+       to make results claims with no link and no label, on the one page whose whole subject
+       is that a claim comes with its evidence. */
+    body: "For Strawberry Racing and for François Slangen. Wins, and a lot of podiums.",
+    unsourced:
+      "No published results sheet adds these up, so there is no number here and nothing to link to. Chapter 7 says a claim you cannot check is worth nothing — and that includes this one.",
   },
   /* Two cards, not one. The Belgian title and the German round-2 win happened in different
      classes and this page used to state them in a single card headed "Rotax Max Mini
@@ -138,7 +152,7 @@ const TIMELINE: Step[] = [
   {
     age: "10",
     title: "A win in Germany, in a different class",
-    body: "Minimax this time, not the Mini Rookie class he took the Belgian title in. Round two of the German Rotax Max championship, at Genk again, and he won the final. Second place went to the driver who had been Rotax Max world champion the year before. Third was the German Minimax champion. Two classes, two results — worth keeping apart, because they get run together.",
+    body: "Minimax this time, not the Mini Rookie class he took the Belgian title in. Round two of the German Rotax Max championship, at Genk again, and he won the final. Second place went to the driver who had been Rotax Max world champion the year before. Third was the German Minimax champion. Two different classes, two different results. People mix them up — do not.",
     sources: [
       {
         /* No date in this label. It is the one source whose publication date has not been
@@ -153,24 +167,43 @@ const TIMELINE: Step[] = [
     age: "10–11",
     title: "The big series",
     body: "The Rotax Max Euro Trophy, and the Rotax international finals at Le Mans — which is the race every kart driver in Europe is trying to qualify for.",
+    unsourced:
+      "No report to link to for these two. Nobody has written one up that names him, so this comes from Ryan's family — weaker evidence than the results above it, and you should read it that way.",
   },
   {
     age: "11",
     title: "A Formula 4 car, built to fit him",
-    body: "Not a race. See below — this is the part people usually get wrong, and the true version is better.",
+    body: "Not a race. This is the part people usually get wrong, and the true version is better.",
+    more: { href: "#f4", label: "Here is what actually happened" },
     unsourced:
       "It is not a race, so there is no results sheet and no report to link to. This one comes from Ryan's family. That is weaker evidence than everything above it, and you should read it that way.",
   },
   {
     age: "13",
     title: "Wrote this book",
-    body: "Sixty-four pages, fifteen chapters, nineteen builds. And when he is not doing that, he is building software with AI — Claude Code, mostly. He loves it.",
+    /* What he builds with AI is stated once, in "What he is into now". It used to be here
+       as well, ten lines apart and word for word — a reader met the same sentence twice
+       and assumed they had lost their place. */
+    body: "Sixty-four pages, fifteen chapters, nineteen builds.",
   },
 ];
 
 /* He is a minor: name, role and the one page this site controls. No birth date, no
    address, no school, no sameAs chain of social profiles. */
 const jsonLdText = jsonLd({ ...author, url: "/proof", nationality: "NL", knowsAbout: ["Karting", "Writing"], workExample: book }, Astro.site);
+
+/**
+ * No Formula 4 in the description, deliberately.
+ *
+ * The page body spends a whole section establishing the two qualifiers — it is not a race,
+ * and it is the one claim here that comes from the family rather than from a published
+ * report. A meta description is the one place those qualifiers cannot follow it: in a
+ * search result or a WhatsApp preview "a Formula 4 car at eleven" reads as F4 at eleven,
+ * which is exactly the rumour CLAUDE.md forbids publishing. The Belgian title is sourced,
+ * so it goes here instead.
+ */
+const description =
+  "Ryan Rijvers, author of Teen & Grow Rich, is thirteen. Karting across Europe since he was eight, a Belgian karting title at ten, and a book written at thirteen. Every result on this page links to the report of it.";
 ---
 
 {/* The title is his name.
@@ -185,13 +218,13 @@ const jsonLdText = jsonLd({ ...author, url: "/proof", nationality: "NL", knowsAb
     are already reading. */}
 <Page
   title="Ryan Rijvers"
-  description="Ryan Rijvers, author of Teen & Grow Rich, is thirteen. Karting across Europe since he was eight, a Formula 4 car built to fit him at eleven, and a book written at thirteen."
+  description={description}
   jsonLdText={jsonLdText}
 >
   <ChapterFurniture
     eyebrow="The author"
     title="Ryan Rijvers"
-    subtitle="He is thirteen, and he wrote this book. He is probably not much older than you are."
+    subtitle="He is thirteen, and he wrote this book. He is probably about your age — or younger."
   />
 
   <div class="wrap">
@@ -245,9 +278,15 @@ const jsonLdText = jsonLd({ ...author, url: "/proof", nationality: "NL", knowsAb
               </h3>
               <p class="step__text">{t.body}</p>
 
+              {t.more && (
+                <p class="step__more">
+                  <a href={t.more.href}>{t.more.label}</a>
+                </p>
+              )}
+
               {t.sources && (
                 <p class="step__source">
-                  <span class="step__source-label">Source:</span>
+                  <span class="step__source-label">Source:</span>{" "}
                   {t.sources.map((s) => (
                     <span class="step__source-item">
                       <a href={s.href} rel="external noreferrer">
@@ -260,10 +299,11 @@ const jsonLdText = jsonLd({ ...author, url: "/proof", nationality: "NL", knowsAb
 
               {/* The other half of the same rule. A blank where a source line would be says
                   "nothing to check here"; this says "something to check, and we cannot".
-                  Only the Formula 4 step uses it. */}
+                  Three steps use it: the two that make results claims nobody has published
+                  a report of, and the Formula 4 car. */}
               {t.unsourced && (
                 <p class="step__source">
-                  <span class="step__source-label">No source:</span>
+                  <span class="step__source-label">No source:</span>{" "}
                   <span class="step__source-item">{t.unsourced}</span>
                 </p>
               )}
@@ -319,10 +359,10 @@ const jsonLdText = jsonLd({ ...author, url: "/proof", nationality: "NL", knowsAb
         }
       </p>
       <p>
-        The Formula 4 part is different, and the timeline says so where the claim sits.
-        That came from Ryan's family rather than from a results sheet, because it is not a
-        race and there is nothing to publish — which is exactly why it says he trains in
-        the car instead of racing it.
+        The Formula 4 part is the one thing on this page nobody else has written down. He
+        trains in the car rather than racing it, so there is no race, no results sheet and
+        no report to link to — the timeline says exactly that where the claim sits, and it
+        comes from Ryan's family.
       </p>
     </div>
   </section>
@@ -341,8 +381,7 @@ const jsonLdText = jsonLd({ ...author, url: "/proof", nationality: "NL", knowsAb
         That difference matters, and it is the same difference this whole book is about.
         Training is the invisible part. Nobody films it, nobody posts it, and it is not
         the story anyone tells at school. It is also the part that decides what happens
-        later, which is why it gets its own section here instead of being quietly rounded
-        up into something that sounds bigger.
+        later, and that is worth more than a bigger-sounding version of it.
       </p>
     </div>
   </section>
@@ -350,16 +389,31 @@ const jsonLdText = jsonLd({ ...author, url: "/proof", nationality: "NL", knowsAb
   <section class="wrap section" aria-labelledby="now">
     <h2 id="now">What he is into now</h2>
     <div class="prose">
+      {/* No "he loves it", and no tool name. Both were stated as fact on the one page
+          whose rule is that claims carry evidence, and neither is in voice.yaml — which
+          holds only note-from-ryan, the afterword and the bio. The bio says "uses AI and
+          code to turn ideas into working projects", and that is the whole of what this
+          site is allowed to say about it. What is left is a claim /proof/receipts can
+          back: the slot for that first project, still empty. */}
       <p>
-        Building things with AI. Mostly with Claude Code — describing what he wants,
-        watching it get made, then fixing what came out wrong. He loves it, and it is
-        the same loop as everything else on this site: pick one thing, make the first
-        step small enough to actually start, and keep what you build.
+        Building things with AI and code — describing what he wants, watching it get made,
+        then fixing what came out wrong. It is the same loop as everything else on this
+        site: pick one thing, make the first step small enough to actually start, and keep
+        what you build. The first project he built that way, mistakes still in it, is{" "}
+        <a href="/proof/receipts">a slot on his receipts page</a> that is still empty.
+      </p>
+      <p>
+        {/* The only body-text route to /how-this-was-made on the site. It was reachable
+            from the footer and nowhere else, which is a strange place to put the page
+            that says which parts a person wrote and which parts a model did. */}
+        This site was built the same way.{" "}
+        <a href="/how-this-was-made">How this was made</a> says which part is which, and
+        what the model got wrong.
       </p>
       <p>
         You do not need a kart or a race licence for that one. A laptop and an afternoon
-        will do, and <a href="/builds">nineteen of the builds in this book</a> are designed
-        to fit inside a single one.
+        will do — and <a href="/builds">all nineteen builds in this book</a> are 24-hour
+        builds. You start one now and you have something by tomorrow night.
       </p>
     </div>
   </section>
@@ -434,9 +488,8 @@ const jsonLdText = jsonLd({ ...author, url: "/proof", nationality: "NL", knowsAb
     <div class="prose">
       <p>
         The book tells you to keep proof of what you build, so the fair question is what the
-        author has kept. <a href="/proof/receipts">That folder is here</a>, and most of it is
-        still empty — the slots are named and the gaps are stated rather than filled in with
-        something plausible.
+        author has kept. <a href="/proof/receipts">His folder is here</a>, and most of it is
+        still empty. The empty ones say what is missing instead of making something up.
       </p>
     </div>
   </section>
@@ -602,6 +655,13 @@ const jsonLdText = jsonLd({ ...author, url: "/proof", nationality: "NL", knowsAb
     max-inline-size: var(--container-measure);
   }
 
+  /* The one in-page jump out of the timeline. Sized like the step text rather than like a
+     citation: it is an instruction to the reader, not metadata about the claim. */
+  .step__more {
+    margin-block-start: 0.5rem;
+    max-inline-size: var(--container-measure);
+  }
+
   /* ---- Source lines -------------------------------------------------------------------
      Metadata, not prose: the same meta size and muted colour as the /hill citation block,
      so a citation reads the same wherever it appears on the site. */
@@ -618,7 +678,11 @@ const jsonLdText = jsonLd({ ...author, url: "/proof", nationality: "NL", knowsAb
      reader which of the two this is; there is no colour difference to miss, and no flag,
      because a citation is not a Reality Check. */
   .step__source-label {
-    margin-inline-end: 0.35rem;
+    /* A real space sits between this and the first item in the markup, so the gap survives
+       into the text layer — "Source:RaceXpress" was correct on screen and wrong to a
+       screen reader, to a copy-paste and to anything reading the DOM as text. The margin
+       is now only the extra breathing room on top of that space. */
+    margin-inline-end: 0.15rem;
     font-weight: 700;
     letter-spacing: var(--text-label--letter-spacing);
     text-transform: uppercase;
@@ -629,9 +693,10 @@ const jsonLdText = jsonLd({ ...author, url: "/proof", nationality: "NL", knowsAb
      <a> lands in that link's accessible name, and no screen-reader user needs to hear
      "middle dot" as part of a publication title.
 
-     Both gaps are margins rather than markup whitespace. The compiler strips the newlines
-     between these spans, so a layout that assumed a collapsed space between them would
-     render "RaceXpress·Parkstad Actueel" in production and be fine in dev. */
+     This gap is a margin rather than markup whitespace, because the ::before already
+     supplies a visible character. The compiler strips the newlines between these spans, so
+     a layout that assumed a collapsed space between them would render
+     "RaceXpress·Parkstad Actueel" in production and be fine in dev. */
   .step__source-item + .step__source-item::before {
     content: "·";
     margin-inline: 0.3rem;

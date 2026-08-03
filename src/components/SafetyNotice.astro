@@ -62,7 +62,13 @@ const { tone = "beta", class: className } = Astro.props;
           This site works, and it is not finished. What is still missing is{" "}
           <a href="/updates">written down on the updates page</a> instead of hidden.
         </p>
-        <p>Nobody reads the mailbox quickly. This is not the place to get help fast.</p>
+        {/* The mailbox gets introduced before it is qualified. This used to open
+            "Nobody reads the mailbox quickly", which is a definite reference to something
+            no reader had met — the email address is in the footer, many screens down. */}
+        <p>
+          There is one email address at the bottom of this page. An adult reads it, but
+          not quickly — this is not the place to get help fast.
+        </p>
       </div>
     )
   }

@@ -63,6 +63,13 @@ async function hrefLabels(): Promise<Map<string, { kind: string; label: string }
   m.set("/offers", { kind: "Table", label: "Seven Safe First Offers" });
   m.set("/parents", { kind: "For parents and teachers", label: "Race Control" });
   m.set("/c/16", { kind: "Chapter 16", label: "The chapter that is not in the book" });
+  /* Printed page 2. `pageIndex()` has always sent it to /terms; this map never named it,
+     so pages 1, 2 and 3 all rendered "Tool · /terms" — a raw route path printed to a
+     thirteen-year-old as if it were the name of something in the book. */
+  m.set("/terms", {
+    kind: "Publishing Note",
+    label: "What this book promises, and what it does not",
+  });
 
   return (_labels = m);
 }
@@ -84,7 +91,20 @@ export async function resolvePage(page: number): Promise<PageTarget | undefined>
   const index = await pageIndex();
   const labels = await hrefLabels();
 
-  const name = (href: string) => labels.get(href) ?? { kind: "Tool", label: href };
+  /* Throws rather than falling back. The fallback used to be `{ kind: "Tool", label: href }`,
+     which meant a destination nobody had named printed its own route path as its name —
+     "Page 2 → Tool · /terms" — on the homepage, on /p/ and on every /p/[page]. A raw href
+     is never a label, and a missing one is a content bug that has to fail the build rather
+     than ship as reader copy. */
+  const name = (href: string) => {
+    const label = labels.get(href);
+    if (!label) {
+      throw new Error(
+        `page-routing: pageIndex() sends a printed page to ${href}, which hrefLabels() does not name. Add it there.`,
+      );
+    }
+    return label;
+  };
 
   const exactHref = index.get(page);
   if (exactHref) {

@@ -1,9 +1,17 @@
 /**
  * The changelog, in one place, because two things render it: /updates and /updates.xml.
  *
- * Entries are appended, never rewritten. If something on this site turns out to be wrong,
- * the correction gets its own dated entry saying what was wrong — not a quiet edit. That
- * rule is stated on the page itself, so this file has to actually keep it.
+ * Entries are appended. If something on this site turns out to be wrong, the correction
+ * gets its own dated entry saying what was wrong — not a quiet edit. That rule is stated
+ * on the page itself, so this file has to actually keep it. The 3 August entry is one:
+ * the 31 July entry named a page as carrying the crisis notice when it does not, and both
+ * the correction and the fixed sentence are here.
+ *
+ * What that rule does NOT protect is the wording. Several of these entries were written in
+ * build vocabulary — "content pipeline", "zero-line diff", "noindex", "shells", "fra1" —
+ * on a page a thirteen-year-old reads. Those were rewritten in place to say the same
+ * events in words a reader has. Same facts, same dates, plainer sentences; a changelog
+ * nobody can read is not a record of anything.
  *
  * There is a feed because there is no newsletter and there never will be: a newsletter
  * needs an email address from a thirteen-year-old, which is the one thing this site exists
@@ -19,6 +27,17 @@ export interface Entry {
 
 export const ENTRIES: Entry[] = [
   {
+    date: "2026-08-03",
+    title: "Corrections, and the karting sources went up",
+    items: [
+      "The author page now links the report for every dated result on it — four of them, written at the time by motorsport press with no stake in this book. Two entries still have no report to link to, and they now say so in the same words the Formula 4 entry uses, instead of sitting there looking sourced.",
+      "A correction to the entry below dated 31 July. It said the schools privacy page carried the same notice as the Reality Checks — that nobody is on the other end of this site. It does not, and never did. The schools page carries the shorter public-beta note, the same one the homepage carries. The Reality Checks, both AI tool pages and the parents page carry the full notice. That entry has been corrected to say so.",
+      "The parents page was recommending Scam Check in the present tense as the thing to hand a teenager who will not read the book. Scam Check is not built. It now says so on that page, the way the book page and the schools page already did.",
+      "The page-number box was printing a route path as the name of a destination: type 2 and it answered \"Page 2 → Tool · /terms\". Page 2 is the book's Publishing Note, and that is what it says now. Nothing else on this site can print a raw address as a name any more — a missing name stops the site being built rather than reaching a reader.",
+      "\"Print the agreement\" on the parents page was a button with nothing behind it: visible, orange, and inert, with the working instruction beside it hidden from everyone whose JavaScript was on. It prints now, and it prints the agreement rather than the whole page.",
+    ],
+  },
+  {
     date: "2026-08-02",
     title: "One answer about copying, instead of three",
     items: [
@@ -33,10 +52,10 @@ export const ENTRIES: Entry[] = [
     date: "2026-08-01",
     title: "The whole book is free",
     items: [
-      "All fifteen chapters now carry the complete text — the story, the Hill Remix and What It Means Now — exactly as printed. They were always extracted verbatim and sitting in the content files; only the rendering withheld them.",
-      "The book is downloadable as a PDF as well: 66 pages, no email address, nothing to fill in. Both routes are the complete book and neither is a sample.",
-      "This reverses what this site used to do. The stories and essays were held back so the printed book had something to sell. It now sells the object instead — something to hand to somebody, leave on a shelf, or finish without a notification closing it.",
-      "Repaired the content pipeline while doing it. Pointing the extraction at the re-issued print files failed on the Safe First Offers table — 2 of 7 — because the new file merges table cells differently. It reads table columns by position now. Re-running the whole extraction against the new edition produces a zero-line diff: the re-issue changed the domain and nothing else.",
+      "All fifteen chapters now carry the complete text — the story, the Hill Remix and What It Means Now — exactly as printed. The full text was always sitting in the files, word for word — the site simply was not showing it.",
+      "The book is downloadable as a PDF as well — 66 pages on screen, which is the 64-page book plus its covers. No email address, nothing to fill in. Both routes are the complete book and neither is a sample.",
+      "This reverses what this site used to do. The stories and essays were held back so the printed book had something to sell. It now sells the paper instead — something to hand to somebody, leave on a shelf, or finish without a notification closing it.",
+      "Something broke while we did this. The tool that lifts the book's words out of the print file dropped five of the Seven Safe First Offers — the table was showing 2 of 7. All seven are back. We then checked every other word on this site against the printed book, and nothing else had moved: the re-issue changed the address and nothing else.",
     ],
   },
   {
@@ -44,46 +63,48 @@ export const ENTRIES: Entry[] = [
     title: "Public beta, said out loud",
     items: [
       "This site is in public beta and says so on the homepage. It is reachable, it is crawlable, and it is not finished — so claiming otherwise on a site about not faking things was not an option.",
-      "There is no verified helpline route yet, and that is now stated rather than implied. Every Reality Check, both AI tool pages, the parents page and the schools page carry one notice: nobody is on the other end of this site, and if it is happening today, tell one adult in the room.",
-      "Fixed a real defect in bringing receipts in from another device. A file with more entries than this site keeps would have pushed a reader's own build ticks and written answers out of storage. Oversized files are now refused rather than trimmed, because choosing which of your records survive is not ours to do.",
-      "The hosting section on the schools page can finally answer itself: the site is served by Vercel from fra1, Frankfurt, inside the EEA, and you can check that in the response headers yourself. Two items about their log fields and retention are still open, and stay named as open.",
-      "Chapter 16 is now noindex and out of the sitemap until Ryan's text lands. It is still linked, still reachable, and typing 65 still works.",
+      /* Corrected on 3 August, and the correction has its own dated entry at the top of
+         this list. It used to name the schools page as carrying the crisis notice; it
+         carries the shorter beta note, which is also the one the homepage carries. */
+      "There is no checked list of helplines yet, and that is now said rather than implied. Every Reality Check, both AI tool pages and the parents page carry the same notice: nobody is on the other end of this site, and if it is happening today, tell one adult in the room. The homepage and the schools page carry the shorter version — that this is a public beta and not finished.",
+      "Fixed a real bug in bringing your receipts over from another device. A file holding more than this site keeps would have pushed your own build ticks and written answers out of the browser. Files that are too big are now refused instead of trimmed — choosing which of your records survive is not ours to do.",
+      "The schools page can now answer its own question about where this site lives: it is served by a company called Vercel, from a machine in Frankfurt, inside the EU. The page shows you how to check that yourself. Two things — exactly what that company writes down, and how long it keeps it — are still unanswered, and still named as unanswered.",
+      "Chapter 16 is hidden from Google until Ryan has actually written it, because an empty page should not turn up in search results. It is still linked here, still reachable, and typing 65 still works.",
     ],
   },
   {
     date: "2026-07-31",
     title: "Live, and the author page rewritten",
     items: [
-      "The site went live. Every printed page number, /p/1 to /p/65, was checked against the live server: all 65 resolve.",
-      "The author page at /proof was rewritten. It had been a claims table with a column of editorial notes beside it — useful to whoever was building the site, no use at all to a thirteen-year-old who had just put the book down. It is now a timeline: eight to thirteen, in order.",
-      "The Formula 4 fact is now on that page, because the exact facts arrived. At eleven he drove an F4 car built to his measurements, and he trains in it rather than racing it. That is smaller than the rumour and more interesting than it.",
-      "Still no count of wins or podiums anywhere, because a number without a source gets cut rather than rounded. The page says the results are published and tells you to go and look, which is what Chapter 7 tells you to do with anybody's claims.",
+      "The site went live. Every page number in the book, 1 to 64 — plus 65, which is one page past the end — was checked on the live site. All 65 open.",
+      "The author page at /proof was rewritten. It had been a claims table with a column of editorial notes beside it — useful to whoever was building the site, no use to you if you had just put the book down. It is now a timeline: eight to thirteen, in order.",
+      "People had been saying Ryan raced Formula 4 at eleven. He did not, and we would not print it until we knew what actually happened. Here it is: at eleven he drove an F4 car built to his measurements, and he trains in it rather than racing it. Smaller than the story going round, and more interesting.",
+      "Still no count of wins or podiums anywhere, because a number without a source gets cut rather than rounded. Chapter 7 tells you to do exactly that with anybody's claims, and these are somebody's claims too.",
     ],
   },
   {
     date: "2026-07-30",
     title: "First public build",
     items: [
-      "All 231 items from the printed book extracted and typed, so every word of book copy on this site is the book's own wording rather than a paraphrase.",
+      "Every one of the 231 pieces of the book is on this site in the book's own words, not a summary of them.",
       "The Napoleon Hill audit published at /hill: what the record actually shows about Hill, with dates and two sources, and the two self-help statistics this site refuses to quote.",
       "The author page published at /proof: the karting record, and what he is building now.",
       "The book page published at /get: 64 pages, the word count, an honest reading time, what the book has that this site does not, and who it is not for.",
-      "Scam Check and Shrink My First Step published as shells. Neither is live; both say so on the page and show exactly what they will ask for and give back.",
-      "Privacy, terms and editions published. Privacy lists what is kept in your browser key by key.",
-      "No analytics, no cookies, no third-party requests. A step in the build reads every published file and fails the release if an external host appears in it.",
+      "Scam Check and Shrink My First Step published as previews. Neither can answer you yet; both say so on the page and show exactly what they will ask for and give back.",
+      "Privacy, terms and editions published. Privacy lists everything this site puts in your browser, one line per thing.",
+      "No analytics, no cookies, no third-party requests. Before this site can go out, it is checked file by file for anything that would load from another company's server. If one turns up, it does not go out.",
     ],
   },
 ];
 
 /** Named here rather than left for a reader to discover. Each becomes a dated entry above. */
 export const MISSING = [
-  "A verified helpline route — international, plus one for the Netherlands. This is the most urgent thing missing.",
-  "The retailer link on /get. The book is sold through an outside retailer and the link is not confirmed.",
-  "The ISBNs on /editions.",
-  "What the host's access logs contain, and how long they are kept, on /schools/privacy.",
-  "The serverless function behind the two AI tools. Until it exists, both tools are shells.",
+  "A checked list of helplines you can call or message — one international, one for the Netherlands. This is the most urgent thing missing.",
+  "The shop link on the book page. The printed book is sold through an outside shop and the link is not confirmed yet.",
+  "The ISBNs on the editions page — the ID numbers a shop or a library uses to order one exact book.",
+  "What the company hosting this site writes down when you open a page, and how long it keeps it, on the schools privacy page.",
+  "The code that makes the two AI tools actually answer you. Until it exists, both tools only show you what they would ask for and what they would give back.",
   "Chapter 16, which Ryan is writing about what he learned after the book went to print.",
-  "Links to the published karting results on /proof, so you can check each one without having to go searching for it.",
 ];
 
 export const fmtDate = (iso: string): string =>

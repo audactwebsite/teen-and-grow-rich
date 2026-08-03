@@ -29,29 +29,37 @@ const SLOTS = [
   {
     what: "His first website",
     why: "Not this one. The first one, before he knew what he was doing.",
-    state: "Not supplied yet.",
+    state: "Ryan has not sent this yet.",
   },
   {
-    what: "His first Claude Code project, with the mistakes still in it",
-    why: "The mistakes are the point. A receipt is not a highlight reel, and a version that only shows the working end of the work is a portfolio, not proof.",
-    state: "Not supplied yet.",
+    what: "The first thing he built with an AI coding tool, mistakes still in it",
+    why: "The mistakes are the point. If you only show the parts that worked, that is a highlight reel, not a receipt.",
+    state: "Ryan has not sent this yet.",
+    href: "/how-this-was-made",
+    hrefLabel: "What an AI coding tool is, and what it got wrong here",
   },
   {
     what: "A photograph of the printed build receipts in his folder",
-    why: "The book asks a reader to keep a physical folder. Either the author has one or the instruction is decoration.",
-    state: "Not supplied yet.",
+    why: "The book tells you to start a real folder. Either Ryan has one too, or that instruction is just words.",
+    state: "Ryan has not sent this yet.",
   },
   {
     what: "His own Real Rich Scoreboard, filled in",
-    why: "Six areas, scored honestly, including the low ones. The worksheet refuses to total the six on purpose — a total would be a grade, and the instruction is to pick one action for the lowest area.",
-    state: "Not supplied yet.",
+    why: "Six areas, scored honestly — including the ones he would rather not show you.",
+    state: "Ryan has not sent this yet.",
+    href: "/worksheet/real-rich-scoreboard",
+    hrefLabel: "The scoreboard",
   },
   {
     what: "The karting results, as receipts rather than as a story",
-    why: "This is the one slot that is already evidenced. The results are published in independent motorsport press and every claim on the author page now carries its source.",
-    state: "Sourced. See the author page.",
+    why: "This is the one that is already backed up. The results are published in independent motorsport press, and every claim on it carries its source.",
+    state: "Sourced",
     href: "/proof",
-    hrefLabel: "The author page",
+    hrefLabel: "See the author page",
+    /* The one slot that is not empty. It used to be inferred from `href`, which broke the
+       moment an empty slot needed a link of its own — an unsent receipt was rendering in
+       the "this one is done" weight. State is stated, never derived. */
+    filled: true,
   },
 ];
 ---
@@ -61,7 +69,7 @@ const SLOTS = [
   description="The book asks every reader to keep proof of what they built. This is where the author's own proof goes. Most of it is not here yet, and that is stated rather than filled in."
 >
   <ChapterFurniture
-    eyebrow="Show the working"
+    eyebrow="Show your working"
     title="Ryan's own receipts"
     subtitle="The book asks you to keep proof. This is the author's folder, and most of it is empty."
   />
@@ -69,21 +77,22 @@ const SLOTS = [
   <div class="wrap">
     <div class="prose">
       <p class="lede">
-        Every chapter of this book ends by telling you to keep the proof of what you made.
-        It would be strange to ask that and then show nothing.
+        Build 01 of the book tells you to start a folder called REAL RICH RECEIPTS and put
+        every piece of proof inside it. It would be strange to ask that and then show
+        nothing.
       </p>
       <p>
-        So this page exists, and most of it is empty. That is not a placeholder waiting to be
-        quietly filled — it is the honest state, written down. Nothing on this site is
+        So this page exists, and most of it is empty. That is not a gap we plan to quietly
+        fill in later — it is the honest state, written down. Nothing on this site is
         allowed to invent Ryan's work or write in his voice, which is the same reason{" "}
         <a href="/c/16">Chapter 16</a> still says it is not written yet instead of being
         filled with something that sounds about right.
       </p>
       <p>
         An empty slot with a name on it tells you exactly what is missing. A full one that
-        was made up tells you nothing, and it would be the failure{" "}
-        <a href="/hill">the Hill audit</a> exists to warn about — committed here, on the page
-        whose entire subject is evidence.
+        was made up tells you nothing, and it would be exactly the thing{" "}
+        <a href="/hill">the Napoleon Hill audit</a> warns about, done by us, on the page
+        about proof.
       </p>
     </div>
   </div>
@@ -96,10 +105,15 @@ const SLOTS = [
           <div class="slot">
             <dt class="slot__what">
               {s.what}
-              <span class="slot__state" data-filled={s.href ? "yes" : "no"}>{s.state}</span>
+              <span class="slot__state" data-filled={"filled" in s && s.filled ? "yes" : "no"}>
+                {s.state}
+              </span>
             </dt>
             <dd class="slot__why">
               {s.why}
+              {/* The link is a sentence of its own, with its own verb. It used to be the
+                  bare label plus a concatenated full stop, which rendered as an orphaned
+                  noun phrase punctuated as a sentence: "The author page." */}
               {s.href && (
                 <>
                   {" "}
@@ -117,10 +131,10 @@ const SLOTS = [
     <h2 id="yours">Yours is the one that matters</h2>
     <div class="prose">
       <p>
-        This folder is the author's, and it is behind. Yours does not have to be.{" "}
-        <a href="/receipts">Your own receipts</a> are kept in this browser and printable as a
-        folder index — and printing them is the point, because a browser can clear itself and
-        paper cannot.
+        Ryan's folder is running late. Yours does not have to be.{" "}
+        <a href="/receipts">Your own receipts</a> are kept in this browser, and they print as
+        the folder index that goes in the front of your REAL RICH RECEIPTS folder — printing
+        them is the point, because a browser can clear itself and paper cannot.
       </p>
     </div>
   </section>
@@ -139,6 +153,16 @@ const SLOTS = [
 
   .prose p + p {
     margin-block-start: 1rem;
+  }
+
+  /* This page carried class="lede" with no rule behind it, so the first sentence a reader
+     sees rendered at body size and sat flush against the bottom edge of the header. Same
+     rule as /proof, which is the page this one is a wing of. */
+  .lede {
+    margin-block-start: 1.75rem;
+    font-size: var(--text-subtitle);
+    line-height: var(--text-subtitle--line-height);
+    color: var(--text-strong);
   }
 
   .section {
@@ -194,6 +218,13 @@ const SLOTS = [
     .slot__why,
     .slot__state {
       color: inherit;
+    }
+
+    /* A slot is one item in that index. Split across a page break, its title and its
+       "not sent yet" line print on one sheet and the reason on the next, with the spine
+       rule running off the bottom of the page. Same protection global.css gives .box. */
+    .slot {
+      break-inside: avoid;
     }
   }
 </style>

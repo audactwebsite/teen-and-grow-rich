@@ -79,6 +79,10 @@
   --text-strong: var(--color-tgr-dark-text);
   --text-default: var(--color-tgr-dark-text);
   --text-muted: var(--color-tgr-dark-muted);
+  /* Muted text sitting on one of the three box tints rather than on the page. In dark the
+     same value already clears AA on all three fills (5.5:1 on the Reality Check, the
+     darkest of them), so it is the light block that needs its own value. */
+  --text-muted-on-tint: var(--color-tgr-dark-muted);
   --text-heading: var(--color-tgr-dark-text);
   --text-section: var(--color-tgr-teal-bright);
   --text-eyebrow-colour: var(--color-tgr-teal-bright);
@@ -127,6 +131,13 @@
   --text-strong: var(--color-tgr-navy);
   --text-default: var(--color-tgr-ink);
   --text-muted: var(--color-tgr-muted);
+  /* #637386 is tuned for white. On the three tint washes it drops to 4.31:1 on the
+     Reality Check blue and 4.53:1 on the build cream — one failing AA outright and one
+     passing by 0.03, which is the same latent bug. This is the value muted text takes
+     inside a box: 5.9:1 on the blue, 6.0:1 on the mint, 6.2:1 on the cream, 6.6:1 on
+     white. Light theme is the print/show-an-adult theme, so it is the one that has to
+     survive being photocopied and read across a kitchen table. */
+  --text-muted-on-tint: #4f5e70;
   --text-heading: var(--color-tgr-navy);
   --text-section: var(--color-tgr-teal);
   --text-eyebrow-colour: var(--color-tgr-teal);
@@ -163,21 +174,43 @@
     scrollbar-gutter: stable;
   }
 
-  /* BottomNav is fixed to the bottom of the viewport below 768px. Without a scroll
-     reserve the browser brings a focused control to rest flush with the bottom of the
-     layout viewport and the nav paints straight over it — a textarea you cannot see
-     while typing, and a WCAG 2.2 2.4.11 Focus Not Obscured (Minimum) failure.
+  /* BottomNav is fixed to the bottom of the viewport below 768px. Without a reserve the
+     browser brings a focused control to rest flush with the bottom of the layout viewport
+     and the nav paints straight over it — a textarea you cannot see while typing, and a
+     WCAG 2.2 2.4.11 Focus Not Obscured (Minimum) failure.
+
      53px is the bar itself: 52px min-block-size plus its 1px top border. The extra 24px
-     covers the 3px focus ring at its 2px offset and the rounding Chromium applies when
-     it brings a control to rest — measured by tabbing every control on
-     /worksheet/first-offer-canvas and /c/01 at 390 × 844: at 53+8 the tallest textareas
-     still clipped by 14px, at 53+24 nothing overlaps the bar at all.
-     Above 768px the bar is display:none, so nothing is reserved. */
+     covers the 3px focus ring at its 2px offset and the rounding Chromium applies when it
+     brings a control to rest.
+
+     Two mechanisms, not one, and the reason is worth writing down. `scroll-padding` on the
+     scroll container only does anything when the browser decides to scroll: a control that
+     is already inside the layout viewport but covered by a fixed bar triggers no scroll at
+     all, and the reserve never runs. `scroll-margin` on the control itself is the
+     per-element version and is also what a scripted scrollIntoView() honours. The last
+     debrief field on /c/01 at 390 × 844 was measured 8px under the bar with only the first
+     of these in place; an earlier version of this comment claimed the opposite, as a
+     measured fact, which is how it survived. If you change the bar's height, re-measure
+     rather than trusting this paragraph. */
   @media (max-width: 767.98px) {
     html {
       scroll-padding-block-end: calc(53px + env(safe-area-inset-bottom, 0px) + 24px);
     }
+
+    a,
+    button,
+    input,
+    select,
+    summary,
+    textarea,
+    [tabindex] {
+      scroll-margin-block-end: calc(53px + env(safe-area-inset-bottom, 0px) + 24px);
+    }
   }
+
+  /* The document scroll room the reserve above needs in order to be honourable at all is
+     the footer's own bottom padding — 5rem plus the safe-area inset, which clears
+     53 + 24. Do not reduce it without re-checking this; see SiteFooter.astro. */
 
   body {
     background-color: var(--surface-page);
@@ -234,11 +267,18 @@
     border-radius: 2px;
   }
 
-  /* WCAG 2.2 — 2.5.8 Target Size (Minimum). The build checkboxes are the risk. */
+  /* WCAG 2.2 — 2.5.8 Target Size (Minimum). The build checkboxes are the risk.
+
+     a[data-tap] is in the 24px baseline as well as the 44px coarse-pointer block below.
+     It used to be only in the coarse one, which meant a link marked as a tap target was
+     23px tall with a mouse — and 2.5.8 is not a touch-only criterion. The six route rows
+     on the Real Rich Scoreboard were the measured case: two stacked block-level links per
+     row, 23.1px each, touching. */
   button,
   [role="button"],
   input[type="checkbox"],
   label:has(> input[type="checkbox"]),
+  a[data-tap],
   summary {
     min-block-size: 24px;
     min-inline-size: 24px;
@@ -432,9 +472,53 @@
     color: #444;
   }
 
+  /* Internal links too. This rule only ever matched absolute URLs, and every link this
+     site writes is root-relative — so on paper "Chapter 16", "the Napoleon Hill audit"
+     and every LOOK AT link in the teachers' rubric printed as underlined text pointing
+     nowhere. These are sheets whose whole purpose is to leave the browser and be handed
+     to somebody.
+
+     The path only, with no host in front of it. The origin is read once from
+     astro.config.mjs through src/lib/site.ts and everything derives from it; a CSS file
+     cannot import that, and a second hand-typed copy of the domain is exactly the drift
+     that put the hyphen-free spelling into the first print run. Every sheet built to be
+     handed over already carries the address in its own foot line, so the path is the part
+     that was missing. */
+  a[href^="/"]::after {
+    content: " (" attr(href) ")";
+    font-size: 9pt;
+    color: #444;
+  }
+
+  /* Two exceptions.
+
+     The footer's link list would put fifteen bracketed paths at the bottom of every sheet
+     printed from anywhere on the site. And `.sheet` is the fill-in-by-hand form — the
+     certificate, the family agreement, a worksheet — which is meant to read as a clean
+     document somebody works on with a pen. The teachers' rubric is `.print-sheet` and not
+     `.sheet`, so it keeps its addresses, which is where they were most missed. */
+  .site-footer a::after,
+  .sheet a::after {
+    content: none;
+  }
+
   /* Never break a Reality Check or a worksheet row across pages. */
   .box,
   .worksheet-row {
     break-inside: avoid;
   }
+}
+
+/* ==========================================================================
+   The site's own address, printed in prose.
+
+   The hyphen in teen-andgrowrich.com is load-bearing: the hyphen-free spelling belongs
+   to an unrelated company, and the whole book was re-issued to fix that. Left to wrap,
+   the line breaks at the hyphen and "andgrowrich.com" starts the next line on its own —
+   measured on the printed certificate at /teachers, which is a sheet an adult signs and
+   hands over. That is exactly the artefact where the wrong address gets typed.
+   ========================================================================== */
+
+.site-host {
+  white-space: nowrap;
 }
